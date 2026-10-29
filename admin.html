@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-28-3">
+<meta name="app-version" content="2026-10-29-2">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0f3d2e">
@@ -261,6 +261,24 @@ a{color:#93c5fd;}
 .seg button.P.on{background:#16a34a!important;border-color:#16a34a!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
 .seg button.A.on{background:#dc2626!important;border-color:#dc2626!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
 .seg button.L.on{background:#d97706!important;border-color:#d97706!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+</style>
+<style id="biit-final-readable">
+/* Cards are light glass: give everything inside them light-theme colours so nothing is dark-on-dark or light-on-light. */
+.card,.box,.panel,.sheet-in,.modal .card{--ink:#1e1b4b;--chalk:#eef2ff;--paper:#ffffff;--line:#c7d2fe;--mute:#475569;color:#1e1b4b!important}
+.g3 div,.card .g3>div{background:#eef2ff!important;border:1px solid #c7d2fe!important;color:#334155!important;border-radius:12px!important}
+.g3 div label,.g3 div .muted,.g3 div small{color:#334155!important;-webkit-text-fill-color:#334155!important;font-weight:700!important}
+.g3 b{color:#1e1b4b!important;-webkit-text-fill-color:#1e1b4b!important}
+.card .bar{background:#dbe4f5!important}
+.card [style*="var(--chalk)"],.card [style*="var(--paper)"]{background:#eef2ff!important;color:#1e1b4b!important}
+.card [style*="var(--ink)"]:not(.btn){color:#1e1b4b!important}
+.card table,.card td{color:#1e1b4b!important}.card td{border-color:#c7d2fe!important}
+.card th{background:#312e81!important;color:#fff!important}
+.card details,.card summary{color:#1e1b4b!important}
+.card .hist-row,.card .note,.card .wrow{color:#1e1b4b!important}
+.card .btn.red,.card button.red{color:#fff!important}
+.card ::placeholder{color:#64748b!important;opacity:1!important}
+.card input,.card select,.card textarea{background:#fff!important;color:#111827!important;-webkit-text-fill-color:#111827!important;border:1.5px solid #94a3b8!important}
+.card select option{color:#111827!important;background:#fff!important}
 </style>
 </head>
 <body>
@@ -2283,7 +2301,7 @@ function biitCompactSidebar(){if(window.matchMedia('(max-width:760px)').matches)
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-28-3';
+  var MY_VER='2026-10-29-2';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
