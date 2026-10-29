@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-29-4">
+<meta name="app-version" content="2026-10-29-5">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -678,6 +678,37 @@ html body .dash-option-sheet .muted,html body .dash-option-sheet small{color:#b4
 html body .dash-option-sheet .hist-row,html body .dash-option-sheet .msgitem{background:rgba(255,255,255,.06)!important;color:#f1f4ff!important;border:1px solid rgba(120,130,255,.28)!important}
 html body .dash-option-sheet input,html body .dash-option-sheet select,html body .dash-option-sheet textarea{background:#fff!important;color:#111827!important;-webkit-text-fill-color:#111827!important}
 html body .dash-option-sheet .btn.alt{background:rgba(255,255,255,.1)!important;color:#bfe9ff!important}
+/* v3d: sidebar on every screen, clean details sheet */
+html body #stu-side button:not(.sb-out),html body #stu-side a.sb-soc{all:unset;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;font:600 .92rem system-ui;color:#cdd6f6;position:relative}
+html body #stu-side button.sb-out{cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;font:600 .92rem system-ui;color:#fff;margin-top:auto;justify-content:center}
+html body #stu-side button.on{background:linear-gradient(90deg,#2563eb,#3b82f6)!important;color:#fff!important;box-shadow:0 8px 20px -8px #2563eb}
+html body #stu-side .sb-badge{margin-left:auto;background:#ef4444;color:#fff;font-size:.7rem;font-weight:800;border-radius:999px;min-width:20px;height:20px;display:grid;place-items:center}
+.m-burger{display:none}#m-backdrop{display:none}
+@media(max-width:899px){
+ html body #stu-side{display:flex!important;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:272px;max-width:82vw;z-index:100001;background:linear-gradient(180deg,#040924,#0e0c46)!important;border-right:1px solid var(--m-line);padding:16px 12px;gap:4px;overflow:auto;transform:translateX(-105%);transition:transform .25s ease;box-shadow:12px 0 40px rgba(0,0,0,.6)}
+ html body.stu-drawer #stu-side{transform:none}
+ html body.stu-drawer #m-backdrop{display:block;position:fixed;inset:0;z-index:100000;background:rgba(2,4,20,.6);backdrop-filter:blur(3px)}
+ #stu-side .sb-brand{display:flex;gap:10px;align-items:center;padding:4px 6px 14px}
+ #stu-side .sb-brand img{width:44px;height:44px;border-radius:50%;background:#fff}
+ #stu-side .sb-brand b{font:800 1.4rem var(--head,system-ui);color:#fff}#stu-side .sb-brand small{display:block;color:#fff;font-weight:700;font-size:.74rem}#stu-side .sb-brand em{display:block;font-style:normal;font-size:.6rem;color:#a9b6e8}
+ .m-burger{display:grid!important;place-items:center;width:42px;height:42px;flex:none;border-radius:12px;border:1px solid var(--m-line)!important;background:rgba(8,14,48,.8)!important;color:#fff!important;font-size:1.3rem;margin-right:8px;padding:0!important}
+}
+/* details sheet */
+html body .dash-option-sheet .stu-md{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+html body .dash-option-sheet .stu-md-head{display:none!important}
+html body .dash-option-sheet .stu-ring{background:conic-gradient(#38bdf8,#7c3aed,#ec4899,#38bdf8)!important}
+html body .dash-option-sheet .stu-ring>span{background:linear-gradient(135deg,#1e3a8a,#5b21b6)!important;color:#fff!important;width:100%;height:100%;border-radius:50%;display:grid;place-items:center;font:800 3rem system-ui}
+html body .dash-option-sheet .stu-ring img{border-radius:50%}
+html body .dash-option-sheet .stu-slogan{color:#a5b4fc!important;-webkit-text-fill-color:#a5b4fc!important}
+html body .dash-option-sheet .stu-row{border-color:rgba(120,130,255,.3)!important}
+html body .dash-option-sheet .stu-row small{color:#a9b6e8!important}html body .dash-option-sheet .stu-row b{color:#fff!important}
+html body .dash-option-sheet #c-prof{padding:6px!important}
+/* v3e bottom nav */
+html body #stu-nav{background:rgba(6,10,40,.94)!important;border:1px solid var(--m-line)!important;border-radius:20px!important;padding:6px!important;gap:4px!important}
+html body #stu-nav button{background:transparent!important;box-shadow:none!important;border:0!important;color:#cdd6f6!important;border-radius:14px!important}
+html body #stu-nav button i{background:rgba(255,255,255,.08)!important}
+html body #stu-nav button.on{background:linear-gradient(135deg,#2563eb,#3b82f6)!important;color:#fff!important}
+html body header.portal h1+*,html body header.portal small{display:none}
 </style>
 </head>
 <body>
@@ -2007,7 +2038,7 @@ function stuMockSidebar(me,nMsg){
    G.map((x,i)=>`<button type="button" data-gi="${i}"><span class="sb-ic">${dashIcon(x.t)}</span>${esc(x.t.replace(/^My /,''))}${/message/i.test(x.t)&&nMsg?`<span class="sb-badge">${nMsg}</span>`:''}</button>`).join('')+
    soc.map(x=>`<a class="sb-soc" href="${esc(cfg[x[0]])}" target="_blank" rel="noopener"><span class="sb-ic">${x[1]}</span>${x[2]}</a>`).join('')+
    `<button type="button" class="sb-out" onclick="logout()"><span class="sb-ic">⏻</span>Log Out</button>`;
-  side.querySelectorAll('button[data-gi]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.gi);if(i<0){if(window.__closeSheet)window.__closeSheet();window.scrollTo({top:0,behavior:'smooth'});stuSideActive(-1);return}const tiles=document.querySelectorAll('#student-dashboard button.dtile');if(window.__closeSheet)window.__closeSheet();setTimeout(()=>{if(tiles[i])tiles[i].click();stuSideActive(i)},40)});
+  side.querySelectorAll('button[data-gi]').forEach(b=>b.onclick=()=>{document.body.classList.remove('stu-drawer');const i=Number(b.dataset.gi);if(i<0){if(window.__closeSheet)window.__closeSheet();window.scrollTo({top:0,behavior:'smooth'});stuSideActive(-1);return}const tiles=document.querySelectorAll('#student-dashboard button.dtile');if(window.__closeSheet)window.__closeSheet();setTimeout(()=>{if(tiles[i])tiles[i].click();stuSideActive(i)},40)});
   document.body.appendChild(side);
   document.body.classList.add('stu-mode');
   if(!window.__mObs){window.__mObs=new MutationObserver(()=>{if(!document.body.classList.contains('dash-option-open'))stuSideActive(-1)});window.__mObs.observe(document.body,{attributes:true,attributeFilter:['class']})}
@@ -2017,6 +2048,9 @@ function stuMockHeader(me){
   const c=document.createElement('div');c.className='m-chip';
   c.innerHTML=`<span class="m-chip-av">${me.profile_photo?`<img src="${me.profile_photo}" alt="">`:esc((me.name||'?').trim().charAt(0).toUpperCase())}</span><span><b>${esc(me.name||'')}</b><small>Student</small></span>`;
   const btn=h.querySelector('button');h.insertBefore(c,btn);
+  const bg=document.createElement('button');bg.type='button';bg.className='m-burger';bg.setAttribute('aria-label','Menu');bg.textContent='☰';
+  bg.onclick=()=>document.body.classList.toggle('stu-drawer');h.insertBefore(bg,h.firstChild);
+  if(!document.getElementById('m-backdrop')){const d=document.createElement('div');d.id='m-backdrop';d.onclick=()=>document.body.classList.remove('stu-drawer');document.body.appendChild(d)}
 }
 
 async function renderStudentPortal(me){
@@ -2230,7 +2264,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-29-4';
+  var MY_VER='2026-10-29-5';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
