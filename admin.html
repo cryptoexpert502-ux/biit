@@ -291,14 +291,11 @@ a{color:#93c5fd;}
       <button class="bs-link" data-view="lib" onclick="go('lib')"><span>📚</span><b>Library</b></button>
       <button class="bs-link" data-view="prom" onclick="go('prom')"><span>📣</span><b>Promoters</b></button>
       <button class="bs-link" data-view="media" onclick="go('media')"><span>▣</span><b>Website Content</b></button>
-      <button class="bs-link" data-view="color" onclick="go('color')"><span>🎨</span><b>Colour &amp; Style</b></button>
-      <button class="bs-link" data-view="font" onclick="go('font')"><span>🔤</span><b>Font Style</b></button>
       <button class="bs-link" data-view="prof" onclick="go('prof')"><span>✏️</span><b>Edit Profile</b></button>
       <button class="bs-link" data-view="about" onclick="go('about')"><span>🏫</span><b>Coaching Details</b></button>
       <button class="bs-link" data-view="rep" onclick="go('rep')"><span>📄</span><b>PDF Reports</b></button>
       <button class="bs-link" data-view="exam" onclick="go('exam')"><span>📝</span><b>Online Exams</b></button>
       <button class="bs-link" data-view="pw" onclick="go('pw')"><span>🔑</span><b>Reset Password</b></button>
-      <button class="bs-link" data-view="face" onclick="go('face')"><span>🙂</span><b>Face Registration</b></button>
       <button class="bs-link" data-view="intro" onclick="go('intro')"><span>🎬</span><b>Welcome Screen</b></button>
       <button class="bs-link" data-view="dash" onclick="go('dash')"><span>📊</span><b>Overview</b></button>
       <button class="bs-link" data-view="crs" onclick="go('crs')"><span>📘</span><b>Courses</b></button>
@@ -329,14 +326,11 @@ a{color:#93c5fd;}
     <section id="v-teach" class="hide"></section>
     <section id="v-prom" class="hide"></section>
     <section id="v-media" class="hide"></section>
-    <section id="v-color" class="hide"></section>
     <section id="v-prof" class="hide"></section>
-    <section id="v-font" class="hide"></section>
     <section id="v-about" class="hide"></section>
     <section id="v-rep" class="hide"></section>
     <section id="v-exam" class="hide"></section>
     <section id="v-pw" class="hide"></section>
-    <section id="v-face" class="hide"></section>
     <section id="v-intro" class="hide"></section>
   </main>
 </div>
@@ -505,7 +499,7 @@ const money = n => '₹' + Number(n||0).toLocaleString('en-IN');
 const fmt = d => toDate(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone: DATE_ONLY.test(String(d)) ? 'UTC' : TZ});
 const fmtTime = d => toDate(d).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:TZ});
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const tabs = [['home','Home'],['hub','Students'],['dash','Dashboard'],['stu','Students'],['crs','Courses'],['att','Attendance'],['fee','Fees'],['msg','Messages'],['lib','Library'],['teach','Teachers'],['prom','Promoters'],['media','Website Content'],['prof','Edit Profile'],['font','Font Style'],['rep','PDF Reports'],['exam','Online Exams'],['pw','Reset Password'],['face','Face Registration'],['intro','Welcome Screen']];
+const tabs = [['home','Home'],['hub','Students'],['dash','Dashboard'],['stu','Students'],['crs','Courses'],['att','Attendance'],['fee','Fees'],['msg','Messages'],['lib','Library'],['teach','Teachers'],['prom','Promoters'],['media','Website Content'],['prof','Edit Profile'],['rep','PDF Reports'],['exam','Online Exams'],['pw','Reset Password'],['intro','Welcome Screen']];
 const DAY = 24*60*60*1000;
 const cutoff = () => new Date(Date.now()-DAY).toISOString();   // Messages older than 24 hours are hidden.
 let students = [], marks = {}, feeRows = [], courses = [], libraryRows=[], teacherRows=[], promoterRows=[];
@@ -549,18 +543,15 @@ async function viewHome(){
     {v:'lib',i:'📚',t:'Library',n:l1,c:'linear-gradient(135deg,#ffbf00,#ff7a00)'},
     {v:'prom',i:'📣',t:'Promoters',n:p1,c:'linear-gradient(135deg,#8c18ff,#e000cf)'},
     {v:'media',i:'🖼️',t:'Website Content',c:'linear-gradient(135deg,#ff1680,#ff365d)'},
-    {v:'color',i:'🎨',t:'Colour & Style',c:'linear-gradient(135deg,#0098ff,#0862e8)'},
     {v:'prof',i:'✏️',t:'Edit Profile',n:'',c:'linear-gradient(135deg,#f20b56,#c90067)'},
-    {v:'font',i:'🔤',t:'Font Style',c:'linear-gradient(135deg,#4e22ff,#a000ef)'},
     {v:'about',i:'🏫',t:'Coaching Details',c:'linear-gradient(135deg,#ffb000,#ff6900)'},
     {v:'rep',i:'📄',t:'PDF Reports',c:'linear-gradient(135deg,#9c00ff,#e000bd)'},
     {v:'exam',i:'📝',t:'Online Exams',c:'linear-gradient(135deg,#ff167e,#ff3650)'},
     {v:'pw',i:'🔑',t:'Reset Password',c:'linear-gradient(135deg,#008fff,#0758dc)'},
-    {v:'face',i:'🙂',t:'Face Registration',c:'linear-gradient(135deg,#4c24ff,#762cff)'},
     {v:'intro',i:'🎬',t:'Welcome Screen',c:'linear-gradient(135deg,#00b99b,#008c9b)'},
     {v:'dash',i:'📊',t:'Overview',c:'linear-gradient(135deg,#ffb400,#ff7300)'}
   ];
-  const quick=[['hub','🎓','Students','Manage student records'],['teach','👨‍🏫','Teachers','Manage teacher requests'],['lib','📚','Library','Library registrations'],['prom','📣','Promoters','Promoter records'],['media','🖼️','Website Content','Update institute website'],['color','🎨','Colour & Style','Customize theme'],['font','🔤','Font Style','Change fonts'],['prof','✏️','Edit Profile','Update admin profile']];
+  const quick=[['hub','🎓','Students','Manage student records'],['teach','👨‍🏫','Teachers','Manage teacher requests'],['lib','📚','Library','Library registrations'],['prom','📣','Promoters','Promoter records'],['media','🖼️','Website Content','Update institute website'],['🎨','Colour & Style','Customize theme'],['🔤','Font Style','Change fonts'],['prof','✏️','Edit Profile','Update admin profile']];
   const recentStudents=students.slice(0,4).map(st=>`<div class="neon-activity"><span class="na-icon">🎓</span><span><b>${esc(st.name||'Student record')}</b><small>${esc(st.course||st.class||'Student registration')}</small></span><em>Student</em></div>`).join('') || '<p class="neon-muted">No student records available to show yet.</p>';
   const todayLabel=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',timeZone:TZ});
   $('#v-home').innerHTML=`
@@ -587,7 +578,7 @@ async function go(v, fromPop=false){
   $('#n-home')?.classList.toggle('hide',v==='home');$('#n-hub')?.classList.toggle('hide',!stuSub.includes(v));
   try{students = await ok(sb.from('students_light').select('*').eq('status','active').order('class').order('name'))}catch(e){console.warn('students load failed',e)}
   try{courses = await ok(sb.from('courses').select('*').eq('is_active',true).order('name'))}catch(e){console.warn('courses load failed',e)}
-  const renderView=({home:viewHome,hub:viewHub,dash,stu:viewStudents,crs:viewCourses,att:viewAttendance,fee:viewFees,msg:viewMsg,lib:viewLibrary,teach:viewTeachers,prom:viewPromoters,media:viewMedia,color:viewColor,prof:viewProf,font:viewFont,about:viewAbout,rep:viewRep,exam:viewExam,pw:viewPw,face:viewFace,intro:viewIntro})[v];
+  const renderView=({home:viewHome,hub:viewHub,dash,stu:viewStudents,crs:viewCourses,att:viewAttendance,fee:viewFees,msg:viewMsg,lib:viewLibrary,teach:viewTeachers,prom:viewPromoters,media:viewMedia,prof:viewProf,about:viewAbout,rep:viewRep,exam:viewExam,pw:viewPw,intro:viewIntro})[v];
   const target=$('#v-'+v);
   if(renderView){try{await renderView()}catch(e){console.error(e);if(target){target.insertAdjacentHTML('afterbegin','<div class="card" style="border:2px solid #b91c1c"><b>Is page me error aaya:</b> '+String(e&&e.message?e.message:e).replace(/[<>&]/g,'')+'</div>')}}}
   if(target){
@@ -603,7 +594,7 @@ async function go(v, fromPop=false){
 }
 window.addEventListener('popstate',()=>{
   const v=(location.hash||'').replace('#admin-','');
-  const allowed=['home','hub','dash','stu','crs','att','fee','msg','lib','teach','prom','media','color','prof','font','about','rep','exam','pw','face','intro'];
+  const allowed=['home','hub','dash','stu','crs','att','fee','msg','lib','teach','prom','media','prof','about','rep','exam','pw','intro'];
   go(allowed.includes(v)?v:'home',true);
 });
 const classes = () => [...new Set(students.map(s=>s.class))];
@@ -779,48 +770,6 @@ function getBestPosition(maxMs){
     t=setTimeout(fin,maxMs);
   });
 }
-const FACE_SCRIPTS=['https://cdnjs.cloudflare.com/ajax/libs/face-api.js/0.22.2/face-api.min.js','https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js'];
-const FACE_MODELS=['https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights','https://justadudewhohacks.github.io/face-api.js/models'];
-const _loadScript=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('blocked or offline: '+src));document.head.appendChild(s)});
-let _faceReady=null;
-function loadFaceApi(){
-  if(_faceReady)return _faceReady;
-  _faceReady=(async()=>{
-    if(!window.faceapi){
-      let err;for(const u of FACE_SCRIPTS){try{await _loadScript(u);if(window.faceapi)break}catch(e){err=e}}
-      if(!window.faceapi)throw new Error('Could not load the face engine ('+((err&&err.message)||'blocked')+'). Check the internet connection.');
-    }
-    let last;
-    for(const U of FACE_MODELS){
-      try{await faceapi.nets.tinyFaceDetector.loadFromUri(U);await faceapi.nets.faceLandmark68TinyNet.loadFromUri(U);await faceapi.nets.faceRecognitionNet.loadFromUri(U);return}
-      catch(e){last=e}
-    }
-    throw new Error('Could not load the face models ('+((last&&last.message)||'network error')+'). Check the internet connection.');
-  })().catch(e=>{_faceReady=null;throw e});
-  return _faceReady;
-}
-// returns the averaged 128-number face code, or null (src = <video> or <img>)
-async function faceDescriptorFrom(src,frames,ctl){
-  ctl=ctl||{};const say=t=>{if(ctl.msg)ctl.msg(t)};
-  const opts=new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5});
-  const ds=[];
-  for(let i=0;i<80&&ds.length<frames;i++){
-    if(ctl.cancel)return null;
-    const all=await faceapi.detectAllFaces(src,opts).withFaceLandmarks(true).withFaceDescriptors();
-    if(all.length>1){say('Only one face should be visible.');await _sleep(300);continue}
-    if(all.length===1&&all[0].detection.score>=.6){
-      const w=src.videoWidth||src.naturalWidth||src.width||1;
-      if(all[0].detection.box.width/w<.18){say('Move a little closer to the camera.');await _sleep(300);continue}
-      ds.push(Array.from(all[0].descriptor));say('Face captured '+ds.length+' / '+frames);
-      if(ds.length<frames)await _sleep(450);continue;
-    }
-    say('Looking for the face… keep it inside the frame, in good light.');await _sleep(300);
-  }
-  if(ds.length<frames)return null;
-  const m=new Array(128).fill(0);ds.forEach(d=>d.forEach((v,k)=>{m[k]+=v/ds.length}));
-  return m.map(v=>Math.round(v*10000)/10000);
-}
-
 async function selfAttCard(){
   const box=$('#self-att');if(!box)return;
   const r=await sb.from('attendance_settings').select('*').eq('id',1);
@@ -835,12 +784,6 @@ async function selfAttCard(){
    <label class="muted">Allowed time</label><div class="row"><input type="time" id="sa-st" value="${String(c.start_time||'06:00').slice(0,5)}"><input type="time" id="sa-en" value="${String(c.end_time||'21:00').slice(0,5)}"></div>
    <button class="btn sm" style="margin-top:.5rem" onclick="saSave()">Save</button>
    <hr style="margin:.8rem 0;border:0;border-top:1px solid var(--line)">
-   <b>Face matching</b>
-   <p class="muted">When on, a person can mark attendance only if they are at the institute (GPS) and their face matches the face you registered (Face Registration tab). The face camera opens only inside the allowed distance.</p>
-   <label><input type="checkbox" id="sa-face" ${c.face_required?'checked':''}> Face matching required for self attendance</label>
-   <label class="muted">Strictness</label><select id="sa-fth">${[['0.45','Strict (fewer wrong matches)'],['0.5','Normal'],['0.55','Relaxed (easier to match)']].map(o=>`<option value="${o[0]}" ${Number(c.face_threshold||0.5)===Number(o[0])?'selected':''}>${o[1]}</option>`).join('')}</select>
-   <button class="btn sm" onclick="saFaceSave()">Save face settings</button>
-   <hr style="margin:.8rem 0;border:0;border-top:1px solid var(--line)">
    <b>Test GPS</b>
    <p class="muted">Stand where students will stand and press Test. It shows your distance from the saved institute location.</p>
    <button class="btn sm alt" onclick="saTest()">🧪 Test GPS now</button><div id="sa-test" class="muted" style="margin-top:.4rem"></div>`;
@@ -853,15 +796,6 @@ function saSetLoc(){
     window._saLoc={lat:p.coords.latitude,lng:p.coords.longitude};
     $('#sa-loc').textContent='New location ready ('+p.coords.latitude.toFixed(5)+', '+p.coords.longitude.toFixed(5)+', accuracy '+Math.round(p.coords.accuracy)+' m). Press Save.';
   },e=>toast(e.code===1?'Please allow location permission for this site.':'Could not get the location.',7000),{enableHighAccuracy:true,timeout:25000,maximumAge:0});
-}
-async function saFaceSave(){
-  if($('#sa-face').checked){
-    const fl=await sb.rpc('admin_list_faces');
-    if(!fl.error&&!(fl.data||[]).length&&!confirm('No face is registered yet. If you turn face matching on now, nobody will be able to mark attendance. Turn it on anyway?'))return;
-  }
-  const r=await sb.rpc('set_face_settings',{p_required:$('#sa-face').checked,p_threshold:Number($('#sa-fth').value)});
-  if(r.error)return toast(/function|schema cache|could not find/i.test(r.error.message||'')?'Run supabase_face_attendance.sql once in Supabase (SQL Editor), then try again.':r.error.message,8000);
-  toast('Face settings saved.');
 }
 async function saTest(){
   const el=$('#sa-test'),L=window._saLoc||{};
@@ -1353,37 +1287,7 @@ async function saveStudent(id){
   document.getElementById('edit-modal')?.remove(); toast('Student profile updated.'); go('stu');
 }
 
-// ============= WEBSITE COLOURS =============
-const THEME_PRESETS=[['#0b2a6b','#2a5bd7','#ffc83d'],['#0f3d2e','#1b5e46','#f2c94c'],['#3b1f7a','#7a45d6','#ffb703'],['#7a1020','#d63b52','#ffd166'],['#0b3c49','#1596ad','#ffb347'],['#222222','#555555','#ffcc00'],['#5a2d0c','#b8662a','#ffe08a'],['#8a1c5c','#d6409f','#ffd24d']];
-function colorCard(cfg){
-  const p=cfg.theme_primary||'#0b2a6b',sc=cfg.theme_secondary||'#2a5bd7',ac=cfg.theme_accent||'#ffc83d';
-  return `<div class="card"><b style="font-size:1.1rem">🎨 Website Colours</b><p class="muted">Pick any colours. They change the header, buttons and highlights on the student website.</p>
-  <div class="colrow"><div><label>Main</label><input type="color" id="th-p" value="${p}"></div><div><label>Secondary</label><input type="color" id="th-s" value="${sc}"></div><div><label>Accent</label><input type="color" id="th-a" value="${ac}"></div></div>
-  <div class="muted" style="margin-top:.6rem">Ready-made colour sets (tap one):</div>
-  <div class="swatches">${THEME_PRESETS.map((t,i)=>`<div class="swatch" title="Preset ${i+1}" style="background:linear-gradient(135deg,${t[0]} 50%,${t[1]} 50%)" onclick="pickPreset(${i})"></div>`).join('')}</div>
-  <div class="btns"><button class="btn" onclick="saveTheme()">Save Colours</button><button class="btn alt" onclick="resetTheme()">Reset to Default</button></div></div>`;
-}
-function pickPreset(i){const t=THEME_PRESETS[i];$('#th-p').value=t[0];$('#th-s').value=t[1];$('#th-a').value=t[2]}
-async function saveTheme(){
-  for(const [k,id] of [['theme_primary','th-p'],['theme_secondary','th-s'],['theme_accent','th-a']]){
-    const {error}=await sb.from('site_settings').upsert({setting_key:k,setting_value:$('#'+id).value},{onConflict:'setting_key'});
-    if(error) return toast('Could not save colours: '+error.message,7000);
-  }
-  const want={theme_primary:$('#th-p').value,theme_secondary:$('#th-s').value,theme_accent:$('#th-a').value};
-  const chk=await sb.from('site_settings').select('setting_key,setting_value').in('setting_key',Object.keys(want));
-  const got={};(chk.data||[]).forEach(x=>got[x.setting_key]=x.setting_value);
-  if(Object.keys(want).some(k=>String(got[k]||'').toLowerCase()!==want[k].toLowerCase()))return toast('The colours did not get stored. Run theme_public_read.sql in Supabase and try again.',9000);
-  toast('Colours saved. Students see them when they open or refresh the website.',6000);
-}
-async function resetTheme(){
-  if(!confirm('Go back to the default colours?')) return;
-  for(const k of ['theme_primary','theme_secondary','theme_accent']){const {error}=await sb.from('site_settings').upsert({setting_key:k,setting_value:''},{onConflict:'setting_key'});if(error)return toast(error.message)}
-  toast('Default colours restored.');viewMedia();
-}
-
-// ============= COLOUR / EDIT PROFILE / FONT / COACHING DETAILS (separate boxes) =============
 async function getCfg(){const rows=await ok(sb.from('site_settings').select('*'));const c={};rows.forEach(r=>c[r.setting_key]=r.setting_value);return c}
-async function viewColor(){const cfg=await getCfg();$('#v-color').innerHTML='<h2>Website Colour</h2>'+colorCard(cfg)}
 function viewProf(){
   $('#v-prof').innerHTML=`<h2>Edit Student Profile</h2><div class="card"><div class="muted">Search for any student and tap Edit.</div><input id="pq" placeholder="Search by name, phone number, or course" oninput="listProf()" style="margin:.4rem 0 0"></div><div id="plist"></div>`;listProf();
 }
@@ -1397,22 +1301,11 @@ const FONTS=[
  ['Poppins',"'Poppins'",'Poppins:wght@400;500;700'],['Roboto',"'Roboto'",'Roboto:wght@400;500;700'],['Nunito',"'Nunito'",'Nunito:wght@400;600;800'],['Montserrat',"'Montserrat'",'Montserrat:wght@400;600;800'],['Lora (serif)',"'Lora'",'Lora:wght@400;600;700'],['Playfair Display (serif)',"'Playfair Display'",'Playfair+Display:wght@400;600;800'],['Merriweather (serif)',"'Merriweather'",'Merriweather:wght@400;700'],
  ['Caveat (handwriting)',"'Caveat'",'Caveat:wght@400;600;700'],['Kalam (handwriting)',"'Kalam'",'Kalam:wght@400;700'],['Patrick Hand (handwriting)',"'Patrick Hand'",'Patrick+Hand'],['Indie Flower (handwriting)',"'Indie Flower'",'Indie+Flower'],['Shadows Into Light (handwriting)',"'Shadows Into Light'",'Shadows+Into+Light'],['Dancing Script (cursive)',"'Dancing Script'",'Dancing+Script:wght@400;600;700'],['Pacifico (cursive)',"'Pacifico'",'Pacifico'],['Satisfy (cursive)',"'Satisfy'",'Satisfy'],
  ['Hind (Hindi + English)',"'Hind'",'Hind:wght@400;500;700'],['Mukta (Hindi + English)',"'Mukta'",'Mukta:wght@400;600;700']];
-async function viewFont(){
-  const cfg=await getCfg();const cur=cfg.site_font||'',size=cfg.site_font_size||'normal';
-  if(!document.getElementById('fontprev')){const l=document.createElement('link');l.id='fontprev';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?'+FONTS.slice(1).map(f=>'family='+f[2]).join('&')+'&display=swap';document.head.appendChild(l)}
-  $('#v-font').innerHTML=`<h2>Font Style</h2><div class="card"><b>Website writing style</b><p class="muted">Choose the font (including handwriting styles) used for all text on the student website.</p>
-  <label class="muted">Font</label><select id="f-name" onchange="prevFont()">${FONTS.map((f,i)=>`<option value="${i}" ${(i===0&&!cur)||f[0]===cur?'selected':''}>${esc(f[0])}</option>`).join('')}</select>
-  <label class="muted">Text size</label><select id="f-size" onchange="prevFont()">${[['small','Small'],['normal','Normal'],['large','Large'],['xlarge','Extra Large']].map(x=>`<option value="${x[0]}" ${x[0]===size?'selected':''}>${x[1]}</option>`).join('')}</select>
-  <div id="f-prev" class="card" style="margin-top:.6rem"></div>
-  <div class="btns"><button class="btn" onclick="saveFont()">Save Font</button><button class="btn alt" onclick="resetFont()">Reset to Default</button></div></div>`;
-  prevFont();
-}
 const FONT_SIZES={small:'14px',normal:'16px',large:'18px',xlarge:'20px'};
 function prevFont(){const f=FONTS[Number($('#f-name').value)];$('#f-prev').style.fontFamily=f[1]+",sans-serif";$('#f-prev').style.fontSize=FONT_SIZES[$('#f-size').value];$('#f-prev').innerHTML='<b>BIIT Computer Institute</b><br>Welcome! Fees, attendance and messages — बीआईआईटी कंप्यूटर इंस्टीट्यूट'}
 async function saveFont(){const f=FONTS[Number($('#f-name').value)];
   for(const [k,v] of [['site_font',Number($('#f-name').value)===0?'':f[0]],['site_font_size',$('#f-size').value]]){const {error}=await sb.from('site_settings').upsert({setting_key:k,setting_value:v},{onConflict:'setting_key'});if(error)return toast('Could not save: '+error.message,7000)}
   toast('Font saved. It now shows on the student website.')}
-async function resetFont(){for(const k of ['site_font','site_font_size']){await sb.from('site_settings').upsert({setting_key:k,setting_value:''},{onConflict:'setting_key'})}toast('Default font restored.');viewFont()}
 const ABOUT_FIELDS=[['center_name','Coaching center name','text'],['center_tagline','Tagline (short line)','text'],['center_address','Address','text'],['center_phone','Phone / WhatsApp number','tel'],['center_email','Email','email'],['center_website','Website','url'],['center_timings','Timings (e.g. Mon–Sat, 8 AM – 8 PM)','text'],['center_courses','Courses offered','text'],['center_about','About the center (a few lines)','textarea']];
 async function viewAbout(){
   const cfg=await getCfg();
@@ -1637,78 +1530,6 @@ function viewRep(){
   $('#v-rep').innerHTML=`<h2>PDF Reports</h2><div class="card"><div class="muted">Download a complete PDF with every detail plus Fee, Discount, Deposited and Pending totals.</div></div>`+
   [['students','🎓 All Students','Details, fees, discount, deposited and pending'],['library','📚 Library Students','Details and library fees'],['teachers','👨‍🏫 Teachers','Details, attendance, payments'],['promoters','📣 Promoters','Admissions and commission']].map(x=>`<div class="card row"><span><b>${x[1]}</b><br><span class="muted">${x[2]}</span></span><button class="btn sm" onclick="pdfReport('${x[0]}')">📄 Download PDF</button></div>`).join('')+`<div class="card row"><span><b>🎓 Separate PDF for each Computer Student</b><br><span class="muted">One page per student: details, fees and every deposit with date and time</span></span><span class="btns"><button class="btn sm" onclick="studentPdf('all')">📄 One file (page per student)</button></span></div>`;
 }
-
-// ============= FACE REGISTRATION (admin) =============
-let _frStream=null;
-function frStop(){try{_frStream&&_frStream.getTracks().forEach(t=>t.stop())}catch(_){}_frStream=null}
-async function viewFace(){
-  frStop();
-  $('#v-face').innerHTML=`<h2>Face Registration</h2>
-  <div class="card"><div class="muted">Register each person's face once (student, library student or teacher), standing in front of the camera. A saved face cannot be changed from the student side; only the admin can delete it (from the list below). When "Face matching" is switched on in Attendance, they can mark attendance only if they are at the institute and their face matches.</div>
-  <label class="muted">Mobile number (login ID)</label><input id="fr-phone" type="tel" maxlength="10" inputmode="numeric" oninput="frWho()" placeholder="10-digit mobile number"><div id="fr-who" class="muted"></div>
-  <label class="muted">Camera</label><select id="fr-cam"><option value="user">Front camera</option><option value="environment">Back camera</option></select>
-  <video id="fr-v" autoplay playsinline muted style="width:100%;max-width:320px;border-radius:14px;background:#000;display:none;margin:.4rem 0"></video>
-  <div id="fr-st" class="muted" style="margin:.4rem 0"></div>
-  <div class="btns"><button class="btn" onclick="frCam()">📷 Open camera</button><button class="btn" onclick="frSave()">Capture &amp; Save Face</button></div>
-  <label class="muted" style="margin-top:.8rem">Or choose a clear front-face photo</label><input id="fr-file" type="file" accept="image/*"><button class="btn sm alt" onclick="frUpload()">Save face from this photo</button></div>
-  <div id="fr-list"></div>`;
-  frList();
-}
-function frWho(){
-  const ph=($('#fr-phone').value||'').replace(/\D/g,'');let t='';
-  if(ph.length===10){try{const x=(typeof students!=='undefined'?students:[]).find(z=>String(z.phone||'').replace(/\D/g,'').slice(-10)===ph);if(x)t='Student: '+x.name}catch(_){}}
-  $('#fr-who').textContent=t;
-}
-async function frCam(){
-  const st=$('#fr-st'),v=$('#fr-v');frStop();
-  try{
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('This browser cannot open the camera.');
-    _frStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:$('#fr-cam').value,width:{ideal:640}},audio:false});
-    v.srcObject=_frStream;v.style.display='block';try{await v.play()}catch(_){}
-    st.textContent='Loading face engine… (first time takes a few seconds)';await loadFaceApi();st.textContent='Camera ready. Ask the person to look straight at the camera, then press Capture & Save Face.';
-  }catch(e){st.textContent=/NotAllowed|Permission|denied/i.test((e.name||'')+' '+(e.message||''))?'Please allow the camera for this site.':(e.message||'Could not open the camera.')}
-}
-function frThumb(src){const c=document.createElement('canvas'),w=src.videoWidth||src.naturalWidth||src.width,h=src.videoHeight||src.naturalHeight||src.height,k=96/Math.max(w,h);c.width=Math.round(w*k);c.height=Math.round(h*k);c.getContext('2d').drawImage(src,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.6)}
-async function frSend(ph,desc,photo){
-  if((window._frPhones||[]).includes(ph)){toast("This person's face is already registered. Delete the old one first, then register again.",8000);return false}
-  if(!confirm('Save this face for '+ph+'?\n\nMake sure the right person is in front of the camera. Only the admin can delete it later.'))return false;
-  const r=await sb.rpc('admin_set_face',{p_phone:ph,p_descriptor:desc,p_photo:photo});
-  if(r.error){toast(/function|schema cache|could not find/i.test(r.error.message||'')?'Run supabase_face_attendance.sql once in Supabase (SQL Editor), then try again.':r.error.message,8000);return false}
-  toast('Face saved ✓',4000);frList();return true;
-}
-async function frSave(){
-  const ph=($('#fr-phone').value||'').replace(/\D/g,''),st=$('#fr-st'),v=$('#fr-v');
-  if(ph.length!==10)return toast('Enter a valid 10-digit mobile number.');
-  if(!_frStream)return toast('Open the camera first.');
-  try{
-    await loadFaceApi();
-    const d=await faceDescriptorFrom(v,3,{msg:t=>{st.textContent=t}});
-    if(!d){st.textContent='Could not see the face clearly. Try again in good light.';return}
-    if(await frSend(ph,d,frThumb(v)))st.textContent='Saved. You can register the next person.';
-  }catch(e){st.textContent=e.message||'Face registration failed.'}
-}
-async function frUpload(){
-  const ph=($('#fr-phone').value||'').replace(/\D/g,''),st=$('#fr-st'),f=($('#fr-file').files||[])[0];
-  if(ph.length!==10)return toast('Enter a valid 10-digit mobile number.');
-  if(!f)return toast('Choose a photo first.');
-  try{
-    st.textContent='Reading the photo…';await loadFaceApi();
-    const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>no(new Error('Could not open this photo.'));i.src=URL.createObjectURL(f)});
-    const d=await faceDescriptorFrom(img,1,{msg:t=>{st.textContent=t}});
-    if(!d){st.textContent='No clear single face found in this photo.';return}
-    if(await frSend(ph,d,frThumb(img)))st.textContent='Saved.';
-  }catch(e){st.textContent=e.message||'Face registration failed.'}
-}
-async function frList(){
-  const el=$('#fr-list');if(!el)return;
-  const r=await sb.rpc('admin_list_faces');
-  if(r.error){el.innerHTML='<div class="card"><b>One-time setup needed.</b><p class="muted">Run <code>supabase_face_attendance.sql</code> once in Supabase → SQL Editor, then reload this page.</p></div>';return}
-  const L=r.data||[];
-  window._frPhones=L.map(x=>String(x.phone));
-  el.innerHTML=`<div class="card"><b>Registered faces (${L.length})</b>${L.map(x=>`<div class="row" style="margin:.5rem 0;align-items:center"><span style="display:flex;gap:.6rem;align-items:center">${x.photo?`<img src="${x.photo}" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`:''}<span><b>${esc(x.phone)}</b><br><span class="muted" style="font-size:.78rem">${fmtTime(x.updated_at)}</span></span></span><button class="btn sm red" onclick="frDel('${esc(x.phone)}')">Delete</button></div>`).join('')||'<div class="muted">No face registered yet.</div>'}</div>`;
-}
-
-async function frDel(ph){if(!confirm('Delete the registered face of '+ph+'? That person will not be able to mark attendance by face until it is registered again.'))return;const r=await sb.rpc('admin_delete_face',{p_phone:ph});if(r.error)return toast(/function|schema cache|could not find/i.test(r.error.message||'')?'Run supabase_face_attendance.sql again in Supabase (SQL Editor), then try again.':r.error.message,8000);toast('Face deleted.');frList()}
 
 // ============= RESET PASSWORD (admin) =============
 const ROLE_NAMES={student:'Computer Student',library_student:'Library Student',teacher:'Teacher',promoter:'Promoter'};

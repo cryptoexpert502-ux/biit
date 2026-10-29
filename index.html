@@ -495,6 +495,52 @@ html body button.link:hover{color:#fff!important}
 html body #login select{color:#fff!important;background:rgba(255,255,255,.06)!important}
 html body #login select option{color:#111827!important}
 </style>
+<style id="biit-neon-final">
+/* BIIT neon dashboard look (matches the reference screens) */
+:root{--n-bg:#050a24;--n-card:rgba(12,20,58,.78);--n-line:rgba(99,102,255,.38);--n-cyan:#2fe0ff;--n-vio:#7c3aed;--n-pink:#ff2bd6;--n-txt:#f1f4ff;--n-mute:#a9b6e8}
+html,html body{background:#050a24!important}
+html body{color:var(--n-txt)!important;min-height:100vh;
+ background:
+  radial-gradient(ellipse 60% 40% at 90% 0%,rgba(255,43,214,.20),transparent 60%),
+  radial-gradient(ellipse 70% 45% at 0% 8%,rgba(47,224,255,.16),transparent 60%),
+  radial-gradient(circle at 20% 30%,rgba(255,255,255,.55) 0 1px,transparent 1.5px),
+  radial-gradient(circle at 75% 55%,rgba(255,255,255,.4) 0 1px,transparent 1.5px),
+  radial-gradient(circle at 45% 80%,rgba(255,255,255,.45) 0 1px,transparent 1.5px),
+  linear-gradient(160deg,#04081d 0%,#0a0f3a 55%,#1a0a3d 100%)!important;
+ background-attachment:fixed!important}
+html body header.portal{background:linear-gradient(110deg,#07104a 0%,#3b1fb8 60%,#a21caf 120%)!important;border:0!important;border-bottom:1px solid var(--n-line)!important;border-radius:0 0 26px 26px!important;box-shadow:0 12px 40px -12px rgba(124,58,237,.7)!important}
+html body header.portal h1{background:linear-gradient(90deg,#fff,#9be7ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent!important}
+html body header.portal .btn,html body header.portal button{background:rgba(255,255,255,.12)!important;color:#fff!important;border:1.5px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(6px)}
+html body .hero,html body .dhero{background:linear-gradient(120deg,rgba(7,16,74,.92),rgba(88,28,200,.85) 60%,rgba(255,43,214,.7))!important;border:1px solid var(--n-line)!important;box-shadow:0 0 0 1px rgba(47,224,255,.15),0 20px 50px -18px rgba(124,58,237,.8)!important}
+html body .box,html body .card,html body .panel,html body .stu-md,html body .profile-card,html body .dashboard-card,html body #student-dashboard>.card,html body #role-dashboard>.card,html body #login,html body #reg,html body #reset{
+ background:var(--n-card)!important;color:var(--n-txt)!important;border:1px solid var(--n-line)!important;border-top:2px solid var(--n-cyan)!important;
+ backdrop-filter:blur(14px);box-shadow:0 0 0 1px rgba(124,58,237,.12),0 18px 40px -20px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.06)!important}
+html body .card h1,html body .card h2,html body .card h3,html body .card h4,html body #student-dashboard .card h2,html body #role-dashboard .card h2,html body #login h2,html body #reg h2,html body h2,html body h3{
+ color:#fff!important;text-shadow:0 0 18px rgba(47,224,255,.45)}
+html body #login h2:after,html body #reg h2:after{background:linear-gradient(90deg,var(--n-cyan),var(--n-vio),var(--n-pink))!important}
+html body .card b,html body .card strong,html body .card td,html body .card li,html body .card p,html body .card span,html body .card div{color:inherit}
+html body .card,html body .box{color:var(--n-txt)!important}
+html body label,html body .muted,html body .card .muted,html body small{color:var(--n-mute)!important}
+html body input,html body select,html body textarea{background:rgba(5,10,36,.85)!important;color:#fff!important;border:1.5px solid rgba(99,102,255,.5)!important;border-radius:14px!important}
+html body input::placeholder,html body textarea::placeholder{color:#7f8cc4!important}
+html body input:focus,html body select:focus,html body textarea:focus{border-color:var(--n-cyan)!important;box-shadow:0 0 0 4px rgba(47,224,255,.18),0 0 18px rgba(47,224,255,.35)!important}
+html body select option{background:#0a0f3a;color:#fff}
+html body .btn,html body button.btn,html body input[type=submit]{background:linear-gradient(105deg,#1d6bff 0%,#7c3aed 55%,#ff2bd6 115%)!important;color:#fff!important;border:0!important;box-shadow:0 10px 26px -8px rgba(124,58,237,.9),0 0 22px rgba(47,224,255,.25)!important}
+html body .btn.alt,html body .password-toggle,html body .dback{background:rgba(255,255,255,.08)!important;color:#bfe9ff!important;border:1.5px solid rgba(47,224,255,.55)!important;box-shadow:none!important}
+html body .link{color:var(--n-cyan)!important}
+html body table{background:rgba(8,14,46,.7)!important;color:var(--n-txt)!important}
+html body th{background:linear-gradient(100deg,#1d2a7a,#4c1d95)!important;color:#fff!important}
+html body td{color:var(--n-txt)!important;border-bottom:1px solid rgba(99,102,255,.25)!important}
+html body tr:hover td{background:rgba(124,58,237,.18)!important}
+html body .dtile{border:1px solid rgba(255,255,255,.22)!important;box-shadow:0 14px 30px -12px rgba(0,0,0,.8),0 0 24px -6px rgba(124,58,237,.7)!important}
+html body .dtabs,html body nav,html body .nav,html body .bottom-nav,html body .tabs{background:rgba(7,12,46,.88)!important;border:1px solid var(--n-line)!important;box-shadow:0 -6px 30px -10px rgba(47,224,255,.35)!important}
+html body .dtabs button{background:rgba(255,255,255,.06)!important;color:#cfe3ff!important;border:1px solid rgba(99,102,255,.4)!important;box-shadow:none!important}
+html body .dtabs button.on{background:linear-gradient(105deg,#1d6bff,#7c3aed 60%,#ff2bd6)!important;color:#fff!important;box-shadow:0 0 18px rgba(124,58,237,.8)!important}
+html body .hist-row,html body .msgitem{background:rgba(255,255,255,.05)!important;color:var(--n-txt)!important;border-color:rgba(99,102,255,.3)!important}
+html body .stu-ring{filter:drop-shadow(0 0 14px rgba(47,224,255,.7))}
+html body #msg{background:#0b1240!important;color:#fff!important;border:1px solid var(--n-cyan)!important}
+@media(prefers-reduced-motion:no-preference){html body .card{animation:nIn .5s ease both}@keyframes nIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
+</style>
 </head>
 <body>
 <div id="intro" class="st-rise" aria-hidden="true" style="display:none">
@@ -1441,144 +1487,35 @@ function getBestPosition(maxMs){
     t=setTimeout(fin,maxMs);
   });
 }
-const FACE_SCRIPTS=['https://cdnjs.cloudflare.com/ajax/libs/face-api.js/0.22.2/face-api.min.js','https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js'];
-const FACE_MODELS=['https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights','https://justadudewhohacks.github.io/face-api.js/models'];
-const _loadScript=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('blocked or offline: '+src));document.head.appendChild(s)});
-let _faceReady=null;
-function loadFaceApi(){
-  if(_faceReady)return _faceReady;
-  _faceReady=(async()=>{
-    if(!window.faceapi){
-      let err;for(const u of FACE_SCRIPTS){try{await _loadScript(u);if(window.faceapi)break}catch(e){err=e}}
-      if(!window.faceapi)throw new Error('Could not load the face engine ('+((err&&err.message)||'blocked')+'). Check the internet connection.');
-    }
-    let last;
-    for(const U of FACE_MODELS){
-      try{await faceapi.nets.tinyFaceDetector.loadFromUri(U);await faceapi.nets.faceLandmark68TinyNet.loadFromUri(U);await faceapi.nets.faceRecognitionNet.loadFromUri(U);return}
-      catch(e){last=e}
-    }
-    throw new Error('Could not load the face models ('+((last&&last.message)||'network error')+'). Check the internet connection.');
-  })().catch(e=>{_faceReady=null;throw e});
-  return _faceReady;
-}
-// returns the averaged 128-number face code, or null (src = <video> or <img>)
-async function faceDescriptorFrom(src,frames,ctl){
-  ctl=ctl||{};const say=t=>{if(ctl.msg)ctl.msg(t)};
-  const opts=new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5});
-  const ds=[];
-  for(let i=0;i<80&&ds.length<frames;i++){
-    if(ctl.cancel)return null;
-    const all=await faceapi.detectAllFaces(src,opts).withFaceLandmarks(true).withFaceDescriptors();
-    if(all.length>1){say('Only one face should be visible.');await _sleep(300);continue}
-    if(all.length===1&&all[0].detection.score>=.6){
-      const w=src.videoWidth||src.naturalWidth||src.width||1;
-      if(all[0].detection.box.width/w<.18){say('Move a little closer to the camera.');await _sleep(300);continue}
-      ds.push(Array.from(all[0].descriptor));say('Face captured '+ds.length+' / '+frames);
-      if(ds.length<frames)await _sleep(450);continue;
-    }
-    say('Looking for the face… keep it inside the frame, in good light.');await _sleep(300);
-  }
-  if(ds.length<frames)return null;
-  const m=new Array(128).fill(0);ds.forEach(d=>d.forEach((v,k)=>{m[k]+=v/ds.length}));
-  return m.map(v=>Math.round(v*10000)/10000);
-}
-
-// full-screen face check; resolves with the face code, or null if cancelled / failed
-function faceVerifyUI(title){
-  return new Promise(async resolve=>{
-    const ov=document.createElement('div');
-    ov.style.cssText='position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;padding:1rem;color:#fff;text-align:center';
-    ov.innerHTML='<b style="font-size:1.1rem">'+(title||'Face check')+'</b><video id="face-v" autoplay playsinline muted style="width:100%;max-width:320px;border-radius:16px;background:#000;transform:scaleX(-1)"></video><div id="face-st" style="min-height:2.6em;font-size:.9rem">Opening camera…</div><button class="btn alt" id="face-x">Cancel</button>';
-    document.body.appendChild(ov);
-    const st=ov.querySelector('#face-st'),ctl={cancel:false,msg:t=>{st.textContent=t}};let stream=null,fin=false;
-    const done=v=>{if(fin)return;fin=true;try{stream&&stream.getTracks().forEach(t=>t.stop())}catch(_){}ov.remove();resolve(v)};
-    ov.querySelector('#face-x').onclick=()=>{ctl.cancel=true;done(null)};
-    try{
-      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('This phone/browser cannot open the camera.');
-      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640}},audio:false});
-      const v=ov.querySelector('#face-v');v.srcObject=stream;try{await v.play()}catch(_){}
-      st.textContent='Loading face check… (the first time takes a few seconds)';
-      await loadFaceApi();if(ctl.cancel)return;
-      st.textContent='Look straight at the camera.';
-      const d=await faceDescriptorFrom(v,3,ctl);
-      if(ctl.cancel||fin)return;
-      if(!d){toast('Could not see your face clearly. Try again in good light.',7000);return done(null)}
-      try{const k=96/Math.max(v.videoWidth,v.videoHeight),cv=document.createElement('canvas');cv.width=Math.round(v.videoWidth*k);cv.height=Math.round(v.videoHeight*k);cv.getContext('2d').drawImage(v,0,0,cv.width,cv.height);window.__facePhoto=cv.toDataURL('image/jpeg',.6)}catch(_){window.__facePhoto=null}
-      done(d);
-    }catch(e){
-      if(fin)return;
-      toast(/NotAllowed|Permission|denied/i.test((e.name||'')+' '+(e.message||''))?'Please allow the camera for this site, then try again.':(e.message||'Face check failed.'),8000);
-      done(null);
-    }
-  });
-}
-// own-face registration card (shown only while face matching is on)
-async function faceRegCard(c){
-  try{
-    if(!c)return '';
-    const r=await sb.rpc('my_face_registered');
-    if(r.error)return '';
-    if(r.data===true)return '<p class="muted" style="margin-top:.6rem">🙂 Face registered ✓</p>';
-    return `<div class="card" id="face-reg-card" style="margin-top:.6rem"><b>🙂 Register your face</b><p class="muted" style="font-size:.85rem">Face matching is on, so your face must be registered first. You can do this only once, and only while you are at the institute. You cannot change it later; only the admin can reset it.</p><button class="btn" id="face-reg-btn" onclick="registerMyFace()">Register my face</button></div>`;
-  }catch(_){return ''}
-}
-async function registerMyFace(){
-  const b=$('#face-reg-btn');
-  const reset=()=>{if(b){b.disabled=false;b.textContent='Register my face'}};
-  if(!confirm('Register your face now?\n\nYou can do this only once, and only at the institute. You cannot change it later; only the admin can reset it.'))return;
-  if(!navigator.geolocation)return toast('This phone/browser cannot share location.',6000);
-  try{
-    if(b){b.disabled=true;b.textContent='Checking your location…'}
-    const sr=await sb.from('attendance_settings').select('*').eq('id',1).maybeSingle();const c=sr.data||{};
-    let pos;
-    try{pos=await getBestPosition(18000)}
-    catch(err){reset();return toast(err&&err.code===1?'Please allow location permission for this site, then try again.':'Could not get your location. Turn on GPS and try again.',8000)}
-    const lat=pos.coords.latitude,lng=pos.coords.longitude,acc=pos.coords.accuracy;
-    if(c.lat!=null&&c.lng!=null){
-      const dist=distM(lat,lng,Number(c.lat),Number(c.lng)),rad=Number(c.radius_m||100);
-      if(dist-acc>rad){reset();return toast('You must be at the institute to register your face. You are about '+fmtDist(dist)+' away.',9000)}
-    }
-    window.__facePhoto=null;
-    const desc=await faceVerifyUI('Register your face');
-    if(!desc){reset();return}
-    if(b)b.textContent='Saving…';
-    const r=await sb.rpc('register_my_face',{p_descriptor:desc,p_photo:window.__facePhoto||null,p_lat:lat,p_lng:lng,p_accuracy:acc});
-    if(r.error){reset();return toast(/does not exist|schema cache|could not find/i.test(r.error.message||'')?'Face registration is not set up yet. Please tell the institute.':'Could not save: '+r.error.message,8000)}
-    const d=r.data||{};
-    if(!d.ok){reset();return toast(d.error||'Could not save your face.',8000)}
-    toast('Face registered ✓',5000);
-    const card=$('#face-reg-card');if(card)card.outerHTML='<p class="muted" style="margin-top:.6rem">🙂 Face registered ✓</p>';
-  }catch(e){reset();toast('Error: '+(e.message||e),7000)}
-}
 async function selfAttBox(A,me){
   try{
     window.__saMe=me;
     const r=await sb.from('attendance_settings').select('*').eq('id',1).maybeSingle();
-    const c=r.data;if(r.error||!c||!c.enabled||c.lat==null)return;
+    const c=r.data;if(r.error||!c||!c.enabled||c.lat==null)return;c.face_required=false;
     const t=new Date().toLocaleDateString('en-CA',{timeZone:TZ});
     const done=(A||[]).find(x=>String(x.date).slice(0,10)===t);
     const el=$('#c-att');if(!el)return;
-    const fc=await faceRegCard(c);
+    const fc='';
     if(fc)el.insertAdjacentHTML('beforeend',fc);
     el.insertAdjacentHTML('beforeend',done
       ?`<p class="muted" style="margin-top:.6rem">Today: <b>${esc(done.status)}</b></p>`
-      :`<button class="btn" id="self-att-btn" style="margin-top:.6rem" onclick="markMyAttendance()">📍 Mark my attendance</button><p class="muted" style="font-size:.8rem">You must be at the institute (${String(c.start_time).slice(0,5)} - ${String(c.end_time).slice(0,5)}). Allow location when asked.${c.face_required?' Your face is also checked.':''}</p>`);
+      :`<button class="btn" id="self-att-btn" style="margin-top:.6rem" onclick="markMyAttendance()">📍 Mark my attendance</button><p class="muted" style="font-size:.8rem">You must be at the institute (${String(c.start_time).slice(0,5)} - ${String(c.end_time).slice(0,5)}). Allow location when asked.</p>`);
   }catch(_){}
 }
 async function selfAttOther(role,row){
   try{
     const r=await sb.from('attendance_settings').select('*').eq('id',1).maybeSingle();
-    const c=r.data;if(r.error||!c||!c.enabled||c.lat==null)return;
+    const c=r.data;if(r.error||!c||!c.enabled||c.lat==null)return;c.face_required=false;
     const t=new Date().toLocaleDateString('en-CA',{timeZone:TZ});
     const q=role==='teacher'?sb.from('teacher_attendance').select('status').eq('teacher_id',row.id).eq('attendance_date',t).limit(1)
                             :sb.from('library_attendance').select('status').eq('library_id',row.id).eq('attendance_date',t).limit(1);
     const done=((await q).data||[])[0];
     window.__saRow=row;
     const el=$('#role-dashboard');if(!el)return;
-    const fc=await faceRegCard(c);
+    const fc='';
     el.insertAdjacentHTML('afterbegin',`<div class="card"><h2>Mark Attendance</h2>`+fc+(done
       ?`<p>Today: <b>${esc(done.status)}</b></p>`
-      :`<button class="btn" id="self-att-btn" onclick="markMyAttendance('${role}')">📍 Mark my attendance</button><p class="muted" style="font-size:.8rem">You must be at the institute (${String(c.start_time).slice(0,5)} - ${String(c.end_time).slice(0,5)}). Allow location when asked.${c.face_required?' Your face is also checked.':''}</p>`)+`</div>`);
+      :`<button class="btn" id="self-att-btn" onclick="markMyAttendance('${role}')">📍 Mark my attendance</button><p class="muted" style="font-size:.8rem">You must be at the institute (${String(c.start_time).slice(0,5)} - ${String(c.end_time).slice(0,5)}). Allow location when asked.</p>`)+`</div>`);
   }catch(_){}
 }
 async function markMyAttendance(role){
@@ -1590,7 +1527,7 @@ async function markMyAttendance(role){
   try{
     say('Checking settings…');
     const sr=await sb.from('attendance_settings').select('*').eq('id',1).maybeSingle();
-    const c=sr.data||{};
+    const c=sr.data||{};c.face_required=false;
     say('Checking your location…');
     let pos;
     try{pos=await getBestPosition(18000)}
@@ -1599,14 +1536,12 @@ async function markMyAttendance(role){
     // at the institute? (the face camera opens only after this check passes; the server checks again)
     if(c.lat!=null&&c.lng!=null){
       const dist=distM(lat,lng,Number(c.lat),Number(c.lng)),rad=Number(c.radius_m||100);
-      if(dist-acc>rad){reset();return toast('You are about '+fmtDist(dist)+' away from the institute. You must be within '+rad+' m'+(c.face_required?' for the face check and':' to')+' mark attendance.',9000)}
+      if(dist-acc>rad){reset();return toast('You are about '+fmtDist(dist)+' away from the institute. You must be within '+rad+' m'+' to'+' mark attendance.',9000)}
     }
     let desc=null;
-    if(c.face_required){say('Face check…');desc=await faceVerifyUI();if(!desc){reset();return}}
     say('Marking attendance…');
     let r=await sb.rpc('mark_attendance_checked',{p_lat:lat,p_lng:lng,p_accuracy:acc,p_role:role,p_descriptor:desc});
     if(r.error&&/does not exist|schema cache|could not find/i.test(r.error.message||'')){
-      if(c.face_required){reset();return toast('Face matching is on, but its database setup is missing. Please tell the institute.',8000)}
       r=await sb.rpc('mark_my_attendance',{p_lat:lat,p_lng:lng,p_accuracy:acc,p_role:role});
     }
     if(r.error){reset();return toast('Could not mark attendance: '+r.error.message,7000)}
