@@ -1118,7 +1118,7 @@ async function createLogin(phone,pw){
   const r=await tmp.auth.signUp({email:phone+'@student.local',password:pw});
   const existing=r.error?/already/i.test(r.error.message):(r.data.user&&r.data.user.identities&&r.data.user.identities.length===0);
   if(existing){const x=await sb.rpc('admin_user_id_for_phone',{p_phone:phone});if(x.data)return x.data;throw new Error('This mobile number already has a login. Delete the old ID first.')}
-  if(r.error)throw r.error;
+  if(r.error){if(/rate limit|over_email|too many|429/i.test((r.error.message||'')+(r.error.code||'')+(r.error.status||'')))throw new Error('Email limit reached. In Supabase go to Authentication > Sign In / Providers > Email and turn OFF Confirm email, then try again.');throw r.error}
   return r.data.user.id;
 }
 async function saveLibPromoter(id){const v=$('#lp-'+id).value||null;const {error}=await sb.from('library_registrations').update({promoter_code:v}).eq('id',id);if(error)return toast(/promoter_code/i.test(error.message)?'First run promoter_library_column.sql in the Supabase SQL Editor.':'Save failed: '+error.message,7000);toast('Promoter saved.')}
@@ -1257,7 +1257,7 @@ async function uploadLogo(){
   if(!f.type.startsWith('image/')) return toast('Select an image file (PNG, JPG, WEBP or SVG).');
   if(f.size>25*1024*1024) return toast('Logo must be smaller than 25 MB.');
   const path='logo/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const up=await sb.storage.from('site-media').upload(path.replace(/\.[^.]+$/,'.jpg'),await shrinkBlob(f,400,0.85),{upsert:false,contentType:'image/jpeg'});
+  const up=await sb.storage.from('site-media').upload(path.replace(/\.[^.]+$/,'.jpg'),await shrinkBlob(f,400,0.85),{upsert:false,contentType:'image/jpeg',cacheControl:'31536000'});
   if(up.error) return toast('Upload failed: '+up.error.message,7000);
   const url=sb.storage.from('site-media').getPublicUrl(path.replace(/\.[^.]+$/,'.jpg')).data.publicUrl;
   const {error}=await sb.from('site_settings').upsert({setting_key:'site_logo_url',setting_value:url},{onConflict:'setting_key'});
@@ -2257,10 +2257,10 @@ async function viewIntro(){
   <label class="muted">Main text</label><input id="in-text" value="${esc(text)}">
   <label class="muted">Small line under it (optional)</label><input id="in-sub" value="${esc(sub)}">
   <label class="muted">Text animation</label><select id="in-style">${INTRO_STYLES.map(x=>`<option value="${x[0]}" ${x[0]===style?'selected':''}>${x[1]}</option>`).join('')}</select>
-  <label class="muted">Background</label><select id="in-type" onchange="introTypeChanged()"><option value="none" ${type==='none'?'selected':''}>Built-in moving colours (uses your website colours)</option><option value="image" ${type==='image'?'selected':''}>My picture (slowly zooms)</option><option value="video" ${type==='video'?'selected':''}>My video</option></select>
+  <label class="muted">Background</label><select id="in-type" onchange="introTypeChanged()"><option value="none" ${type==='none'?'selected':''}>Built-in moving colours (uses your website colours)</option><option value="image" ${type==='image'?'selected':''}>My picture (slowly zooms)</option></select>
   <div id="in-file-box"></div>
   <div class="g3"><div><label class="muted">Show for (seconds)</label><input id="in-dur" type="number" min="2" max="60" value="${esc(dur)}"></div><div style="grid-column:span 2"><label class="muted">When to show</label><select id="in-mode"><option value="session" ${mode==='session'?'selected':''}>Once each time the site is opened</option><option value="always" ${mode==='always'?'selected':''}>Every page load</option></select></div></div>
-  <p class="muted">With a video, the screen closes when the video ends (or after the seconds above). Keep videos short (5–15 seconds) and under 50 MB.</p>
+  <p class="muted">Use a picture or the built-in background. Videos are turned off so the free storage limit is not used up.</p>
   <div class="btns"><button class="btn" onclick="saveIntro()">Save</button><button class="btn alt" onclick="previewIntro()">▶ Preview</button><button class="btn alt" onclick="resetIntro()">Reset to Default</button></div></div>`;
   introTypeChanged();
 }
@@ -2273,12 +2273,12 @@ function introTypeChanged(){
 async function saveIntro(){
   const t=$('#in-type').value;let url=window._introUrl||'';const f=$('#in-file')?.files?.[0];
   if(t!=='none'&&f){
-    if(t==='video'&&!f.type.startsWith('video/'))return toast('Select a video file.');
+    if(t==='video')return toast('Video is turned off to protect the free storage limit. Use a picture.',7000);
     if(t==='image'&&!f.type.startsWith('image/'))return toast('Select a picture.');
-    if(f.size>50*1024*1024)return toast('The file must be smaller than 50 MB.');
+    if(f.size>25*1024*1024)return toast('The picture must be smaller than 25 MB.');
     toast('Uploading… please wait',60000);
     const path='intro/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_').replace(/\.[^.]+$/,'')+'.jpg';
-    const up=await sb.storage.from('site-media').upload(path,await shrinkBlob(f,800,0.8),{upsert:false,contentType:'image/jpeg'});
+    const up=await sb.storage.from('site-media').upload(path,await shrinkBlob(f,800,0.8),{upsert:false,contentType:'image/jpeg',cacheControl:'31536000'});
     if(up.error)return toast('Upload failed: '+up.error.message,8000);
     url=sb.storage.from('site-media').getPublicUrl(path).data.publicUrl;
   }
@@ -2298,7 +2298,7 @@ async function resetIntro(){
 // ============= WEBSITE LINKS, BANNERS AND GALLERY =============
 async function viewMedia(){const settings=await ok(sb.from('site_settings').select('*'));const cfg={};settings.forEach(s=>cfg[s.setting_key]=s.setting_value);const media=await ok(sb.from('site_media').select('*').order('created_at',{ascending:false}).limit(100));$('#v-media').innerHTML=`<h2>Website Content</h2><div class="card"><b>Website Logo</b><p class="muted">Upload any PNG, JPG, WEBP or SVG logo (any shape, up to 25 MB; 512 × 512 px or larger looks sharpest). It replaces the logo on the student website and this panel.</p><input id="logofile" type="file" accept="image/*,application/pdf"><div class="btns"><button class="btn" onclick="uploadLogo()">Upload Logo</button><button class="btn sm alt" onclick="resetLogo()">Use Default Logo</button></div></div><div class="card"><b>Social Media Links</b><label class="muted">YouTube URL</label><input id="yt" type="url" placeholder="https://youtube.com/@yourchannel" value="${esc(cfg.youtube_url||'')}"><label class="muted">Instagram URL</label><input id="ig" type="url" placeholder="https://instagram.com/yourprofile" value="${esc(cfg.instagram_url||'')}"><label class="muted">WhatsApp group URL</label><input id="wa" type="url" placeholder="https://chat.whatsapp.com/..." value="${esc(cfg.whatsapp_url||'')}"><button class="btn" onclick="saveSiteLinks()">Save Links</button></div><div class="card"><b>Upload Banner or Gallery Image</b><label class="muted">Content Type</label><select id="mtype"><option value="banner">Website Banner</option><option value="gallery">Gallery Image</option></select><label class="muted">Caption (optional)</label><input id="mcaption" placeholder="Caption"><input id="mfile" type="file" accept="image/*,application/pdf"><button class="btn" onclick="uploadSiteMedia()">Upload Image</button><p class="muted">For a full-width HD slider, upload banners at 1920 × 1080 px (16:9). Several banners slide automatically.</p><p class="muted">Images are stored in the Supabase Storage bucket configured by the setup SQL.</p></div><h3>Uploaded Content</h3><div id="media-list">${media.map(m=>`<div class="card row"><span><b>${esc(m.media_type)}</b><br><span class="muted">${esc(m.caption||m.file_name||'')}</span></span><button class="btn sm red" onclick="deleteSiteMedia('${m.id}')">Delete</button></div>`).join('')||'<p class="muted">No uploaded images.</p>'}</div>`}
 async function saveSiteLinks(){const yt=$('#yt').value.trim(),ig=$('#ig').value.trim(),wa=($('#wa')||{value:''}).value.trim();for(const [key,value] of [['youtube_url',yt],['instagram_url',ig],['whatsapp_url',wa]]){const {error}=await sb.from('site_settings').upsert({setting_key:key,setting_value:value},{onConflict:'setting_key'});if(error)return toast('Could not save links: '+error.message)}toast('Website links saved.');}
-async function uploadSiteMedia(){const file=$('#mfile').files[0],type=$('#mtype').value,caption=$('#mcaption').value.trim();if(!file)return toast('Choose an image first.');if(!file.type.startsWith('image/'))return toast('Select an image file.');if(file.size>25*1024*1024)return toast('Image must be smaller than 25 MB.');const path=`${type}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const up=await sb.storage.from('site-media').upload(path,file,{upsert:false,contentType:file.type});if(up.error)return toast('Upload failed: '+up.error.message,7000);const pub=sb.storage.from('site-media').getPublicUrl(path).data.publicUrl;const {error}=await sb.from('site_media').insert({media_type:type,storage_path:path,public_url:pub,caption:caption||null,file_name:file.name,is_active:true});if(error)return toast('Image uploaded but metadata save failed: '+error.message,7000);toast('Image uploaded.');viewMedia()}
+async function uploadSiteMedia(){const file=$('#mfile').files[0],type=$('#mtype').value,caption=$('#mcaption').value.trim();if(!file)return toast('Choose an image first.');if(!file.type.startsWith('image/'))return toast('Select an image file.');if(file.size>25*1024*1024)return toast('Image must be smaller than 25 MB.');toast('Compressing & uploading…',60000);const path=`${type}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_').replace(/\.[^.]+$/,'')}.jpg`;let blob;try{blob=await shrinkBlob(file,1280,0.75)}catch(e){return toast('Image could not be read: '+e.message,7000)}const up=await sb.storage.from('site-media').upload(path,blob,{upsert:false,contentType:'image/jpeg',cacheControl:'31536000'});if(up.error)return toast('Upload failed: '+up.error.message,7000);const pub=sb.storage.from('site-media').getPublicUrl(path).data.publicUrl;const {error}=await sb.from('site_media').insert({media_type:type,storage_path:path,public_url:pub,caption:caption||null,file_name:file.name,is_active:true});if(error)return toast('Image uploaded but metadata save failed: '+error.message,7000);toast('Image uploaded.');viewMedia()}
 async function deleteSiteMedia(id){if(!confirm('Delete this website image?'))return;const {data,error}=await sb.from('site_media').select('storage_path').eq('id',id).maybeSingle();if(error)return toast(error.message);if(data?.storage_path){const r=await sb.storage.from('site-media').remove([data.storage_path]);if(r.error)return toast('Storage delete failed: '+r.error.message)}const d=await sb.from('site_media').delete().eq('id',id);if(d.error)return toast(d.error.message);toast('Image deleted.');viewMedia()}
 
 // ============= AUTH HELPERS =============
@@ -2339,14 +2339,14 @@ function biitCompactSidebar(){if(window.matchMedia('(max-width:760px)').matches)
     };
     document.body.appendChild(b);
   }
-  function check(){
-    fetch(location.pathname+location.search,{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){
+  function check(){if(document.hidden)return;
+    fetch(location.pathname+location.search,{cache:'no-cache'}).then(function(r){return r.text()}).then(function(t){
       var m=/<meta name="app-version" content="([^"]+)"/.exec(t);
       if(m && m[1]!==MY_VER) showBanner();
     }).catch(function(){});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',check); else check();
-  setInterval(check,600000);
+  setInterval(check,1800000);
 })();
 </script>
 </body>
