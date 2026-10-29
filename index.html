@@ -845,6 +845,7 @@ var BIITIntro=(function(){
 <div id="home-actions" style="max-width:900px;margin:1rem auto 1.5rem;padding:0 1rem;display:flex;justify-content:center;gap:.65rem;flex-wrap:wrap">
   <button class="btn" type="button" onclick="showLogin();document.getElementById('login').scrollIntoView({behavior:'smooth',block:'start'})">Login</button>
   <button class="btn alt" type="button" onclick="showReg(false);document.getElementById('reg').scrollIntoView({behavior:'smooth',block:'start'})">Register</button>
+  <button class="btn alt" type="button" onclick="shareBIIT()">📤 Share</button>
 </div>
 
 <div id="login" class="box card hide">
@@ -1949,24 +1950,31 @@ function stuBuildSidebar(me){
   window.addEventListener('resize',()=>{document.body.classList.toggle('stu-mode',window.matchMedia('(min-width:900px)').matches)});
 }
 
+function shareBIIT(){
+  const url=location.origin+location.pathname.replace(/[^\/]*$/,'');
+  const text='🎓 BIIT Computer Institute ki website par apni ID banao! Padhai, attendance, fees, exam result aur notices sab ek jagah.\n\n👉 Link kholo aur "Register" dabao:\n'+url;
+  if(navigator.share){navigator.share({title:'BIIT Computer Institute',text:text}).catch(function(){});return}
+  try{navigator.clipboard.writeText(text).then(function(){toast('Link copied! Ab WhatsApp ya kisi bhi app mein paste karke bhejo.',5000)}).catch(function(){})}catch(_){}
+  window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+}
 function stuBuildHome(me){
   if(document.getElementById('stu-home'))return;
   const hero=document.querySelector('.dhero');
   if(!hero)return;
   document.body.classList.add('stu-mode');
   const box=document.createElement('div');box.id='stu-home';
-  const items=[['c-att','📍','Mark Attendance'],['c-fee','₹','Pay Fees'],['c-exam','📊','Exam Results'],['c-msg','💬','Messages'],['c-prof','👤','My Details']];
+  const items=[['c-att','📍','Mark Attendance'],['c-fee','₹','Pay Fees'],['c-exam','📊','Exam Results'],['c-msg','💬','Messages'],['c-prof','👤','My Details'],['share','📤','Share']];
   box.innerHTML=items.map(it=>'<button class="qa" type="button" data-k="'+it[0]+'"><i>'+it[1]+'</i><span>'+it[2]+'</span></button>').join('');
-  box.querySelectorAll('button').forEach(b=>b.onclick=()=>stuGoto(b.dataset.k,null));
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>b.dataset.k==='share'?shareBIIT():stuGoto(b.dataset.k,null));
   hero.insertAdjacentElement('afterend',box);
 }
 function stuMotivation(me){
   try{
-    const key='biit-mot-hide-'+new Date().toISOString().slice(0,10);
+    const TODAY=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});const key='biit-mot-hide-'+TODAY;
     if(localStorage.getItem(key))return;
     if(document.getElementById('stu-motivation'))return;
     const first=(me&&me.name?String(me.name).trim().split(/\s+/)[0]:'Student').replace(/[<>&"]/g,'');
-    const dayIdx=Math.floor(Date.now()/86400000)%STU_QUOTES.length;
+    const dayIdx=Math.floor(Date.parse(TODAY+'T00:00:00Z')/86400000)%STU_QUOTES.length;
     const fallbackText='Namaste {naam}!\n'+STU_QUOTES[dayIdx];
     const showBox=(text)=>{
       if(document.getElementById('stu-motivation'))return;
@@ -1989,12 +1997,16 @@ function stuMotivation(me){
     };
     const ctrl=('AbortController' in window)?new AbortController():null;
     const timer=setTimeout(()=>{if(ctrl)ctrl.abort();showBox(fallbackText)},4000);
-    const ck='biit-mot-txt-'+new Date().toISOString().slice(0,10);let cached=null;try{cached=localStorage.getItem(ck)}catch(_){}
+    const ck='biit-mot-txt-'+TODAY;let cached=null;try{cached=localStorage.getItem(ck)}catch(_){}
     if(cached){clearTimeout(timer);showBox(cached);return}
     fetch(DAILY_API,{signal:ctrl?ctrl.signal:undefined}).then(r=>r.ok?r.json():null).then(d=>{
       clearTimeout(timer);
-      if(d&&d.text){try{localStorage.setItem(ck,d.text)}catch(_){}}
-      showBox(d&&d.text?d.text:fallbackText);
+      let txt=d&&d.text?d.text:null,last=null;
+      try{last=JSON.parse(localStorage.getItem('biit-mot-last')||'null')}catch(_){}
+      if(txt&&last&&last.d!==TODAY&&last.t===txt)txt=null;   // same as yesterday -> use today's different quote
+      const fin=txt||fallbackText;
+      try{localStorage.setItem(ck,fin);if(!last||last.d!==TODAY)localStorage.setItem('biit-mot-last',JSON.stringify({d:TODAY,t:fin}))}catch(_){}
+      showBox(fin);
     }).catch(()=>{clearTimeout(timer);showBox(fallbackText)});
   }catch(_){}
 }
@@ -2101,6 +2113,7 @@ function stuMock(me){
       <button type="button" data-open="exam"><i class="q4">📝</i>Online Exams</button>
       <button type="button" data-open="msg"><i class="q5">💬</i>Messages</button>
       <button type="button" data-open="det"><i class="q6">👤</i>My Details</button>
+      <button type="button" onclick="shareBIIT()" style="grid-column:1/-1;flex-direction:row;justify-content:center"><i style="background:linear-gradient(135deg,#25d366,#128c7e);color:#fff">📤</i>Share with friends – they can get an ID</button>
     </div></div>
     <div class="m-box m-not"><h3>Recent Notices <button type="button" data-open="msg">View all ›</button></h3>${noticeHtml}</div>
     <div class="m-box m-prog"><h3>Progress</h3><div class="m-prog-in">
