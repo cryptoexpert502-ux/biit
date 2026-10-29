@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-29-2">
+<meta name="app-version" content="2026-10-29-3">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0f3d2e">
@@ -1763,7 +1763,7 @@ function photoCard(mode){
    <label class="muted">Topic (optional)</label>${optSel('ph-topic',topicsList(),'-- No topic / select --','Add new topic')}
    <label class="muted">Who can take it?</label><select id="ph-aud"><option value="both">Computer Students + Library Students</option><option value="student">Computer Students only</option><option value="library_student">Library Students only</option></select><button type="button" class="btn sm alt" style="margin-top:.4rem" onclick="exAccess(null)">🔒 Student access (who can take it)</button>
    <label class="muted">Language in the photo</label><select id="ph-lang"><option value="hin+eng" selected>Hindi + English (best for most papers)</option><option value="eng">English only</option><option value="hin">Hindi only</option></select>
-   ${mode==='exam'?'<div class="btns" style="margin-bottom:.4rem"><button class="btn" style="background:#168a56;width:100%" onclick="autoPublish()">⚡ Auto Create &amp; Publish Exam</button></div><div class="muted" style="font-size:.8rem;margin-bottom:.5rem">Only set Start, End and Timer above. Questions are read from the photo and the exam is published automatically.</div>':''}<div class="btns"><button class="btn" onclick="runOcr()">Read Questions from Photo</button>${always?'':'<button class="btn alt" onclick="clearPhoto()">✕ Remove photo, type questions instead</button>'}</div><p id="ph-status" class="muted"></p><div id="ph-result"></div></div></div>`;
+   ${mode==='exam'?'<div class="btns" style="margin-bottom:.4rem"><button class="btn" style="background:#168a56;width:100%" onclick="autoPublish()">⚡ Auto Create &amp; Publish Exam</button></div><div class="muted" style="font-size:.8rem;margin-bottom:.5rem">Only set Start, End and Timer above. Questions are read from the photo and the exam is published automatically.</div>':''}<div class="btns"><button class="btn" onclick="runOcr()">Read Questions from Photo</button>${always?'':'<button class="btn alt" onclick="clearPhoto()">✕ Remove photo, type questions instead</button>'}</div><div class="btns" style="margin-top:.4rem"><button type="button" class="btn sm alt" onclick="runBasic()">🔤 Photo reader without AI (basic)</button></div><p id="ph-status" class="muted"></p><details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="ph-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('ph-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('ph-paste').value=''">Clear</button></div></details><div id="ph-result"></div></div></div>`;
 }
 window._phExtra=window._phExtra||[];
 function phFiles(){return [...((($('#ph-file')||{}).files)||[]),...(window._phExtra||[])]}
@@ -1781,7 +1781,10 @@ function exAuto(){
    <label class="muted">Exam name</label><input id="ce-title" placeholder="e.g. CCC Monthly Test">
    <label class="muted">Question paper photo</label><input id="ph-file" type="file" accept="image/*,application/pdf" multiple><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,application/pdf" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
    <div class="btns" style="margin-top:.6rem"><button id="auto-btn" class="btn" style="background:#168a56;width:100%" onclick="autoExam()">⚡ Create &amp; Publish Exam</button></div>
+   <div class="btns"><button type="button" class="btn sm alt" onclick="runBasic()">🔤 Photo reader without AI (basic)</button></div>
    <p id="ph-status" class="muted"></p>
+   <details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="px-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('px-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('px-paste').value=''">Clear</button></div></details>
+   <div id="ph-result"></div>
    <details style="margin-top:.4rem"><summary class="muted">More options (optional)</summary>
     <label class="muted">Who can take this exam?</label><select id="ce-aud"><option value="both">Computer + Library Students</option><option value="student">Computer Students only</option><option value="library_student">Library Students only</option></select><button type="button" class="btn sm alt" style="margin-top:.4rem" onclick="exAccess(null)">🔒 Student access (who can take it)</button>
     <label class="muted">Timer (minutes) - leave empty for automatic</label><input id="ce-dur" type="number" min="1" placeholder="Auto">
@@ -1796,8 +1799,8 @@ function exAuto(){
     <select id="ph-lang"><option value="hin+eng" selected>h</option></select>
     <div id="ph-panel"></div><div id="manual-box"></div>
     <select id="cq-subject"><option value=""></option></select><select id="cq-aud"><option value=""></option></select><div id="cq-count"></div><div id="cq-list"></div>
-    <div id="ph-result"></div>
    </div>`;
+  window._exAutoPage=true;
 }
 async function autoExam(){
   if(window._autoBusy)return;
@@ -1808,7 +1811,7 @@ async function autoExam(){
   const b=$('#auto-btn');if(b){b.disabled=true;b.textContent='Working… please wait'}
   try{await autoPublish()}finally{const b2=$('#auto-btn');if(b2){b2.disabled=false;b2.textContent='⚡ Create & Publish Exam'}}
 }
-function exPhoto(){$('#ex-body').innerHTML=photoCard('tab');OCRQ=[];window._phMode='tab'}
+function exPhoto(){window._exAutoPage=false;$('#ex-body').innerHTML=photoCard('tab');OCRQ=[];window._phMode='tab'}
 // Clean the photo before reading: grey, bigger, even lighting, black text on white
 async function prepOcrImage(file,mode){
   // mode 'gray': grayscale + contrast stretch (best for printed Hindi/English photos)
@@ -1909,8 +1912,8 @@ async function aiReadPhotos(files,st){
 async function runOcr(){
   const files=[...(phFiles())];if(!files.length)return toast('Choose a photo first.');
   const st=$('#ph-status');
-  const ai=await aiReadPhotos(files,st);
-  if(ai&&ai.failed){OCRQ=[];st.textContent='AI reader is not available right now. Please try again in a few minutes.';return}
+  const ai=window._noAI?null:await aiReadPhotos(files,st);
+  if(ai&&ai.failed){OCRQ=[];st.textContent='AI reader abhi kaam nahi kar raha. Neeche "Photo reader without AI (basic)" dabayein, ya questions ka text copy-paste karein.';return}
   if(ai){OCRQ=ai.qs;st.textContent=OCRQ.length?`Found ${OCRQ.length} question(s). Please check them below.`:'No questions were found in the photo.';renderOcr(ai.text);return}
   if(Array.from(files).some(f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name))){st.textContent='';return toast('PDF files can only be read by the AI reader. Please check the AI reader setup, or upload a photo instead.',8000)}
   st.textContent='Loading the reader… (first time takes a little while)';
@@ -1955,8 +1958,29 @@ function renderOcr(raw){
    <label class="muted">Correct answer (MCQ)${q.ai?' 🤖 chosen by AI - please verify':''}</label><select id="oq${i}-ans">${[0,1,2,3].map(k=>`<option value="${k}" ${q.answer===k?'selected':''}>Option ${LET[k]}</option>`).join('')}</select>
    <label class="muted">Correct answer (True / False)</label><select id="oq${i}-tf"><option value="true">True</option><option value="false" ${q.answer===1?'selected':''}>False</option></select>
    <div class="g3"><div><label class="muted">Marks</label><input id="oq${i}-marks" type="number" step="0.5" value="1"></div><div><label class="muted">Negative</label><input id="oq${i}-neg" type="number" step="0.25" value="0"></div></div></div>`).join('')}
-   ${OCRQ.length?'<div class="btns"><button class="btn" onclick="saveOcr()">'+(_ex?'Save &amp; add to this exam':'Save All to Question Bank')+'</button>'+(_ex?'<button class="btn" style="background:#168a56" onclick="saveOcr(\'publish\')">🚀 Save &amp; Publish Exam</button>':'')+'<button class="btn red" onclick="ocrClearAll()">🗑 Delete all these questions</button></div>':''}
+   ${OCRQ.length?'<div class="btns">'+(window._exAutoPage?'':'<button class="btn" onclick="saveOcr()">'+(_ex?'Save &amp; add to this exam':'Save All to Question Bank')+'</button>')+(_ex?'<button class="btn" style="background:#168a56" onclick="saveOcr(\''+(window._exAutoPage?'auto':'publish')+'\')">🚀 Save &amp; Publish Exam</button>':'')+'<button class="btn red" onclick="ocrClearAll()">🗑 Delete all these questions</button></div>':''}
    <details class="card"><summary>Text read from the photo</summary><textarea id="ph-raw" rows="8" style="width:100%">${esc(raw||'')}</textarea><button class="btn sm alt" onclick="reparseOcr()">Re-read questions from this text</button></details>`;
+}
+function runBasic(){
+  window._noAI=true;
+  const p=window._exAutoPage?autoExam():runOcr();
+  Promise.resolve(p).finally(()=>{window._noAI=false});
+}
+function pasteParse(id){
+  const t=(($('#'+id)||{}).value||'');
+  if(t.trim().length<10)return toast('Pehle questions ka text paste karein.');
+  const st=$('#ph-status');
+  if(window._exAutoPage){
+    if(!$('#ce-title').value.trim())return toast('Pehle upar Exam name likhein.');
+    const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');
+    $('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000);
+  }
+  OCRQ=parseOcrQuestions(t);
+  if(!OCRQ.length){if(st)st.textContent='Koi question nahi mila. Format: 1. Question  (A) .. (B) .. (C) .. (D) ..';return toast('Koi question nahi mila. "1. Question" ke baad (A) (B) (C) (D) options alag lines me rakhein.',7000)}
+  if(window._exAutoPage&&!($('#ce-dur').value||'').trim())$('#ce-dur').value=Math.max(10,OCRQ.length);
+  if(st)st.textContent='Found '+OCRQ.length+' question(s). Neeche check karein, phir Save kijiye.';
+  renderOcr(t);
+  setTimeout(()=>{const r=$('#ph-result');if(r&&r.scrollIntoView)r.scrollIntoView({behavior:'smooth',block:'start'})},100);
 }
 function reparseOcr(){OCRQ=parseOcrQuestions($('#ph-raw').value);renderOcr($('#ph-raw').value);$('#ph-status').textContent=`Found ${OCRQ.length} question(s).`}
 function ocrClearAll(){if(!confirm('Delete the photo and all questions read from it? Nothing has been saved yet.'))return;OCRQ=[];try{$('#ph-file').value=''}catch(_){}$('#ph-result').innerHTML='';$('#ph-status').textContent='Photo and its questions removed.'}
@@ -1997,6 +2021,7 @@ async function autoPublish(){
   try{
     await runOcr();
     if(!OCRQ.length)return;
+    if(window._noAI){toast('Basic reader se questions mile. Neeche check/sudhaar karke Save & Publish dabayein.',7000);return}
     const aiN=OCRQ.filter(q=>q.ai&&q.answer!==null).length;window._aiNote=aiN?aiN+' answer(s) were worked out by AI (not printed in the paper). You can verify them in Question Bank.':'';
     if(!($('#ce-dur').value||'').trim())$('#ce-dur').value=Math.max(10,OCRQ.length);
     const miss=OCRQ.filter(q=>q.answer===null&&q.options.filter(Boolean).length>=2).length;
@@ -2007,6 +2032,7 @@ async function autoPublish(){
 function pubBar(){return '<div class="btns pubbar" style="margin:.7rem 0"><button class="btn" style="background:#168a56" onclick="saveExam(true)">🚀 Publish Exam</button><button class="btn alt" onclick="saveExam(false)">Save as Draft</button></div>'}
 function startNow(){const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');$('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000);toast('Start = now, End = after 24 hours. Change it if needed.')}
 function exCreate(){
+  window._exAutoPage=false;
   const subs=subjectsList();
   $('#ex-body').innerHTML=`<div class="card"><b>New Exam</b>
    <label class="muted">Exam name</label><input id="ce-title" placeholder="e.g. CCC Monthly Test">
@@ -2301,7 +2327,7 @@ function biitCompactSidebar(){if(window.matchMedia('(max-width:760px)').matches)
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-29-2';
+  var MY_VER='2026-10-29-3';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
