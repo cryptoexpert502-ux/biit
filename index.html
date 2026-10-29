@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-29-7">
+<meta name="app-version" content="2026-10-29-8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -736,6 +736,34 @@ body:has(#login:not(.hide)) #lg-bg,body:has(#reg:not(.hide)) #lg-bg,body:has(#re
 #lg-bg .g9{left:12%;bottom:-10%;animation-delay:-12s}#lg-bg .g10{left:40%;bottom:-10%;animation-delay:-1s;color:rgba(120,255,160,.55)}
 @keyframes lgRise{0%{transform:translateY(0) rotate(-6deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-115vh) rotate(8deg);opacity:0}}
 @media(prefers-reduced-motion:reduce){#lg-bg *{animation:none!important}}
+/* v3h: animated motivation */
+#stu-mock .mc-tag{font:700 .68rem system-ui;background:linear-gradient(90deg,#7c3aed,#ec4899);padding:3px 9px;border-radius:999px;margin-left:6px;vertical-align:middle}
+#stu-mock .mc-stage{position:relative;overflow:hidden;min-height:210px;border-radius:20px;padding:22px 20px 18px;color:#fff;border:2px solid rgba(255,255,255,.75);
+ background-size:300% 300%;animation:mcShift 8s ease infinite,mcGlow 2.6s ease-in-out infinite;display:flex;flex-direction:column;justify-content:center;gap:10px;flex:1}
+#stu-mock .mc-stage.c0{background-image:linear-gradient(120deg,#13317a,#2b4fd0,#4f7bff,#13317a)}
+#stu-mock .mc-stage.c1{background-image:linear-gradient(120deg,#1b3a6d,#25706b,#3aa17a,#1b3a6d)}
+#stu-mock .mc-stage.c2{background-image:linear-gradient(120deg,#5b1d7a,#b02f8f,#ec4899,#5b1d7a)}
+#stu-mock .mc-stage.c3{background-image:linear-gradient(120deg,#7a3a0d,#d9741a,#f5b942,#7a3a0d)}
+@keyframes mcShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes mcGlow{0%,100%{box-shadow:0 0 14px rgba(120,160,255,.35)}50%{box-shadow:0 0 34px rgba(160,120,255,.8)}}
+#stu-mock .mc-qm{position:absolute;left:12px;top:-6px;font:900 5rem/1 Georgia,serif;color:rgba(255,255,255,.18)}
+#stu-mock .mc-t{position:relative;margin:0;font:700 1.18rem/1.55 'DM Sans',system-ui;min-height:4.6em;text-shadow:0 2px 10px rgba(0,0,0,.45)}
+#stu-mock .mc-t:after{content:"";display:inline-block;width:2px;height:1.1em;margin-left:3px;background:#fff;vertical-align:-.15em;animation:mcCur .8s steps(1) infinite}
+@keyframes mcCur{50%{opacity:0}}
+#stu-mock .mc-w{position:relative;color:#e4ebff;font-weight:600;transition:opacity .5s}
+#stu-mock .mc-stage.in .mc-t{animation:mcIn .6s ease both}
+#stu-mock .mc-stage.in .mc-qm{animation:mcPop .7s cubic-bezier(.2,1.6,.4,1) both}
+#stu-mock .mc-stage.out{animation:mcOut .45s ease both,mcShift 8s ease infinite}
+@keyframes mcIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes mcPop{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes mcOut{to{opacity:0;transform:translateX(-24px) scale(.97)}}
+#stu-mock .mc-sp{position:absolute;bottom:-20px;font-style:normal;font-size:1.1rem;opacity:0;animation:mcSpark 5.5s linear infinite;pointer-events:none}
+@keyframes mcSpark{0%{transform:translateY(0) scale(.6) rotate(0);opacity:0}15%{opacity:.95}100%{transform:translateY(-250px) scale(1.2) rotate(40deg);opacity:0}}
+#stu-mock .mc-dots{display:flex;gap:7px;justify-content:center;margin-top:12px}
+#stu-mock .mc-dots b{width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.35);cursor:pointer;transition:all .3s}
+#stu-mock .mc-dots b.on{width:26px;background:#fff;box-shadow:0 0 10px #fff}
+@media(prefers-reduced-motion:reduce){#stu-mock .mc-stage,#stu-mock .mc-sp{animation:none!important}}
+#stu-mock .m-mot .mc-stage{flex:1 1 100%}#stu-mock .m-mot .mc-dots{flex:1 1 100%;width:100%}
 </style>
 </head>
 <body>
@@ -1953,7 +1981,7 @@ function stuMotivation(me){
       parts.forEach((p,i)=>{const c=document.createElement('div');c.className='mot-card';c.innerHTML='<span class="q">“</span>';p.forEach(l=>{const d=document.createElement('div');d.textContent=l;c.appendChild(d)});const w=document.createElement('span');w.className='who';w.textContent=i===0?'— BIIT Family':'— Aap ke liye';c.appendChild(w);wrap.appendChild(c)});
       box.querySelector('.mot-x').onclick=function(){localStorage.setItem(key,'1');box.remove()};
       const slot=document.getElementById('m-mot-slot');
-      if(slot){slot.replaceChildren(box);return}
+      if(slot){stuMotStart(slot,parts.map(p=>p.join(' ')).concat(stuMotExtra()),true);return}
       const hero=document.querySelector('.dhero');
       if(hero){hero.insertAdjacentElement('afterend',box);return}
       const anchor=document.querySelector('#c-prof');
@@ -1989,6 +2017,43 @@ function stuMockExam(){
   if(Date.parse(up.start_at)<=now){v.textContent='Open now';s.textContent=up.title}
   else{v.textContent=new Date(up.start_at).toLocaleDateString('en-GB',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'});s.textContent=up.title}
 }
+function stuMotExtra(){
+  const day=Math.floor(Date.now()/86400000);const all=STU_HI.concat(STU_QUOTES.map(q=>String(q).replace('{naam}','').trim()));
+  const out=[];for(let i=0;i<5;i++)out.push(all[(day*3+i*7)%all.length]);return out;
+}
+function stuMotStart(slot,quotes,ai){
+  if(!slot)return;clearTimeout(window.__motT);clearInterval(window.__motI);
+  const list=[...new Set((quotes||[]).map(q=>String(q||'').replace(/\s+/g,' ').trim()).filter(Boolean))].slice(0,8);
+  if(!list.length)return;
+  const sp=['✨','⭐','💫','🌟','✨','💡'];
+  slot.innerHTML=`<div class="m-mot-h">✨ Today's Motivation${ai?' <span class="mc-tag">AI Generated</span>':''}</div>
+  <div class="mc-stage c0"><span class="mc-qm">“</span><p class="mc-t"></p><small class="mc-w">— BIIT Family</small>${sp.map((s,i)=>`<i class="mc-sp" style="left:${8+i*15}%;animation-delay:${i*0.9}s">${s}</i>`).join('')}</div>
+  <div class="mc-dots">${list.map((_,i)=>`<b data-i="${i}"></b>`).join('')}</div>`;
+  const stage=slot.querySelector('.mc-stage'),t=slot.querySelector('.mc-t'),w=slot.querySelector('.mc-w'),dots=[...slot.querySelectorAll('.mc-dots b')];
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const seg=(s)=>{try{return Array.from(new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(s),x=>x.segment)}catch(_){return Array.from(s)}};
+  const who=['— BIIT Family','— आपके लिए','— BIIT Family','— आपके लिए'];
+  let i=0;
+  function show(n){
+    if(!document.body.contains(slot))return;
+    i=(n+list.length)%list.length;
+    stage.className='mc-stage c'+(i%4);void stage.offsetWidth;stage.classList.add('in');
+    dots.forEach((d,k)=>d.classList.toggle('on',k===i));
+    w.textContent=who[i%4];w.style.opacity=0;
+    const chars=seg(list[i]);
+    if(reduce){t.textContent=list[i];w.style.opacity=1;window.__motT=setTimeout(()=>show(i+1),6500);return}
+    t.textContent='';let k=0;
+    window.__motI=setInterval(()=>{
+      if(!document.body.contains(slot)){clearInterval(window.__motI);return}
+      if(document.hidden)return;
+      k++;t.textContent=chars.slice(0,k).join('');
+      if(k>=chars.length){clearInterval(window.__motI);w.style.opacity=1;window.__motT=setTimeout(()=>{stage.classList.remove('in');stage.classList.add('out');window.__motT=setTimeout(()=>show(i+1),450)},3200)}
+    },chars.length>70?22:34);
+  }
+  dots.forEach(d=>d.onclick=()=>{clearTimeout(window.__motT);clearInterval(window.__motI);show(Number(d.dataset.i))});
+  show(0);
+}
+
 function stuMock(me){
   const root=document.getElementById('student-dashboard');if(!root||!window.__stuGroups)return;
   const D=window.__stuData||{A:[],f:{total_fees:0,paid:0,pending:0},msgs:[]};
@@ -2049,7 +2114,9 @@ function stuMock(me){
   clearInterval(window.__mClock);window.__mClock=setInterval(()=>{const t=document.getElementById('m-time');if(!t){clearInterval(window.__mClock);return}t.textContent='🕙 '+stuTimeTxt();const d=document.getElementById('m-date');if(d)d.textContent=stuDateTxt()},30000);
   // AI motivation (if it already arrived) goes into the right panel
   const mot=document.getElementById('stu-motivation');const slot=document.getElementById('m-mot-slot');
-  if(mot&&slot&&!slot.contains(mot))slot.replaceChildren(mot);
+  let aiQ=null;
+  if(mot&&slot&&!slot.contains(mot)){aiQ=[...mot.querySelectorAll('.mot-card')].map(c=>[...c.querySelectorAll('div')].map(d=>d.textContent).join(' '));mot.remove()}
+  if(slot)stuMotStart(slot,aiQ&&aiQ.length?aiQ.concat(stuMotExtra()):[hi,hi2].concat(stuMotExtra()),!!(aiQ&&aiQ.length));
   stuMockExam();
   stuMockSidebar(me,msgs.length);
   stuMockHeader(me);
@@ -2291,7 +2358,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-29-7';
+  var MY_VER='2026-10-29-8';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
