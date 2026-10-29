@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-29-5">
+<meta name="app-version" content="2026-10-29-7">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -559,7 +559,7 @@ html body #stu-mock{display:block;color:#f1f4ff;font-family:'DM Sans',system-ui,
 #stu-mock .m-when{text-align:right;font-size:.85rem;color:#e6ecff;display:flex;flex-direction:column;gap:6px}
 #stu-mock .m-when span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:4px 12px;border-radius:999px;align-self:flex-end}
 #stu-mock blockquote{grid-column:1/-1;margin:10px 0 0;max-width:430px;font-size:1.1rem;line-height:1.5;font-weight:600;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
-#stu-mock .m-stats{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+#stu-mock .m-stats{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,260px));gap:10px;margin-top:18px}
 #stu-mock .m-stat{display:flex;gap:10px;align-items:center;padding:12px;border-radius:18px;background:rgba(8,14,48,.78);border:1px solid var(--m-line);backdrop-filter:blur(8px);min-width:0}
 #stu-mock .m-stat i{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:1.2rem;color:#fff}
 #stu-mock .s1{background:linear-gradient(135deg,#2563eb,#6366f1)}#stu-mock .s2{background:linear-gradient(135deg,#16a34a,#22c55e)}#stu-mock .s3{background:linear-gradient(135deg,#7c3aed,#c026d3)}#stu-mock .s4{background:linear-gradient(135deg,#f97316,#fb923c)}
@@ -649,7 +649,7 @@ html body #stu-mock{display:block;color:#f1f4ff;font-family:'DM Sans',system-ui,
  #stu-mock .m-when{grid-column:1/-1;flex-direction:row;justify-content:space-between;text-align:left;align-items:center}
  #stu-mock .m-av{width:58px;height:58px}#stu-mock .m-greet h1{font-size:1.5rem}
  #stu-mock blockquote{font-size:.95rem}
- #stu-mock .m-stats{grid-template-columns:1fr 1fr}
+ #stu-mock .m-stats{grid-template-columns:1fr 1fr!important}
  #stu-mock .m-row{grid-template-columns:1fr}
  #stu-mock .m-foot{display:none}
  #stu-mock .m-qa-grid{grid-template-columns:repeat(3,1fr)}
@@ -709,9 +709,38 @@ html body #stu-nav button{background:transparent!important;box-shadow:none!impor
 html body #stu-nav button i{background:rgba(255,255,255,.08)!important}
 html body #stu-nav button.on{background:linear-gradient(135deg,#2563eb,#3b82f6)!important;color:#fff!important}
 html body header.portal h1+*,html body header.portal small{display:none}
+/* v3f: no "All options" tiles */
+html body #student-dashboard .dtiles,html body #student-dashboard .m-all-h,html body #m-all-h{display:none!important}
+/* v3g: unique login background */
+#lg-bg{display:none}
+html body:has(#login:not(.hide)),html body:has(#reg:not(.hide)),html body:has(#reset:not(.hide)){background:transparent!important;background-image:none!important}
+html:has(#login:not(.hide)),html:has(#reg:not(.hide)),html:has(#reset:not(.hide)){background:#03061a!important}
+body:has(#login:not(.hide)) #lg-bg,body:has(#reg:not(.hide)) #lg-bg,body:has(#reset:not(.hide)) #lg-bg{display:block;position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
+ background:radial-gradient(120% 70% at 50% 0%,#1b0f55 0%,#0a0d3a 45%,#03061a 100%)}
+#lg-bg .o1,#lg-bg .o2,#lg-bg .o3{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;animation:lgFloat 16s ease-in-out infinite}
+#lg-bg .o1{width:46vmax;height:46vmax;left:-14vmax;top:-12vmax;background:#3b2bff}
+#lg-bg .o2{width:40vmax;height:40vmax;right:-12vmax;top:18vh;background:#e11d99;animation-delay:-5s}
+#lg-bg .o3{width:34vmax;height:34vmax;left:20vw;bottom:-16vmax;background:#06b6d4;animation-delay:-9s}
+@keyframes lgFloat{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(4vmax,3vmax) scale(1.12)}}
+#lg-bg .floor{position:absolute;left:-50%;right:-50%;bottom:-8vh;height:55vh;transform:perspective(420px) rotateX(62deg);transform-origin:50% 100%;
+ background:repeating-linear-gradient(90deg,rgba(79,209,255,.55) 0 1px,transparent 1px 60px),repeating-linear-gradient(0deg,rgba(236,72,153,.5) 0 1px,transparent 1px 48px);
+ -webkit-mask-image:linear-gradient(0deg,#000 10%,transparent 85%);mask-image:linear-gradient(0deg,#000 10%,transparent 85%);animation:lgGrid 6s linear infinite}
+@keyframes lgGrid{from{background-position:0 0,0 0}to{background-position:0 0,0 48px}}
+#lg-bg .stars{position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 28% 62%,#cfe,transparent),radial-gradient(1.5px 1.5px at 47% 12%,#fff,transparent),radial-gradient(1px 1px at 66% 38%,#fff,transparent),radial-gradient(1.5px 1.5px at 82% 20%,#fde,transparent),radial-gradient(1px 1px at 91% 58%,#fff,transparent),radial-gradient(1px 1px at 8% 78%,#fff,transparent),radial-gradient(1.5px 1.5px at 55% 74%,#cfe,transparent);opacity:.75;animation:lgTw 5s ease-in-out infinite}
+@keyframes lgTw{50%{opacity:.35}}
+#lg-bg .g{position:absolute;font:800 1.1rem 'Courier New',monospace;color:rgba(160,200,255,.55);text-shadow:0 0 14px rgba(80,160,255,.8);animation:lgRise 14s linear infinite;white-space:nowrap}
+#lg-bg .g1{left:6%;bottom:-10%;animation-delay:0s;font-size:1.6rem}#lg-bg .g2{left:20%;bottom:-10%;animation-delay:-3s;color:rgba(255,150,220,.55)}
+#lg-bg .g3{left:34%;bottom:-10%;animation-delay:-6s}#lg-bg .g4{left:48%;bottom:-10%;animation-delay:-9s;font-size:1.8rem;color:rgba(255,215,120,.6)}
+#lg-bg .g5{left:60%;bottom:-10%;animation-delay:-2s;color:rgba(120,255,210,.55)}#lg-bg .g6{left:72%;bottom:-10%;animation-delay:-7s}
+#lg-bg .g7{left:84%;bottom:-10%;animation-delay:-11s;color:rgba(255,150,220,.55)}#lg-bg .g8{left:92%;bottom:-10%;animation-delay:-4s;font-size:1.5rem}
+#lg-bg .g9{left:12%;bottom:-10%;animation-delay:-12s}#lg-bg .g10{left:40%;bottom:-10%;animation-delay:-1s;color:rgba(120,255,160,.55)}
+@keyframes lgRise{0%{transform:translateY(0) rotate(-6deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-115vh) rotate(8deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){#lg-bg *{animation:none!important}}
 </style>
 </head>
 <body>
+<div id="lg-bg" aria-hidden="true"><i class="o1"></i><i class="o2"></i><i class="o3"></i><div class="floor"></div><div class="stars"></div>
+<b class="g g1">&lt;/&gt;</b><b class="g g2">{ }</b><b class="g g3">01</b><b class="g g4">₹</b><b class="g g5">C++</b><b class="g g6">Python</b><b class="g g7">HTML</b><b class="g g8">AI</b><b class="g g9">&gt;_</b><b class="g g10">Excel</b></div>
 <div id="intro" class="st-rise" aria-hidden="true" style="display:none">
   <div class="in-orbs"><i style="left:8%;top:12%;width:160px;height:160px"></i><i style="right:6%;top:30%;width:220px;height:220px;animation-delay:-3s"></i><i style="left:30%;bottom:6%;width:190px;height:190px;animation-delay:-6s"></i><i style="right:28%;top:4%;width:90px;height:90px;animation-delay:-2s"></i></div>
   <div class="in-shade"></div><div class="shine"></div>
@@ -1988,8 +2017,6 @@ function stuMock(me){
       <div class="m-stats">
         <div class="m-stat"><i class="s1">👥</i><span><small>Total Classes</small><b>${A.length}</b><em>Recorded</em></span></div>
         <div class="m-stat"><i class="s2">✔</i><span><small>Present</small><b>${present}</b><em>/ ${A.length} Days</em></span></div>
-        <div class="m-stat"><i class="s3">₹</i><span><small>Fees Status</small><b class="${owes?'due':'paid'}">${owes?'Due':'Paid'}</b><em>${owes?money(f.pending)+' pending':'All clear'}</em></span></div>
-        <div class="m-stat"><i class="s4">📅</i><span><small>Next Exam</small><b id="m-exam-v">…</b><em id="m-exam-s">Checking</em></span></div>
       </div>
     </div>
     <div class="m-mot" id="m-mot-slot">
@@ -2264,7 +2291,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-29-5';
+  var MY_VER='2026-10-29-7';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
