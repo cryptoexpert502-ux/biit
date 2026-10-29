@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="app-version" content="2026-10-28-3">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0f3d2e">
@@ -205,16 +206,61 @@ body{background:radial-gradient(ellipse at 95% 0%,rgba(95,25,210,.22),transparen
 @media(max-width:760px){#biit-sidebar{width:285px;transform:translateX(-105%);box-shadow:20px 0 50px rgba(0,0,0,.55)}body.biit-sidebar-open #biit-sidebar{transform:translateX(0)}body.biit-sidebar-open #biit-sidebar-shade{display:block;position:fixed;z-index:99;inset:0;background:rgba(1,5,20,.65);backdrop-filter:blur(3px)}#app>.top,#app>main{margin-left:0;width:100%}#app>.top{position:sticky;top:0;z-index:50}#app>.top header{padding:10px 12px!important}#app>.top header:before{content:'☰';display:grid;place-items:center;flex:0 0 38px;height:38px;border:1px solid #4a5ddd;border-radius:10px;background:#111d55;color:#fff;font-size:1.25rem;cursor:pointer;order:-1}#app>.top header{gap:8px}#app>.top .brand{flex:1;min-width:0}#app>.top .mark{width:40px;height:40px;flex:0 0 40px}#app>.top header h1{font-size:.9rem}#app>.top header small{font-size:.58rem}#app>main{padding:12px 10px}#app .neon-welcome{grid-template-columns:1fr;padding:1rem}#app .neon-bottom-grid{grid-template-columns:1fr}#app .neon-panel{min-width:0}#app .atiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#app .atile{min-height:112px;padding:12px!important}#app .neon-footer{flex-direction:column;align-items:center;text-align:center}}
 @media(min-width:761px){#biit-sidebar{transform:translateX(0)!important}body.biit-sidebar-compact #biit-sidebar{width:78px}body.biit-sidebar-compact #app>.top,body.biit-sidebar-compact #app>main{margin-left:78px;width:calc(100% - 78px)}body.biit-sidebar-compact .bs-brand div,body.biit-sidebar-compact .bs-caption,body.biit-sidebar-compact .bs-link b,body.biit-sidebar-compact .bs-bottom b,body.biit-sidebar-compact .bs-bottom small{display:none}body.biit-sidebar-compact .bs-link{justify-content:center;padding:10px 0}body.biit-sidebar-compact .bs-link span{font-size:1.35rem}}
 </style>
-
-<style id="biit-permanent-readable-fix">
-/* Consistent high-contrast surfaces for the admin panel. */
-#app .card,#app .panel,#app .box,#app .neon-panel{background:#fff!important;color:#172033!important;backdrop-filter:none!important;text-shadow:none!important}
-#app .card p,#app .card label,#app .card .muted,#app .panel p,#app .panel .muted,#app .box .muted,#app .neon-panel p{color:#475569!important;-webkit-text-fill-color:#475569!important;text-shadow:none!important}
-#app .card b,#app .card strong,#app .card h2,#app .panel b,#app .panel h2,#app .box b,#app .neon-panel b,#app .neon-panel h2{color:#1e1b4b!important;-webkit-text-fill-color:#1e1b4b!important;text-shadow:none!important}
-#app input,#app select,#app textarea{background:#fff!important;color:#111827!important;border-color:#94a3b8!important}
-#app input::placeholder,#app textarea::placeholder{color:#64748b!important;opacity:1!important}
-#app table{background:#fff!important;color:#172033!important}#app th{background:#e9e7ff!important;color:#29205c!important}#app td{color:#334155!important}
-#app .btn,#app button{opacity:1}
+<style id="biit-accessibility-contrast-fix">
+/* High-contrast text fix: readable labels, notices, cards, and form controls on mobile. */
+:root { color-scheme: light; }
+html, body { -webkit-text-size-adjust: 100%; }
+body { color: #172033 !important; }
+main, section, article, .card, .panel, .modal, .sheet-in { color: #172033; }
+p, li, small, label, .muted, .description, .help-text { text-shadow: none !important; }
+label, .field-label { color: #26334d !important; }
+input, select, textarea { background-color: #fff !important; color: #111827 !important; border-color: #64748b !important; }
+input::placeholder, textarea::placeholder { color: #596579 !important; opacity: 1 !important; }
+button, a { text-shadow: none !important; }
+/* Alerts with light/transparent backgrounds must never use white text. */
+[role="alert"], .alert, .error-box, .error-message, .notice, .warning-box {
+  color: #172033 !important; background-color: #fff7ed !important;
+  border: 1px solid #c2410c !important; text-shadow: none !important;
+}
+/* Keep the dark floating toast legible. */
+#msg { background: #111827 !important; color: #fff !important; border: 1px solid #64748b !important; }
+/* Preserve white text on explicitly dark/purple headers and primary buttons. */
+header, header *, .top, .top *, .btn:not(.alt), .atile, .dtile, .hero, .dhero, .ex-top { color: #fff; }
+.btn.alt, .dback, .password-toggle { background: #fff !important; color: #302078 !important; }
+:focus-visible { outline: 3px solid #f59e0b !important; outline-offset: 2px !important; }
+</style>
+<style id="biit-readable-contrast-fix">
+/* Accessibility: consistent readable text on every card, form and notification. */
+:root{color-scheme:dark;}
+html,body{color:#f8fafc!important;}
+body,main,section,article,.card,.box,.panel,.modal,.sheet,.sheet-in,.dashboard-card,.stat,dialog{color:#f8fafc;}
+h1,h2,h3,h4,h5,h6,strong,b,label,legend,summary,th{color:#fff!important;}
+p,li,small,.muted,.hint,.description,.subtitle,.help-text,.form-text{color:#dbe4f0;}
+input,select,textarea{background:#f8fafc!important;color:#111827!important;border:1px solid #94a3b8!important;caret-color:#111827;}
+input::placeholder,textarea::placeholder{color:#64748b!important;opacity:1!important;}
+select option{background:#fff!important;color:#111827!important;}
+button,.btn{color:#fff;}
+button.alt,.btn.alt,.link{color:#4338ca;}
+.alert,.notice,.toast,[role="alert"]{color:#111827!important;background:#f8fafc!important;border:1px solid #cbd5e1!important;}
+.alert *, .notice *, .toast *, [role="alert"] *{color:#111827!important;}
+a{color:#93c5fd;}
+:focus-visible{outline:3px solid #fbbf24!important;outline-offset:2px!important;}
+</style>
+<style id="biit-card-text-fix">
+/* Cards are light (glass) so their text must be dark. Fixes invisible names, notes, errors and P/A/L buttons. */
+.card,.box,.panel,.modal .card,.sheet-in{color:#1e1b4b!important}
+.card :is(h1,h2,h3,h4,h5,h6,b,strong,label,legend,summary,p,li,small,td,.muted,.hint,.description,.help-text):not([style*="background"]),
+.sheet-in :is(h1,h2,h3,h4,b,strong,label,p,li,small,.muted){color:#1e1b4b!important;-webkit-text-fill-color:#1e1b4b!important;text-shadow:none!important}
+.card .muted,.sheet-in .muted,.card small{color:#475569!important;-webkit-text-fill-color:#475569!important}
+.card a:not(.btn):not(.link){color:#4338ca}
+.card .btn:not(.alt),.card button.btn:not(.alt){color:#fff!important;-webkit-text-fill-color:#fff!important}
+.card .btn.alt,.card button.alt{color:#4338ca!important;-webkit-text-fill-color:#4338ca!important}
+.card th{color:#fff!important}
+/* Attendance P / A / L buttons */
+.seg button{background:#fff!important;color:#1e1b4b!important;-webkit-text-fill-color:#1e1b4b!important;border:2px solid #a5b4fc!important;min-width:44px;font-weight:800}
+.seg button.P.on{background:#16a34a!important;border-color:#16a34a!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+.seg button.A.on{background:#dc2626!important;border-color:#dc2626!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+.seg button.L.on{background:#d97706!important;border-color:#d97706!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
 </style>
 </head>
 <body>
@@ -245,11 +291,14 @@ body{background:radial-gradient(ellipse at 95% 0%,rgba(95,25,210,.22),transparen
       <button class="bs-link" data-view="lib" onclick="go('lib')"><span>📚</span><b>Library</b></button>
       <button class="bs-link" data-view="prom" onclick="go('prom')"><span>📣</span><b>Promoters</b></button>
       <button class="bs-link" data-view="media" onclick="go('media')"><span>▣</span><b>Website Content</b></button>
+      <button class="bs-link" data-view="color" onclick="go('color')"><span>🎨</span><b>Colour &amp; Style</b></button>
+      <button class="bs-link" data-view="font" onclick="go('font')"><span>🔤</span><b>Font Style</b></button>
       <button class="bs-link" data-view="prof" onclick="go('prof')"><span>✏️</span><b>Edit Profile</b></button>
       <button class="bs-link" data-view="about" onclick="go('about')"><span>🏫</span><b>Coaching Details</b></button>
       <button class="bs-link" data-view="rep" onclick="go('rep')"><span>📄</span><b>PDF Reports</b></button>
       <button class="bs-link" data-view="exam" onclick="go('exam')"><span>📝</span><b>Online Exams</b></button>
       <button class="bs-link" data-view="pw" onclick="go('pw')"><span>🔑</span><b>Reset Password</b></button>
+      <button class="bs-link" data-view="face" onclick="go('face')"><span>🙂</span><b>Face Registration</b></button>
       <button class="bs-link" data-view="intro" onclick="go('intro')"><span>🎬</span><b>Welcome Screen</b></button>
       <button class="bs-link" data-view="dash" onclick="go('dash')"><span>📊</span><b>Overview</b></button>
       <button class="bs-link" data-view="crs" onclick="go('crs')"><span>📘</span><b>Courses</b></button>
@@ -306,8 +355,44 @@ body{background:radial-gradient(ellipse at 95% 0%,rgba(95,25,210,.22),transparen
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
+// ---- data meter: counts what THIS admin browser downloads from Supabase, per month ----
+const EGRESS_LIMIT_MB=5120;
+const egressKey=()=>'biit-egress-'+new Date().toISOString().slice(0,7);
+const nativeFetch=window.fetch.bind(window);
+function egressMonth(){return new Date().toISOString().slice(0,7)}
+var EGRESS_SOFT_CAP=4831838208;
+const meteredFetch=async(input,init)=>{let srvNow=0;try{srvNow=Number(localStorage.getItem('biit-server-usage-'+egressMonth())||0)}catch(_){}const isRead=String(input).includes('/rest/v1/')&&((init&&init.method)||'GET').toUpperCase()==='GET';if(srvNow>EGRESS_SOFT_CAP&&isRead){return new Response(JSON.stringify({message:'Is mahine ka data limit lagbhag poora ho gaya hai. Agle mahine tak kuch lists dikhai nahi denge.',code:'BIIT_LIMIT',details:'',hint:''}),{status:503,headers:{'content-type':'application/json'}})}const r=await nativeFetch(input,init);try{const b=await r.clone().arrayBuffer();const k=egressKey();localStorage.setItem(k,String(Number(localStorage.getItem(k)||0)+b.byteLength))}catch(_){}return r};
+function showEgress(){
+  let el=document.getElementById('egress-meter');
+  if(!el){
+    el=document.createElement('div');el.id='egress-meter';
+    let pos=null;try{pos=JSON.parse(localStorage.getItem('biit-meter-pos')||'null')}catch(_){}
+    el.style.cssText='position:fixed;z-index:99998;color:#fff;font:12px/1.4 system-ui,sans-serif;padding:6px 10px;border-radius:12px;opacity:.93;max-width:230px;touch-action:none;user-select:none;box-shadow:0 6px 16px rgba(0,0,0,.35);cursor:move;background:#0f172a';
+    if(pos&&pos.left!=null){el.style.left=pos.left+'px';el.style.top=pos.top+'px'}else{el.style.right='8px';el.style.top='72px'}
+    let drag=null,moved=false;
+    el.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,l:el.offsetLeft,t:el.offsetTop};moved=false});
+    el.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>6)moved=true;if(moved){el.style.left=Math.max(0,Math.min(innerWidth-el.offsetWidth,drag.l+dx))+'px';el.style.top=Math.max(0,Math.min(innerHeight-el.offsetHeight,drag.t+dy))+'px';el.style.right='auto'}});
+    el.addEventListener('pointerup',()=>{if(!drag)return;const wasMoved=moved;drag=null;if(wasMoved){try{localStorage.setItem('biit-meter-pos',JSON.stringify({left:el.offsetLeft,top:el.offsetTop}))}catch(_){}}else{el.dataset.min=el.dataset.min==='1'?'0':'1';showEgressBody(el)}});
+    document.body.appendChild(el);
+  }
+  showEgressBody(el);
+}
+function showEgressBody(el){
+  const mb=(Number(localStorage.getItem(egressKey())||0)/1048576);
+  const readSrv=()=>Number(localStorage.getItem('biit-server-usage-'+egressMonth())||0)/1048576;
+  const paint=(srvMb)=>{
+    const pct=srvMb/EGRESS_LIMIT_MB*100;
+    el.style.background=pct>70?'#b91c1c':pct>40?'#b45309':'#0f172a';
+    if(el.dataset.min==='1'){el.innerHTML='📶 '+(srvMb?srvMb.toFixed(0)+' MB':'…');return}
+    el.innerHTML='📶 Is browser: <b>'+mb.toFixed(1)+' MB</b><br>🌐 Sab (is mahine): <b>'+(srvMb?srvMb.toFixed(1)+' MB ('+pct.toFixed(1)+'%)':'…')+'</b><br><span style="opacity:.7">Tap = chhota/bada · Drag = jagah badlein</span>';
+  };
+  paint(readSrv());
+  try{sb.rpc('get_usage',{p_month:egressMonth()}).then(r=>{if(!r.error&&typeof r.data==='number'){localStorage.setItem('biit-server-usage-'+egressMonth(),String(r.data))}paint(readSrv())}).catch(()=>{})}catch(_){}
+}
+document.addEventListener('DOMContentLoaded',()=>{showEgress();setInterval(showEgress,60000)});
+
 const recovering = location.hash.includes('type=recovery');
-const sb = supabase.createClient('https://mfflvnhygmchzmbukrwi.supabase.co','sb_publishable_yLcnHbQVAYfE77oxLCpWHA_G5AzAI_V');
+const sb = supabase.createClient('https://bpsqafcfdjtvnvcvlotr.supabase.co','sb_publishable_IgpQdxO7-coc0xkspK-GNg_Orh53a18',{global:{fetch:meteredFetch}});
 
 // ---- Fee invoice (opens on screen; Print / Save as PDF) ----
 const INV=(function(){
@@ -420,15 +505,22 @@ const money = n => '₹' + Number(n||0).toLocaleString('en-IN');
 const fmt = d => toDate(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone: DATE_ONLY.test(String(d)) ? 'UTC' : TZ});
 const fmtTime = d => toDate(d).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:TZ});
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-// Initialize these before any navigation/callback can open Exams or Face-related legacy code.
-var _frStream = null;
-var EXSUB='auto',EXQ=[],EXAMS=[],OCRQ=[];
-const tabs = [['home','Home'],['hub','Students'],['dash','Dashboard'],['stu','Students'],['crs','Courses'],['att','Attendance'],['fee','Fees'],['msg','Messages'],['lib','Library'],['teach','Teachers'],['prom','Promoters'],['media','Website Content'],['prof','Edit Profile'],['about','Coaching Details'],['rep','PDF Reports'],['exam','Online Exams'],['pw','Reset Password'],['intro','Welcome Screen']];
+const tabs = [['home','Home'],['hub','Students'],['dash','Dashboard'],['stu','Students'],['crs','Courses'],['att','Attendance'],['fee','Fees'],['msg','Messages'],['lib','Library'],['teach','Teachers'],['prom','Promoters'],['media','Website Content'],['prof','Edit Profile'],['font','Font Style'],['rep','PDF Reports'],['exam','Online Exams'],['pw','Reset Password'],['face','Face Registration'],['intro','Welcome Screen']];
 const DAY = 24*60*60*1000;
 const cutoff = () => new Date(Date.now()-DAY).toISOString();   // Messages older than 24 hours are hidden.
 let students = [], marks = {}, feeRows = [], courses = [], libraryRows=[], teacherRows=[], promoterRows=[];
 const only = id => ['login','app'].forEach(x=>{const el=$('#'+x);if(el)el.classList.toggle('hide',x!==id)});
 function toast(t,ms){const m=$('#msg');m.textContent=t;m.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>m.style.display='none',ms||3500)}
+async function aiReadPaper(images){
+  try{
+    const sess=(await sb.auth.getSession()).data.session;
+    if(!sess)return {data:null,error:{message:'Please log in again.'}};
+    const r=await fetch('https://biit-photos.computerinstitute1.workers.dev/api/exam-from-photo',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sess.access_token},body:JSON.stringify({images})});
+    const j=await r.json().catch(()=>({error:'Bad reply from AI server'}));
+    if(!r.ok||j.error){const msg=j.error||('AI error '+r.status);return {data:{error:msg},error:{message:msg}}}
+    return {data:j,error:null};
+  }catch(e){const msg=String(e&&e.message||e);return {data:null,error:{message:msg}}}
+}
 async function ok(p){const r=await p;if(r.error){toast('Error: '+r.error.message);throw r.error}return r.data}
 async function purgeOld(){ try{ await sb.from('push_log').delete().lt('sent_at',cutoff()); }catch(e){} }
 
@@ -457,15 +549,18 @@ async function viewHome(){
     {v:'lib',i:'📚',t:'Library',n:l1,c:'linear-gradient(135deg,#ffbf00,#ff7a00)'},
     {v:'prom',i:'📣',t:'Promoters',n:p1,c:'linear-gradient(135deg,#8c18ff,#e000cf)'},
     {v:'media',i:'🖼️',t:'Website Content',c:'linear-gradient(135deg,#ff1680,#ff365d)'},
+    {v:'color',i:'🎨',t:'Colour & Style',c:'linear-gradient(135deg,#0098ff,#0862e8)'},
     {v:'prof',i:'✏️',t:'Edit Profile',n:'',c:'linear-gradient(135deg,#f20b56,#c90067)'},
+    {v:'font',i:'🔤',t:'Font Style',c:'linear-gradient(135deg,#4e22ff,#a000ef)'},
     {v:'about',i:'🏫',t:'Coaching Details',c:'linear-gradient(135deg,#ffb000,#ff6900)'},
     {v:'rep',i:'📄',t:'PDF Reports',c:'linear-gradient(135deg,#9c00ff,#e000bd)'},
     {v:'exam',i:'📝',t:'Online Exams',c:'linear-gradient(135deg,#ff167e,#ff3650)'},
     {v:'pw',i:'🔑',t:'Reset Password',c:'linear-gradient(135deg,#008fff,#0758dc)'},
+    {v:'face',i:'🙂',t:'Face Registration',c:'linear-gradient(135deg,#4c24ff,#762cff)'},
     {v:'intro',i:'🎬',t:'Welcome Screen',c:'linear-gradient(135deg,#00b99b,#008c9b)'},
     {v:'dash',i:'📊',t:'Overview',c:'linear-gradient(135deg,#ffb400,#ff7300)'}
   ];
-  const quick=[['hub','🎓','Students','Manage student records'],['teach','👨‍🏫','Teachers','Manage teacher requests'],['lib','📚','Library','Library registrations'],['prom','📣','Promoters','Promoter records'],['media','🖼️','Website Content','Update institute website'],['prof','✏️','Edit Profile','Update admin profile']];
+  const quick=[['hub','🎓','Students','Manage student records'],['teach','👨‍🏫','Teachers','Manage teacher requests'],['lib','📚','Library','Library registrations'],['prom','📣','Promoters','Promoter records'],['media','🖼️','Website Content','Update institute website'],['color','🎨','Colour & Style','Customize theme'],['font','🔤','Font Style','Change fonts'],['prof','✏️','Edit Profile','Update admin profile']];
   const recentStudents=students.slice(0,4).map(st=>`<div class="neon-activity"><span class="na-icon">🎓</span><span><b>${esc(st.name||'Student record')}</b><small>${esc(st.course||st.class||'Student registration')}</small></span><em>Student</em></div>`).join('') || '<p class="neon-muted">No student records available to show yet.</p>';
   const todayLabel=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric',timeZone:TZ});
   $('#v-home').innerHTML=`
@@ -490,11 +585,11 @@ async function go(v, fromPop=false){
   tabs.forEach(t=>{$('#v-'+t[0]).classList.toggle('hide',t[0]!==v);$('#n-'+t[0]).classList.toggle('on',t[0]===v)});
   const stuSub=['stu','crs','att','fee','msg','dash'];
   $('#n-home')?.classList.toggle('hide',v==='home');$('#n-hub')?.classList.toggle('hide',!stuSub.includes(v));
-  students = await ok(sb.from('students').select('*').eq('status','active').order('class').order('name'));
-  courses  = await ok(sb.from('courses').select('*').eq('is_active',true).order('name'));
-  const renderView=({home:viewHome,hub:viewHub,dash,stu:viewStudents,crs:viewCourses,att:viewAttendance,fee:viewFees,msg:viewMsg,lib:viewLibrary,teach:viewTeachers,prom:viewPromoters,media:viewMedia,prof:viewProf,about:viewAbout,rep:viewRep,exam:viewExam,pw:viewPw,intro:viewIntro})[v];
-  if(renderView) await renderView();
+  try{students = await ok(sb.from('students_light').select('*').eq('status','active').order('class').order('name'))}catch(e){console.warn('students load failed',e)}
+  try{courses = await ok(sb.from('courses').select('*').eq('is_active',true).order('name'))}catch(e){console.warn('courses load failed',e)}
+  const renderView=({home:viewHome,hub:viewHub,dash,stu:viewStudents,crs:viewCourses,att:viewAttendance,fee:viewFees,msg:viewMsg,lib:viewLibrary,teach:viewTeachers,prom:viewPromoters,media:viewMedia,color:viewColor,prof:viewProf,font:viewFont,about:viewAbout,rep:viewRep,exam:viewExam,pw:viewPw,face:viewFace,intro:viewIntro})[v];
   const target=$('#v-'+v);
+  if(renderView){try{await renderView()}catch(e){console.error(e);if(target){target.insertAdjacentHTML('afterbegin','<div class="card" style="border:2px solid #b91c1c"><b>Is page me error aaya:</b> '+String(e&&e.message?e.message:e).replace(/[<>&]/g,'')+'</div>')}}}
   if(target){
     target.querySelector('.biit-back-row')?.remove();
     if(v!=='home'){
@@ -508,7 +603,7 @@ async function go(v, fromPop=false){
 }
 window.addEventListener('popstate',()=>{
   const v=(location.hash||'').replace('#admin-','');
-  const allowed=['home','hub','dash','stu','crs','att','fee','msg','lib','teach','prom','media','prof','about','rep','exam','pw','intro'];
+  const allowed=['home','hub','dash','stu','crs','att','fee','msg','lib','teach','prom','media','color','prof','font','about','rep','exam','pw','face','intro'];
   go(allowed.includes(v)?v:'home',true);
 });
 const classes = () => [...new Set(students.map(s=>s.class))];
@@ -740,6 +835,12 @@ async function selfAttCard(){
    <label class="muted">Allowed time</label><div class="row"><input type="time" id="sa-st" value="${String(c.start_time||'06:00').slice(0,5)}"><input type="time" id="sa-en" value="${String(c.end_time||'21:00').slice(0,5)}"></div>
    <button class="btn sm" style="margin-top:.5rem" onclick="saSave()">Save</button>
    <hr style="margin:.8rem 0;border:0;border-top:1px solid var(--line)">
+   <b>Face matching</b>
+   <p class="muted">When on, a person can mark attendance only if they are at the institute (GPS) and their face matches the face you registered (Face Registration tab). The face camera opens only inside the allowed distance.</p>
+   <label><input type="checkbox" id="sa-face" ${c.face_required?'checked':''}> Face matching required for self attendance</label>
+   <label class="muted">Strictness</label><select id="sa-fth">${[['0.45','Strict (fewer wrong matches)'],['0.5','Normal'],['0.55','Relaxed (easier to match)']].map(o=>`<option value="${o[0]}" ${Number(c.face_threshold||0.5)===Number(o[0])?'selected':''}>${o[1]}</option>`).join('')}</select>
+   <button class="btn sm" onclick="saFaceSave()">Save face settings</button>
+   <hr style="margin:.8rem 0;border:0;border-top:1px solid var(--line)">
    <b>Test GPS</b>
    <p class="muted">Stand where students will stand and press Test. It shows your distance from the saved institute location.</p>
    <button class="btn sm alt" onclick="saTest()">🧪 Test GPS now</button><div id="sa-test" class="muted" style="margin-top:.4rem"></div>`;
@@ -752,6 +853,15 @@ function saSetLoc(){
     window._saLoc={lat:p.coords.latitude,lng:p.coords.longitude};
     $('#sa-loc').textContent='New location ready ('+p.coords.latitude.toFixed(5)+', '+p.coords.longitude.toFixed(5)+', accuracy '+Math.round(p.coords.accuracy)+' m). Press Save.';
   },e=>toast(e.code===1?'Please allow location permission for this site.':'Could not get the location.',7000),{enableHighAccuracy:true,timeout:25000,maximumAge:0});
+}
+async function saFaceSave(){
+  if($('#sa-face').checked){
+    const fl=await sb.rpc('admin_list_faces');
+    if(!fl.error&&!(fl.data||[]).length&&!confirm('No face is registered yet. If you turn face matching on now, nobody will be able to mark attendance. Turn it on anyway?'))return;
+  }
+  const r=await sb.rpc('set_face_settings',{p_required:$('#sa-face').checked,p_threshold:Number($('#sa-fth').value)});
+  if(r.error)return toast(/function|schema cache|could not find/i.test(r.error.message||'')?'Run supabase_face_attendance.sql once in Supabase (SQL Editor), then try again.':r.error.message,8000);
+  toast('Face settings saved.');
 }
 async function saTest(){
   const el=$('#sa-test'),L=window._saLoc||{};
@@ -1050,9 +1160,9 @@ async function viewLibrary(){
     (libraryRows.length?libraryRows.map(r=>`<div class="card"><div class="row"><b>${esc(r.aadhaar_name||r.full_name)}</b></div><div class="muted">Mobile: ${esc(r.phone)}<br>Address: ${esc(r.address||'-')}<br>${(r.aadhaar_number||r.aadhaar_last4||r.aadhaar_dob)?`Aadhaar Name: ${esc(r.aadhaar_name||r.full_name)}<br>Aadhaar DOB: ${esc(r.aadhaar_dob||'-')}<br>Aadhaar Gender: ${esc(r.aadhaar_gender||'-')}<br>Aadhaar Address: ${esc(r.aadhaar_address||'-')}<br>`:''}Gender: ${esc(r.gender||'-')}<br>Aadhaar: ${r.aadhaar_number?'XXXX-XXXX-'+esc(String(r.aadhaar_number).slice(-4)):r.aadhaar_last4?'XXXX-XXXX-'+esc(r.aadhaar_last4):'Not provided'}<br>Seat Number: <b>${esc(r.seat_number||'-')}</b><br>Library Course: ${esc(r.course_name||'-')}<br>Membership: ${esc(r.membership_type||'-')}<br>Submitted: ${r.created_at?fmtTime(r.created_at):'-'}</div><div class="grid"><div>Total Fee<b>${money(r.fee_amount)}</b></div><div>Deposit Fee<b>${money(r.fee_paid)}</b></div><div>Pending Fee<b>${money(Math.max(0,Number(r.fee_amount||0)-Number(r.fee_paid||0)))}</b></div></div>${(r.aadhaar_front_path||r.aadhaar_back_path)?`<div class="btns">${r.aadhaar_front_path?`<button class="btn sm alt" onclick="viewAadhaarDoc('${r.aadhaar_front_path}')">View Aadhaar Front</button>`:''}${r.aadhaar_back_path?`<button class="btn sm alt" onclick="viewAadhaarDoc('${r.aadhaar_back_path}')">View Aadhaar Back</button>`:''}</div>`:''}<label class="muted">Update Total Fee (₹)</label><input id="lf-total-${r.id}" type="number" min="0" value="${Number(r.fee_amount||0)}"><label class="muted">Update Deposit Fee (₹)</label><input id="lf-paid-${r.id}" type="number" min="0" value="${Number(r.fee_paid||0)}"><button class="btn sm" onclick="saveLibraryFees('${r.id}')">Save Fee Details</button><label class="muted">Admission Through</label><select id="lp-${r.id}">${promSel(r.promoter_code)}</select><button class="btn sm" onclick="saveLibPromoter('${r.id}')">Save Promoter</button><label class="muted">Seat Number</label><input id="ls-${r.id}" value="${esc(r.seat_number||'')}" maxlength="20" placeholder="e.g. A-12"><button class="btn sm" onclick="saveSeat('${r.id}')">Save Seat Number</button><button class="btn sm alt" onclick="showLibPayments('${r.id}')">Fee Report</button><div id="lp-${r.id}"></div><div class="btns"><button class="btn sm" onclick="openDiscount('library','${r.id}')">🏷️ Discount</button><button class="btn sm red" onclick="deleteMember('library','${r.id}')">Delete ID</button></div><h3>Library Attendance</h3><label class="muted">Attendance Date</label><input id="la-date-${r.id}" type="date" value="${today()}"><select id="la-status-${r.id}"><option value="present">Present</option><option value="absent">Absent</option><option value="leave">Leave</option></select><button class="btn sm" onclick="saveLibraryAttendance('${r.id}')">Save Attendance</button><button class="btn sm alt" onclick="showLibraryAttendance('${r.id}')">View Attendance History</button><div id="la-history-${r.id}"></div></div>`).join(''):'<p class="muted">No library registration requests yet.</p>');
 }
 
-const SB_URL='https://mfflvnhygmchzmbukrwi.supabase.co',SB_KEY='sb_publishable_yLcnHbQVAYfE77oxLCpWHA_G5AzAI_V';
+const SB_URL='https://bpsqafcfdjtvnvcvlotr.supabase.co',SB_KEY='sb_publishable_IgpQdxO7-coc0xkspK-GNg_Orh53a18';
 async function createLogin(phone,pw){
-  const tmp=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'tmp-'+Date.now()}});
+  const tmp=supabase.createClient(SB_URL,SB_KEY,{global:{fetch:meteredFetch},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'tmp-'+Date.now()}});
   const r=await tmp.auth.signUp({email:phone+'@student.local',password:pw});
   const existing=r.error?/already/i.test(r.error.message):(r.data.user&&r.data.user.identities&&r.data.user.identities.length===0);
   if(existing){const x=await sb.rpc('admin_user_id_for_phone',{p_phone:phone});if(x.data)return x.data;throw new Error('This mobile number already has a login. Delete the old ID first.')}
@@ -1060,7 +1170,9 @@ async function createLogin(phone,pw){
   return r.data.user.id;
 }
 async function saveLibPromoter(id){const v=$('#lp-'+id).value||null;const {error}=await sb.from('library_registrations').update({promoter_code:v}).eq('id',id);if(error)return toast(/promoter_code/i.test(error.message)?'First run promoter_library_column.sql in the Supabase SQL Editor.':'Save failed: '+error.message,7000);toast('Promoter saved.')}
-async function toJpegBlob(file){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const k=Math.min(1,1000/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>b?res(b):rej(new Error('Photo could not be read')),'image/jpeg',.8)};img.onerror=()=>rej(new Error('Photo could not be read'));img.src=URL.createObjectURL(file)})}
+function shrinkDataUrl(file,max,q){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',q))};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('image not readable'))};img.src=u})}
+function shrinkBlob(file,max,q){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);b?res(b):rej(new Error('resize failed'))},'image/jpeg',q)};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('image not readable'))};img.src=u})}
+function toJpegBlob(file){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const k=Math.min(1,1000/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>b?res(b):rej(new Error('Photo could not be read')),'image/jpeg',.8)};img.onerror=()=>rej(new Error('Photo could not be read'));img.src=URL.createObjectURL(file)})}
 async function addMember(kind){
   const g=id=>($('#'+id)?.value||'').trim();
   const p={teacher:'at',library:'al'}[kind];
@@ -1193,9 +1305,9 @@ async function uploadLogo(){
   if(!f.type.startsWith('image/')) return toast('Select an image file (PNG, JPG, WEBP or SVG).');
   if(f.size>25*1024*1024) return toast('Logo must be smaller than 25 MB.');
   const path='logo/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const up=await sb.storage.from('site-media').upload(path,f,{upsert:false,contentType:f.type});
+  const up=await sb.storage.from('site-media').upload(path.replace(/\.[^.]+$/,'.jpg'),await shrinkBlob(f,400,0.85),{upsert:false,contentType:'image/jpeg'});
   if(up.error) return toast('Upload failed: '+up.error.message,7000);
-  const url=sb.storage.from('site-media').getPublicUrl(path).data.publicUrl;
+  const url=sb.storage.from('site-media').getPublicUrl(path.replace(/\.[^.]+$/,'.jpg')).data.publicUrl;
   const {error}=await sb.from('site_settings').upsert({setting_key:'site_logo_url',setting_value:url},{onConflict:'setting_key'});
   if(error) return toast('Could not save logo: '+error.message,7000);
   applyLogo(url); toast('Logo updated. It will show on the student website.'); viewMedia();
@@ -1314,7 +1426,7 @@ async function saveAbout(){
 const DISC_LABEL={student:'Student',library:'Library Student',teacher:'Teacher',promoter:'Promoter'};
 async function discEntity(type,id){
   if(type==='student'){
-    const s=students.find(x=>String(x.id)===String(id))||(await ok(sb.from('students').select('*').eq('id',id).maybeSingle()));
+    const s=students.find(x=>String(x.id)===String(id))||(await ok(sb.from('students_light').select('*').eq('id',id).maybeSingle()));
     const pay=await ok(sb.from('fee_payments').select('amount').eq('student_id',id));
     const paid=pay.reduce((t,x)=>t+Number(x.amount||0),0);
     return {name:s.name,total:Number(s.total_fees||0),paid};
@@ -1419,7 +1531,7 @@ async function studentPdf(which){
   toast('Preparing PDF…');
   try{
     await loadPdfLibs();
-    let st=await ok(sb.from('students').select('*').eq('status','active').order('class').order('name'));
+    let st=await ok(sb.from('students_light').select('*').eq('status','active').order('class').order('name'));
     if(which!=='all')st=st.filter(s=>String(s.id)===String(which));
     if(!st.length)return toast('No student found.');
     const payRows=await ok(sb.from('fee_payments').select('id,student_id,amount,paid_at,paid_on,paid_month,note').order('paid_at',{ascending:true}));
@@ -1464,7 +1576,7 @@ async function pdfReport(kind){
   const stamp=today();
   try{
   if(kind==='students'){
-    const st=await ok(sb.from('students').select('*').eq('status','active').order('class').order('name'));
+    const st=await ok(sb.from('students_light').select('*').eq('status','active').order('class').order('name'));
     const payRows=await ok(sb.from('fee_payments').select('student_id,amount,paid_at,paid_on,paid_month,note').order('paid_at',{ascending:true}));
     const pay=sumBy(payRows,'student_id','amount');const ds=await discSums('student');
     const dRows=await sb.from('discounts').select('entity_id,amount,reason,created_at').eq('entity_type','student');
@@ -1527,7 +1639,7 @@ function viewRep(){
 }
 
 // ============= FACE REGISTRATION (admin) =============
-// _frStream is initialized near the global constants.
+let _frStream=null;
 function frStop(){try{_frStream&&_frStream.getTracks().forEach(t=>t.stop())}catch(_){}_frStream=null}
 async function viewFace(){
   frStop();
@@ -1645,7 +1757,7 @@ async function promoterDetailsSave(id){
 }
 
 // ============= ONLINE EXAMS (admin) =============
-// Exam state is initialized near the global constants.
+let EXSUB='auto',EXQ=[],EXAMS=[],OCRQ=[];
 const AUD_LABEL={both:'All students',student:'Computer students',library_student:'Library students'};
 async function insertQ(rows){
   let r=await sb.from('exam_questions').insert(rows).select('id');
@@ -1672,7 +1784,7 @@ function optNew(id){const n=$('#'+id+'-new');if(n)n.classList.toggle('hide',$('#
 function optVal(id){const el=$('#'+id);if(!el)return '';return el.value==='__new'?(($('#'+id+'-new')||{}).value||'').trim():(el.value||'').trim()}
 // does a question fit the exam's student type? (a "both" exam needs "both" questions, otherwise some students would not see them)
 const PHOTO_RE=/\s*\[\[photo:(off|optional|required)\]\]\s*$/;
-function photoModeOf(t){const m=String(t||'').match(PHOTO_RE);return m?m[1]:'off'}
+function photoModeOf(t){return 'off'}
 function withPhoto(t,m){return String(t||'').replace(PHOTO_RE,'').trimEnd()+(m&&m!=='off'?'\n[[photo:'+m+']]':'')}
 const examAud=()=>($('#ce-aud')||{}).value||'';
 function qFits(q,ea){if(!ea)return true;const a=q.audience||'both';return ea==='both'?a==='both':(a==='both'||a===ea)}
@@ -1835,7 +1947,7 @@ function exAuto(){
     <label class="muted">Who can take this exam?</label><select id="ce-aud"><option value="both">Computer + Library Students</option><option value="student">Computer Students only</option><option value="library_student">Library Students only</option></select><button type="button" class="btn sm alt" style="margin-top:.4rem" onclick="exAccess(null)">🔒 Student access (who can take it)</button>
     <label class="muted">Timer (minutes) - leave empty for automatic</label><input id="ce-dur" type="number" min="1" placeholder="Auto">
     <div class="muted" style="margin:.3rem 0">Results are shown to students only after you press "Declare Results" in Results.</div>
-    <label class="muted">Student photo (front camera) when the exam starts</label><select id="ce-photo"><option value="off" selected>Off - no photo</option><option value="optional">Optional - student can skip it</option><option value="required">Required - exam cannot start without a photo</option></select>
+    
     <label class="muted">Passing marks</label><input id="ce-pass" type="number" min="0" step="0.5" value="0">
    </details></div>
    <div class="hide">
@@ -1894,10 +2006,10 @@ async function photoToJpegB64(file){
   const url=URL.createObjectURL(file);
   try{
     const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
-    const k=Math.min(1,1100/Math.max(img.naturalWidth,img.naturalHeight));
+    const k=Math.min(1,1700/Math.max(img.naturalWidth,img.naturalHeight));
     const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
     const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
-    return c.toDataURL('image/jpeg',0.72).split(',')[1];
+    return c.toDataURL('image/jpeg',0.88).split(',')[1];
   }finally{URL.revokeObjectURL(url)}
 }
 async function aiReadPhotos(files,st){
@@ -1915,7 +2027,7 @@ async function aiReadPhotos(files,st){
       }else img={media_type:'image/jpeg',data:await photoToJpegB64(f)};
       let data,error;
       for(let t=0;t<3;t++){
-        ({data,error}=await sb.functions.invoke('photo-questions',{body:{images:[img]}}));
+        ({data,error}=await aiReadPaper([img]));
         const m=JSON.stringify((data&&data.error)||'')+(error&&error.message||'');
         if(!(error||(data&&data.error))||!/high demand|overloaded|busy|try again|429|503|compute resources|idle timeout|timeout|resources/i.test(m))break;
         if(t<2){st.textContent=(many?`Photo ${fi+1}/${list.length}: `:'')+'AI server is busy, trying again… ('+(t+2)+'/3)';await sleep(8000)}
@@ -2065,7 +2177,7 @@ function exCreate(){
    <div class="btns" style="margin:.2rem 0 .5rem"><button class="btn sm alt" type="button" onclick="startNow()">⏱ Start now (24 hours)</button></div>
    <div class="g3"><div><label class="muted">Total marks</label><input id="ce-total" type="number" min="0" step="0.5" readonly></div><div><label class="muted">Passing marks</label><input id="ce-pass" type="number" min="0" step="0.5" value="0"></div><div><label class="muted">Tab-switch warnings</label><input id="ce-tabs" type="number" min="1" value="3"></div></div>
    
-   <label class="muted">Student photo (front camera) during the exam</label><select id="ce-photo"><option value="off">Off - no photo</option><option value="optional">Optional - student can skip it</option><option value="required">Required - exam cannot start without a photo</option></select>
+   
    <label style="display:flex;gap:.5rem;align-items:center;margin:.6rem 0"><input type="checkbox" id="ce-shuffle" checked style="width:auto;margin:0"> Shuffle questions and options for every student</label>
    <label class="muted">Instructions shown before the exam</label><textarea id="ce-instr" rows="6">${esc(DEFAULT_RULES)}</textarea></div>
    ${pubBar()}${photoCard('exam')}${pubBar()}<div id="manual-box"><div class="card"><b>Choose Questions</b><label class="muted">Subject</label><select id="cq-subject" onchange="renderPick()"><option value="">All subjects</option>${subs.map(s=>`<option>${esc(s)}</option>`).join('')}</select>
@@ -2091,7 +2203,7 @@ async function saveExam(publish){
   const sel=EXQ.filter(q=>_picked.has(q.id));if(!sel.length)return toast('Select at least one question.');
   const bad=sel.filter(q=>!qFits(q,g('ce-aud')));if(bad.length){const ur=await sb.from('exam_questions').update({audience:'both'}).in('id',bad.map(q=>q.id));if(ur.error&&!/audience/i.test(ur.error.message))return toast('Could not prepare the questions: '+ur.error.message,7000)}
   const total=sel.reduce((t,q)=>t+Number(q.marks||0),0),pass=Number(g('ce-pass'))||0;if(!(total>0))return toast('Total marks are 0. Give each question at least 1 mark.');if(pass>total)return toast('Passing marks cannot be more than total marks.');
-  const row={title,instructions:withPhoto(g('ce-instr'),g('ce-photo')),total_marks:total,pass_marks:pass,start_at:s.toISOString(),end_at:e.toISOString(),duration_min:Math.max(1,Number(g('ce-dur'))||30),shuffle:$('#ce-shuffle').checked,audience:g('ce-aud'),question_ids:sel.map(q=>q.id),published:!!publish,result_mode:'declared',tab_limit:Math.max(1,Number(g('ce-tabs'))||3)};
+  const row={title,instructions:withPhoto(g('ce-instr'),'off'),total_marks:total,pass_marks:pass,start_at:s.toISOString(),end_at:e.toISOString(),duration_min:Math.max(1,Number(g('ce-dur'))||30),shuffle:$('#ce-shuffle').checked,audience:g('ce-aud'),question_ids:sel.map(q=>q.id),published:!!publish,result_mode:'declared',tab_limit:Math.max(1,Number(g('ce-tabs'))||3)};
   if(window._auto){const d=await sb.from('exams').select('id').eq('title',title).gte('created_at',new Date(Date.now()-15*60000).toISOString()).limit(1);if(!d.error&&d.data&&d.data.length)return toast('An exam named "'+title+'" was created a moment ago. Open the Results tab to see it, or use a different name.',9000)}
   window._saving=true;const {data:_ins,error}=await sb.from('exams').insert(row).select('id').single();window._saving=false;if(error)return toast('Could not save: '+error.message,7000);await applyPendingBlocks(_ins&&_ins.id);
   toast(publish?(s>new Date()?'Exam published. The Start Exam button will appear for students at the start time.':'Exam published. Students can start it now.'):'Exam saved as draft.',6000);EXSUB='list';viewExam();
@@ -2167,7 +2279,7 @@ async function exList(){
   const emptyN=r.filter(e=>!(e.question_ids||[]).length).length;
   $('#ex-body').innerHTML=(emptyN?`<div class="card"><b>${emptyN} exam(s) have no questions</b><p class="muted">These are failed attempts. Students cannot take them.</p><button class="btn sm red" onclick="exDeleteEmpty()">Delete empty exams</button></div>`:'')+r.map(e=>{const now=Date.now(),st=new Date(e.start_at),en=new Date(e.end_at);const state=!e.published?'Draft':now<st?'Upcoming':now>en?'Ended':'Running';
    return `<div class="card"><div class="row"><b>${esc(e.title)}</b><span class="muted">${state}</span></div><div class="muted">${fmtTime(e.start_at)} → ${fmtTime(e.end_at)}<br>${e.duration_min} min · ${e.total_marks} marks (pass ${e.pass_marks}) · ${(e.question_ids||[]).length} questions · ${({both:'All students',student:'Computer students',library_student:'Library students'})[e.audience]}<br>Results: ${e.result_mode==='instant'?'shown immediately':(e.results_declared?'declared':'not declared yet')}</div>
-   <div class="row" style="margin:.4rem 0"><span class="muted">Student photo</span><select style="width:auto;margin:0" onchange="exSetPhoto('${e.id}',this.value)">${[['off','Off'],['optional','Optional'],['required','Required']].map(o=>`<option value="${o[0]}" ${photoModeOf(e.instructions)===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div>
+   
    <div class="btns"><button class="btn sm" onclick="exResults('${e.id}')">Results</button><button class="btn sm alt" onclick="exAccess('${e.id}')">Student access</button><button class="btn sm alt" onclick="exToggle('${e.id}','published',${!e.published})">${e.published?'Unpublish':'Publish'}</button>${e.result_mode==='declared'?`<button class="btn sm alt" onclick="exToggle('${e.id}','results_declared',${!e.results_declared})">${e.results_declared?'Hide Results':'Declare Results'}</button>`:''}<button class="btn sm alt" onclick="exToggle('${e.id}','show_past',${!e.show_past})">${e.show_past?'Hide questions from website':'Show questions on website'}</button><button class="btn sm red" onclick="exDelete('${e.id}')">Delete</button></div></div>`}).join('')||'<p class="muted">No exams yet. Create one first.</p>';
 }
 async function exDeleteEmpty(){const ids=EXAMS.filter(e=>!(e.question_ids||[]).length).map(e=>e.id);if(!ids.length)return;if(!confirm('Delete '+ids.length+' exam(s) that have no questions?'))return;const {error}=await sb.from('exams').delete().in('id',ids);if(error)return toast(error.message);toast('Empty exams deleted.');exList()}
@@ -2194,12 +2306,15 @@ async function exResults(id){
   const done=r.filter(a=>a.status!=='in_progress'),avg=done.length?done.reduce((t,a)=>t+Number(a.score||0),0)/done.length:0,passed=done.filter(a=>Number(a.score)>=Number(EXCUR.pass_marks)).length;
   $('#ex-body').innerHTML=`<button class="btn sm alt" onclick="exList()">← Back</button><h3>${esc(EXCUR.title)} — Results</h3>
   <div class="grid"><div>Attempts<b>${r.length}</b></div><div>Passed<b>${passed}</b></div><div>Average<b>${avg.toFixed(1)}</b></div></div>
-  <div class="btns" style="margin:.6rem 0"><button class="btn sm" onclick="exResultsPdf()">📄 Download Results PDF</button></div>
+  <div class="btns" style="margin:.6rem 0"><button class="btn sm" onclick="exResultsPdf(true)">📄 PDF with photos</button> <button class="btn sm alt" onclick="exResultsPdf(false)">📄 PDF without photos (light)</button> <button class="btn sm green" onclick="exResultsCsv()">📊 Excel / CSV</button></div>
   ${r.map((a,i)=>`<div class="card">${photoModeOf(EXCUR.instructions)!=='off'?`<span id="sf-${a.id}" class="muted" style="float:right;margin-left:.5rem;font-size:.75rem">…</span>`:''}<div class="row"><b>${i+1}. ${esc(a.student_name||'-')}</b><b>${Number(a.score)}/${EXCUR.total_marks}</b></div><div class="muted">${esc(a.student_phone||'')} · ${a.role==='library_student'?'Library':'Computer'} student · ${a.status==='in_progress'?'In progress':(a.status==='auto_submitted'?'Auto-submitted':'Submitted')}<br>Started: ${a.started_at?fmtTime(a.started_at):'-'}${a.submitted_at?' · Finished: '+fmtTime(a.submitted_at):''}<br>${cwu(a)}<br>${a.status!=='in_progress'?(Number(a.score)>=Number(EXCUR.pass_marks)?'<b style="color:#168a56">PASS</b>':'<b style="color:#c0392b">FAIL</b>'):''} · Tab-switch warnings: ${a.violations}</div>
   ${a.status!=='in_progress'?`<div class="btns"><button class="btn sm" onclick="exGrade('${a.id}')">Check Answers${(a.detail||[]).some(d=>d.status==='pending')?' / Give Marks':''}</button></div>`:''}</div>`).join('')||'<p class="muted">No student has started this exam yet.</p>'}`;
   r.forEach(a=>showSelfie(a));
 }
 async function blobToDataUrl(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('read'));r.readAsDataURL(b)})}
+async function urlToDataUrl(url){
+  try{const r=await fetch(url);if(!r.ok)return null;const b=await r.blob();return await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=()=>res(null);fr.readAsDataURL(b)})}catch(_){return null}
+}
 async function examPhotoSrc(a){
   // 1) small copy saved with the attempt when the exam started (most reliable)
   const _copy=a.answers&&(a.answers.__selfieData||a.answers.__selfie_data);
@@ -2215,20 +2330,39 @@ async function examPhotoSrc(a){
     return await new Promise(res=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>{try{const c=document.createElement('canvas');c.width=Math.min(480,im.naturalWidth);c.height=Math.round(im.naturalHeight*c.width/im.naturalWidth);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.7))}catch(_){res(null)}};im.onerror=()=>res(null);im.src=su.data.signedUrl})
   }catch(e){console.warn('photo error',e);return null}
 }
-async function exResultsPdf(){
-  const e=EXCUR;toast('Preparing PDF with student photos…',3000);
-  const pr=await sb.from('exam_photos').select('attempt_id,photo').in('attempt_id',EXRES.map(a=>a.id));
-  if(pr.error)console.warn('exam_photos read failed',pr.error);
-  const PM={};(pr.data||[]).forEach(x=>PM[String(x.attempt_id)]=x.photo);
-  const photos=[];for(const a of EXRES){photos.push(PM[String(a.id)]||await examPhotoSrc(a))}
-  const found=photos.filter(Boolean).length;toast('Photos found: '+found+' of '+EXRES.length+(pr.error?' (photo table error: '+pr.error.message+')':'')+(found<EXRES.length?' - others show "No photo"':''),9000);const cnt=(a,k)=>(a.detail||[]).filter(x=>x.status===k).length;const rows=EXRES.map((a,i)=>[i+1,pt(a.student_name),pt(a.student_phone),a.role==='library_student'?'Library':'Computer',Number(a.score),e.total_marks,cnt(a,'correct'),cnt(a,'wrong'),a.status==='in_progress'?'-':(Number(a.score)>=Number(e.pass_marks)?'PASS':'FAIL'),a.violations,a.started_at?when(a.started_at):'-',a.submitted_at?when(a.submitted_at):'-']);
-  buildPdf('Exam Results - '+pt(e.title)+' (Total marks '+e.total_marks+', Pass '+e.pass_marks+')',['#','Name','Mobile','Type','Score','Out of','Correct','Wrong','Result','Warnings','Started (IST)','Submitted (IST)'],rows,null,'BIIT-Exam-'+today()+'.pdf',null,photos);
+function exResultRows(){
+  const e=EXCUR;const cnt=(a,k)=>(a.detail||[]).filter(x=>x.status===k).length;
+  return EXRES.map((a,i)=>[i+1,pt(a.student_name),pt(a.student_phone),a.role==='library_student'?'Library':'Computer',Number(a.score),e.total_marks,cnt(a,'correct'),cnt(a,'wrong'),a.status==='in_progress'?'-':(Number(a.score)>=Number(e.pass_marks)?'PASS':'FAIL'),a.violations,a.started_at?when(a.started_at):'-',a.submitted_at?when(a.submitted_at):'-']);
+}
+function exResultsHeaders(){return ['#','Name','Mobile','Type','Score','Out of','Correct','Wrong','Result','Warnings','Started (IST)','Submitted (IST)']}
+// Excel/CSV: uses only data already on this screen - no extra database or photo download
+function exResultsCsv(){
+  const e=EXCUR;const head=exResultsHeaders();const rows=exResultRows();
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const txt='\uFEFF'+[head.map(q).join(','),...rows.map(r=>r.map(q).join(','))].join('\r\n');
+  const blob=new Blob([txt],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);
+  const l=document.createElement('a');l.href=url;l.download='BIIT-Exam-Results-'+today()+'.csv';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+  toast('CSV downloaded (opens in Excel).',4000);
+}
+async function exResultsPdf(withPhotos){
+  if(withPhotos===undefined)withPhotos=true;
+  const e=EXCUR;let photos=null;let found=0;
+  if(withPhotos){
+    toast('Preparing PDF with student photos…',3000);
+    const pr=await sb.from('exam_photos').select('attempt_id,photo').in('attempt_id',EXRES.map(a=>a.id));
+    if(pr.error)console.warn('exam_photos read failed',pr.error);
+    const PM={};(pr.data||[]).forEach(x=>PM[String(x.attempt_id)]=x.photo);
+    photos=[];for(const a of EXRES){const v=PM[String(a.id)];photos.push(v&&/^https?:/.test(v)?await urlToDataUrl(v):(v||await examPhotoSrc(a)))}
+    found=photos.filter(Boolean).length;toast('Photos found: '+found+' of '+EXRES.length+(pr.error?' (photo table error: '+pr.error.message+')':'')+(found<EXRES.length?' - others show \"No photo\"':''),9000);
+  } else toast('Preparing PDF (without photos)…',3000);
+  const rows=exResultRows();
+  buildPdf('Exam Results - '+pt(e.title)+' (Total marks '+e.total_marks+', Pass '+e.pass_marks+')',exResultsHeaders(),rows,null,'BIIT-Exam-'+today()+'.pdf',null,photos);
 }
 async function exGrade(aid){
   const a=EXRES.find(x=>x.id===aid);const d=a.detail||[];
   const items=await Promise.all(d.map(async(q,i)=>{
     let ans='',bc='';
-    if(q.qtype==='subjective'){const g=q.given||{};let img='';if(g.photo){const s=await sb.storage.from('exam-answers').createSignedUrl(g.photo,600);if(s.data)img=`<br><a href="${s.data.signedUrl}" target="_blank"><img src="${s.data.signedUrl}" style="max-width:100%;border-radius:10px;margin-top:.4rem"></a>`}
+    if(q.qtype==='subjective'){const g=q.given||{};let img='';if(g.photo){const s=/^https?:/.test(g.photo)?{data:{signedUrl:g.photo}}:await sb.storage.from('exam-answers').createSignedUrl(g.photo,600);if(s.data)img=`<br><a href="${s.data.signedUrl}" target="_blank"><img src="${s.data.signedUrl}" style="max-width:100%;border-radius:10px;margin-top:.4rem"></a>`}
       ans=`<div class="muted">Student's answer:</div><div style="white-space:pre-wrap">${esc(g.text||'(no text)')}</div>${img}<label class="muted">Marks (out of ${q.marks})</label><input id="gm-${i}" type="number" min="0" max="${q.marks}" step="0.5" value="${q.awarded??''}">`}
     else{const o=q.options||[];bc=q.status==='correct'?'#168a56':q.status==='wrong'?'#c0392b':'#c98a00';ans=`<div class="muted">Student: <b>${q.given==null?'Not answered':LET[q.given]+'. '+esc(o[q.given])}</b><br>Correct: <b style="color:#168a56">${LET[q.correct]}. ${esc(o[q.correct])}</b> · <b style="color:${bc}">${q.status==='correct'?'✓ Correct':q.status==='wrong'?'✗ Wrong':'Not answered'}</b> (${q.awarded} marks)</div>`}
     return `<div class="card" ${bc?`style="border-left:5px solid ${bc}"`:''}><b>Q${i+1}. ${esc(q.question)}</b>${ans}</div>`}));
@@ -2278,8 +2412,8 @@ async function saveIntro(){
     if(t==='image'&&!f.type.startsWith('image/'))return toast('Select a picture.');
     if(f.size>50*1024*1024)return toast('The file must be smaller than 50 MB.');
     toast('Uploading… please wait',60000);
-    const path='intro/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-    const up=await sb.storage.from('site-media').upload(path,f,{upsert:false,contentType:f.type});
+    const path='intro/'+Date.now()+'-'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_').replace(/\.[^.]+$/,'')+'.jpg';
+    const up=await sb.storage.from('site-media').upload(path,await shrinkBlob(f,800,0.8),{upsert:false,contentType:'image/jpeg'});
     if(up.error)return toast('Upload failed: '+up.error.message,8000);
     url=sb.storage.from('site-media').getPublicUrl(path).data.publicUrl;
   }
@@ -2324,6 +2458,31 @@ else sb.auth.getSession().then(({data})=>{if(data.session)start()});
 function biitToggleSidebar(force){const open=typeof force==='boolean'?force:!document.body.classList.contains('biit-sidebar-open');document.body.classList.toggle('biit-sidebar-open',open)}
 function biitCompactSidebar(){if(window.matchMedia('(max-width:760px)').matches){biitToggleSidebar()}else{document.body.classList.toggle('biit-sidebar-compact')}}
 (function(){const links=[...document.querySelectorAll('#biit-side-links [data-view]')];const origGo=window.go; if(typeof origGo==='function'){window.go=async function(v){const out=await origGo.apply(this,arguments);links.forEach(b=>b.classList.toggle('active',b.dataset.view===v||(v==='stu'&&b.dataset.view==='hub')));biitToggleSidebar(false);return out}}const toggle=document.querySelector('#app>.top header');if(toggle){toggle.addEventListener('click',function(e){if(e.target===toggle && window.matchMedia('(max-width:760px)').matches)biitToggleSidebar()});const brand=toggle.querySelector('.brand');if(brand){brand.style.cursor='pointer';brand.addEventListener('click',function(e){if(window.matchMedia('(max-width:760px)').matches){e.preventDefault();biitToggleSidebar()}})}}})();
+</script>
+
+<script id="biit-update-check">
+(function(){
+  var MY_VER='2026-10-28-3';
+  function showBanner(){
+    if(document.getElementById('biit-update-bar'))return;
+    var b=document.createElement('div');b.id='biit-update-bar';
+    b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:999999;background:#4338ca;color:#fff;padding:10px 14px;font:14px/1.4 system-ui,sans-serif;display:flex;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 4px 14px rgba(0,0,0,.3)';
+    b.innerHTML='<span>Naya update aaya hai. Sahi chalne ke liye update karein.</span><button style="background:#fff;color:#4338ca;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer">Update</button>';
+    b.querySelector('button').onclick=function(){
+      if('caches' in window){caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}).finally(function(){location.reload()})}
+      else location.reload();
+    };
+    document.body.appendChild(b);
+  }
+  function check(){
+    fetch(location.pathname+location.search,{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){
+      var m=/<meta name="app-version" content="([^"]+)"/.exec(t);
+      if(m && m[1]!==MY_VER) showBanner();
+    }).catch(function(){});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',check); else check();
+  setInterval(check,600000);
+})();
 </script>
 </body>
 </html>

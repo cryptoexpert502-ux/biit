@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="app-version" content="2026-10-28-3">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -418,14 +419,81 @@ nav,.nav,.bottom-nav,.tabs{background:rgba(255,255,255,.95)!important;backdrop-f
 @media(prefers-reduced-motion:no-preference){.card,.dtile,.btn{transition:transform .18s ease,box-shadow .18s ease!important}.dtile:active{transform:scale(.98)}}
 </style>
 
-
-<style id="biit-permanent-readable-fix">
-.card,.panel,.box{background:#fff!important;color:#172033!important;backdrop-filter:none!important;text-shadow:none!important}
-.card p,.card label,.card .muted,.panel .muted,.box .muted{color:#475569!important;-webkit-text-fill-color:#475569!important;text-shadow:none!important}
-.card b,.card strong,.card h2,.panel b,.panel h2,.box b{color:#1e1b4b!important;-webkit-text-fill-color:#1e1b4b!important;text-shadow:none!important}
-input,select,textarea{background:#fff!important;color:#111827!important;border-color:#94a3b8!important}
-input::placeholder,textarea::placeholder{color:#64748b!important;opacity:1!important}
-table{background:#fff!important;color:#172033!important}th{background:#e9e7ff!important;color:#29205c!important}td{color:#334155!important}
+<style id="stu-redesign">
+/* ===== Student dashboard redesign (dark, neon cards, sidebar) ===== */
+#stu-side{display:none}
+@media (min-width:900px){
+  #stu-side{display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:230px;z-index:95;background:linear-gradient(180deg,#0b1437,#14106b);color:#e2e8f0;padding:18px 12px;gap:6px;box-shadow:6px 0 24px rgba(0,0,0,.35)}
+  body.stu-mode{margin-left:230px}
+  body.stu-mode header{margin-left:0}
+  #stu-nav{left:250px!important;right:20px!important;bottom:12px!important}
+}
+#stu-side .sb-brand{display:flex;align-items:center;gap:10px;padding:6px 6px 14px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:8px}
+#stu-side .sb-brand img{width:44px;height:44px;border-radius:50%;background:#fff;object-fit:contain}
+#stu-side .sb-brand b{font-size:15px;letter-spacing:.5px}
+#stu-side .sb-brand small{display:block;font-size:10px;opacity:.7;letter-spacing:.12em}
+#stu-side button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font:600 14px system-ui,sans-serif;color:#cbd5e1}
+#stu-side button:hover{background:rgba(255,255,255,.08);color:#fff}
+#stu-side button.on{background:linear-gradient(90deg,#2563eb,#7c3aed);color:#fff;box-shadow:0 8px 18px -8px rgba(37,99,235,.7)}
+#stu-side .sb-ic{width:22px;text-align:center}
+#stu-side .sb-foot{margin-top:auto;font-size:11px;opacity:.6;padding:8px}
+/* Today's motivation: two AI cards */
+#stu-motivation.mot2{background:none!important;box-shadow:none!important;padding:0!important;display:block!important}
+#stu-motivation .mot-title{font:800 15px system-ui,sans-serif;color:#fff;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+#stu-motivation .mot-title span.tag{font:700 11px system-ui,sans-serif;background:linear-gradient(90deg,#7c3aed,#db2777);padding:3px 9px;border-radius:999px}
+#stu-motivation .mot-cards{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:700px){#stu-motivation .mot-cards{grid-template-columns:1fr 1fr}}
+#stu-motivation .mot-card{border-radius:18px;padding:16px 16px 14px;color:#fff;background:linear-gradient(135deg,#1e3a8a,#6d28d9);box-shadow:0 10px 24px -12px rgba(0,0,0,.6);font:500 14.5px/1.7 system-ui,sans-serif;position:relative}
+#stu-motivation .mot-card:nth-child(2){background:linear-gradient(135deg,#7c3aed,#db2777)}
+#stu-motivation .mot-card .q{display:block;font-size:22px;line-height:1;opacity:.6}
+#stu-motivation .mot-card .who{display:block;margin-top:8px;font-size:12px;opacity:.75}
+#stu-motivation .mot-x{position:absolute;right:10px;top:10px;background:rgba(255,255,255,.2);border:0;color:#fff;border-radius:10px;padding:2px 8px;cursor:pointer}
+.stu-hero-date{font:600 12px system-ui,sans-serif;opacity:.8;letter-spacing:.06em}
+</style>
+<style id="stu-look">
+/* ===== dashboard look (dark, like the reference design) ===== */
+body.stu-mode{background:radial-gradient(900px 500px at 10% -10%,rgba(124,58,237,.35),transparent 60%),radial-gradient(800px 480px at 110% 0%,rgba(236,72,153,.25),transparent 60%),linear-gradient(180deg,#070b1f,#0d1233)!important;min-height:100vh}
+body.stu-mode .dhero{background:linear-gradient(120deg,#1e1b6b,#5b21b6 60%,#db2777)!important;border:1px solid rgba(255,255,255,.12);box-shadow:0 18px 40px -20px rgba(124,58,237,.6);border-radius:22px!important;padding:18px 20px!important}
+body.stu-mode .dhero b{font-size:1.25rem}
+#stu-home{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0}
+@media (max-width:700px){#stu-home{grid-template-columns:repeat(3,1fr)}}
+#stu-home .qa{border:0;cursor:pointer;border-radius:18px;padding:14px 8px;color:#fff;font:700 13px system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 24px -14px rgba(0,0,0,.6)}
+#stu-home .qa i{font-style:normal;font-size:22px;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,#0ea5e9,#6366f1)}
+#stu-home .qa:nth-child(2) i{background:linear-gradient(135deg,#10b981,#06b6d4)}
+#stu-home .qa:nth-child(3) i{background:linear-gradient(135deg,#f59e0b,#ef4444)}
+#stu-home .qa:nth-child(4) i{background:linear-gradient(135deg,#a855f7,#ec4899)}
+#stu-home .qa:nth-child(5) i{background:linear-gradient(135deg,#3b82f6,#8b5cf6)}
+#stu-home .qa:hover{transform:translateY(-2px)}
+#stu-home .qa span{text-align:center;line-height:1.2}
+#stu-motivation .mot-card{box-shadow:0 14px 28px -16px rgba(0,0,0,.7)}
+body.stu-mode #stu-motivation .mot-title{color:#fff}
+</style>
+<style id="stu-fulllook">
+/* ===== full dark look: intro, login, register, sheets (matches reference) ===== */
+html body{background:#070b1f!important;color:#e2e8f0}
+html body{background:radial-gradient(900px 500px at 10% -10%,rgba(124,58,237,.35),transparent 60%),radial-gradient(800px 480px at 110% 0%,rgba(236,72,153,.25),transparent 60%),linear-gradient(180deg,#070b1f,#0d1233)!important;background-image:none!important}
+.hero{background:linear-gradient(120deg,#1e1b6b,#5b21b6 60%,#db2777)!important;color:#fff!important;border-radius:0 0 26px 26px!important}
+.hero *{color:inherit}
+#login,#reg,.login-card,.reg-card{background:rgba(15,20,48,.78)!important;border:1px solid rgba(255,255,255,.12)!important;box-shadow:0 24px 60px -24px rgba(124,58,237,.6)!important;color:#e2e8f0!important;border-radius:22px!important;backdrop-filter:blur(10px)}
+#login h1,#login h2,#login h3,#reg h1,#reg h2,#reg h3,#login-title,#reg-title{color:#fff!important}
+#login label,#reg label,#login .muted,#reg .muted,#login small,#reg small{color:#a5b4fc!important}
+#login input,#login select,#login textarea,#reg input,#reg select,#reg textarea{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.18)!important;color:#fff!important;border-radius:14px!important}
+#login input::placeholder,#reg input::placeholder{color:#94a3b8!important}
+#login .btn,#reg .btn,#login button.btn,#reg button.btn{background:linear-gradient(90deg,#3b82f6,#7c3aed 55%,#db2777)!important;color:#fff!important;border:0!important;border-radius:14px!important;font-weight:800!important;box-shadow:0 14px 28px -14px rgba(124,58,237,.8)}
+#login .btn.alt,#reg .btn.alt{background:rgba(255,255,255,.08)!important;color:#e0e7ff!important;border:1px solid rgba(255,255,255,.2)!important;box-shadow:none!important}
+#intro{background:linear-gradient(135deg,#070b1f,#1e1b6b 55%,#7c3aed)!important}
+.dash-option-sheet{background:#0b1020!important;color:#e2e8f0!important}
+.dash-option-sheet h2,.dash-option-sheet h3{color:#fff!important}
+.dash-option-sheet .card{background:rgba(255,255,255,.96)!important}
+.dash-option-close{background:rgba(255,255,255,.14)!important;color:#fff!important}
+#stu-side{background:linear-gradient(180deg,#0b1437,#14106b)!important}
+</style>
+<style id="login-fix">
+/* ===== login fixes: forgot password as a text link, readable fields ===== */
+html body button.link{background:none!important;border:0!important;box-shadow:none!important;color:#a5b4fc!important;padding:6px 0!important;width:auto!important;text-decoration:underline!important;font-weight:700!important;text-align:left!important;margin-top:6px!important}
+html body button.link:hover{color:#fff!important}
+html body #login select{color:#fff!important;background:rgba(255,255,255,.06)!important}
+html body #login select option{color:#111827!important}
 </style>
 </head>
 <body>
@@ -583,7 +651,18 @@ var BIITIntro=(function(){
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const recovering = location.hash.includes('type=recovery');
-const sb = supabase.createClient('https://mfflvnhygmchzmbukrwi.supabase.co','sb_publishable_yLcnHbQVAYfE77oxLCpWHA_G5AzAI_V');
+// ---- data meter (students + admin): counts Supabase downloads in this browser, reports a monthly total ----
+const EGRESS_LIMIT_MB=5120;
+const egressMonth=()=>new Date().toISOString().slice(0,7);
+const nativeFetchRef=window.fetch.bind(window);
+const EGRESS_SOFT_CAP=4831838208;
+const meteredFetch=async(input,init)=>{let srvNow=0;try{srvNow=Number(localStorage.getItem('biit-server-usage-'+egressMonth())||0)}catch(_){}const isRead=String(input).includes('/rest/v1/')&&((init&&init.method)||'GET').toUpperCase()==='GET';if(srvNow>EGRESS_SOFT_CAP&&isRead){return new Response(JSON.stringify({message:'Is mahine ka data limit lagbhag poora ho gaya hai. Agle mahine tak kuch lists dikhai nahi denge.',code:'BIIT_LIMIT',details:'',hint:''}),{status:503,headers:{'content-type':'application/json'}})}const r=await nativeFetchRef(input,init);try{const b=await r.clone().arrayBuffer();const k='biit-egress-'+egressMonth();localStorage.setItem(k,String(Number(localStorage.getItem(k)||0)+b.byteLength))}catch(_){}return r};
+async function flushUsage(){try{const m=egressMonth();const total=Number(localStorage.getItem('biit-egress-'+m)||0);const sent=Number(localStorage.getItem('biit-egress-sent-'+m)||0);const delta=total-sent;if(delta<=0)return;const r=await sb.rpc('report_usage',{p_month:m,p_bytes:delta});if(!r.error){localStorage.setItem('biit-egress-sent-'+m,String(total));if(typeof r.data==='number')localStorage.setItem('biit-server-usage-'+m,String(r.data))}}catch(_){}}
+setInterval(flushUsage,300000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushUsage()});
+const sb = supabase.createClient('https://bpsqafcfdjtvnvcvlotr.supabase.co','sb_publishable_IgpQdxO7-coc0xkspK-GNg_Orh53a18',{global:{fetch:meteredFetch}});
+
+
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money = n => '₹' + Number(n||0).toLocaleString('en-IN');
@@ -1112,7 +1191,7 @@ async function exStartCam(){
 }
 async function exSnap(){
   const v=document.getElementById('ex-cam');if(!v||!window.__exStream||!v.videoWidth)return null;
-  const w=Math.min(480,v.videoWidth),h=Math.round(v.videoHeight*w/v.videoWidth),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(v,0,0,w,h);
+  const w=Math.min(160,v.videoWidth),h=Math.round(v.videoHeight*w/v.videoWidth),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(v,0,0,w,h);
   const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.75));return {blob,url:c.toDataURL('image/jpeg',.6)};
 }
 function exIdentity(){
@@ -1143,11 +1222,12 @@ async function beginExam(){
       if(!sn)why='the camera is not ready yet - wait until your face is visible';
       else{
         EX.selfieUrl=sn.url;
-        // always keep a copy of the start photo in its own table (used by the results PDF)
-        sb.rpc('save_exam_photo',{p_attempt:d.attempt_id,p_photo:sn.url}).then(r=>{if(r.error)toast('Photo copy could not be saved: '+r.error.message,8000)},e=>toast('Photo copy could not be saved: '+(e.message||e),8000));
-        if(EX.uid){const path=`${EX.uid}/${d.attempt_id}/selfie-${Date.now()}.jpg`;const up=await sb.storage.from('exam-answers').upload(path,sn.blob,{contentType:'image/jpeg',upsert:true});if(!up.error){EX.answers.__selfie=path;EX.answers.__selfieData=sn.url;EX.dirty=true;ok=true}else{why=up.error.message;console.warn('Selfie upload failed:',up.error)}}else why='not signed in';
-        if(!ok){ // upload failed: keep a small copy of the photo inside the attempt itself
-          try{const small=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const w=240,h=Math.round(i.height*w/i.width),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);res(c.toDataURL('image/jpeg',.6))};i.onerror=rej;i.src=sn.url});EX.answers.__selfie_data=small;EX.dirty=true;ok=true}catch(_){}
+        // the start photo goes ONLY to the photo store (not to Supabase storage/database bytes)
+        const pu=await uploadPhoto(sn.url,'exam');
+        if(pu){EX.answers.__selfie=pu;EX.dirty=true;ok=true;sb.rpc('save_exam_photo',{p_attempt:d.attempt_id,p_photo:pu}).then(r=>{if(r.error)toast('Photo copy could not be saved: '+r.error.message,8000)},e=>toast('Photo copy could not be saved: '+(e.message||e),8000))}
+        else{why='the photo could not be uploaded - check your internet and try again'}
+        if(false){ // disabled: no photo copies inside the database
+          try{const small=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const w=240,h=Math.round(i.height*w/i.width),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);res(c.toDataURL('image/jpeg',.6))};i.onerror=rej;i.src=sn.url});EX.dirty=true;ok=true}catch(_){}
         }
       }
     }catch(e){why=String((e&&e.message)||e)}
@@ -1185,8 +1265,9 @@ function exSubj(){const q=EX.d.questions[EX.idx];const cur=EX.answers[q.id]||{};
 async function exPhoto(){
   const q=EX.d.questions[EX.idx],f=document.getElementById('ex-photo').files[0];if(!f)return;const st=document.getElementById('ex-up');st.textContent='Uploading…';
   try{let blob;try{blob=await fileToJpeg(f)}catch(_){blob=f}
-    const path=`${EX.uid}/${EX.d.attempt_id}/${q.id}-${Date.now()}.jpg`;const up=await sb.storage.from('exam-answers').upload(path,blob,{contentType:'image/jpeg',upsert:true});
-    if(up.error)throw up.error;const cur=EX.answers[q.id]||{};cur.photo=path;if(document.getElementById('ex-text'))cur.text=document.getElementById('ex-text').value;EX.answers[q.id]=cur;EX.dirty=true;renderExam();toast('Photo uploaded.')}
+    let du=await shrinkDataUrl(f,1000,0.7);if(du.length>270000)du=await shrinkDataUrl(f,800,0.6);
+    const pu=await uploadPhoto(du,'exam');if(!pu)throw new Error('photo could not be uploaded');
+    const cur=EX.answers[q.id]||{};cur.photo=pu;if(document.getElementById('ex-text'))cur.text=document.getElementById('ex-text').value;EX.answers[q.id]=cur;EX.dirty=true;renderExam();toast('Photo uploaded.')}
   catch(e){st.textContent='';toast('Photo upload failed: '+(e.message||e),6000)}
 }
 function exClear(){const q=EX.d.questions[EX.idx];delete EX.answers[q.id];EX.dirty=true;renderExam()}
@@ -1433,7 +1514,6 @@ function faceVerifyUI(title){
 }
 // own-face registration card (shown only while face matching is on)
 async function faceRegCard(c){
-  return ''; // Face registration has been permanently removed from the portal UI.
   try{
     if(!c)return '';
     const r=await sb.rpc('my_face_registered');
@@ -1482,7 +1562,7 @@ async function selfAttBox(A,me){
     if(fc)el.insertAdjacentHTML('beforeend',fc);
     el.insertAdjacentHTML('beforeend',done
       ?`<p class="muted" style="margin-top:.6rem">Today: <b>${esc(done.status)}</b></p>`
-      :`<button class="btn" id="self-att-btn" style="margin-top:.6rem" onclick="markMyAttendance()">📍 Mark my attendance</button><p class="muted" style="font-size:.8rem">You must be at the institute (${String(c.start_time).slice(0,5)} - ${String(c.end_time).slice(0,5)}). Allow location when asked.</p>`);
+      :`<button class="btn" id="self-att-btn" style="margin-top:.6rem" onclick="markMyAttendance()">📍 Mark my attendance</button><p class="muted" style="font-size:.8rem">You must be at the institute (${String(c.start_time).slice(0,5)} - ${String(c.end_time).slice(0,5)}). Allow location when asked.${c.face_required?' Your face is also checked.':''}</p>`);
   }catch(_){}
 }
 async function selfAttOther(role,row){
@@ -1498,7 +1578,7 @@ async function selfAttOther(role,row){
     const fc=await faceRegCard(c);
     el.insertAdjacentHTML('afterbegin',`<div class="card"><h2>Mark Attendance</h2>`+fc+(done
       ?`<p>Today: <b>${esc(done.status)}</b></p>`
-      :`<button class="btn" id="self-att-btn" onclick="markMyAttendance('${role}')">📍 Mark my attendance</button><p class="muted" style="font-size:.8rem">You must be at the institute (${String(c.start_time).slice(0,5)} - ${String(c.end_time).slice(0,5)}). Allow location when asked.</p>`)+`</div>`);
+      :`<button class="btn" id="self-att-btn" onclick="markMyAttendance('${role}')">📍 Mark my attendance</button><p class="muted" style="font-size:.8rem">You must be at the institute (${String(c.start_time).slice(0,5)} - ${String(c.end_time).slice(0,5)}). Allow location when asked.${c.face_required?' Your face is also checked.':''}</p>`)+`</div>`);
   }catch(_){}
 }
 async function markMyAttendance(role){
@@ -1516,15 +1596,18 @@ async function markMyAttendance(role){
     try{pos=await getBestPosition(18000)}
     catch(err){reset();return toast(err&&err.code===1?'Please allow location permission for this site, then try again.':'Could not get your location. Turn on GPS and try again.',8000)}
     const lat=pos.coords.latitude,lng=pos.coords.longitude,acc=pos.coords.accuracy;
-    // GPS-only attendance; face matching is intentionally disabled in this portal.
+    // at the institute? (the face camera opens only after this check passes; the server checks again)
     if(c.lat!=null&&c.lng!=null){
       const dist=distM(lat,lng,Number(c.lat),Number(c.lng)),rad=Number(c.radius_m||100);
-      if(dist-acc>rad){reset();return toast('You are about '+fmtDist(dist)+' away from the institute. You must be within '+rad+' m to mark attendance.',9000)}
+      if(dist-acc>rad){reset();return toast('You are about '+fmtDist(dist)+' away from the institute. You must be within '+rad+' m'+(c.face_required?' for the face check and':' to')+' mark attendance.',9000)}
     }
+    let desc=null;
+    if(c.face_required){say('Face check…');desc=await faceVerifyUI();if(!desc){reset();return}}
     say('Marking attendance…');
-    let r=await sb.rpc('mark_my_attendance',{p_lat:lat,p_lng:lng,p_accuracy:acc,p_role:role});
+    let r=await sb.rpc('mark_attendance_checked',{p_lat:lat,p_lng:lng,p_accuracy:acc,p_role:role,p_descriptor:desc});
     if(r.error&&/does not exist|schema cache|could not find/i.test(r.error.message||'')){
-      r=await sb.rpc('mark_attendance_checked',{p_lat:lat,p_lng:lng,p_accuracy:acc,p_role:role,p_descriptor:null});
+      if(c.face_required){reset();return toast('Face matching is on, but its database setup is missing. Please tell the institute.',8000)}
+      r=await sb.rpc('mark_my_attendance',{p_lat:lat,p_lng:lng,p_accuracy:acc,p_role:role});
     }
     if(r.error){reset();return toast('Could not mark attendance: '+r.error.message,7000)}
     const d=r.data||{};
@@ -1584,7 +1667,6 @@ function stuMockStyles(){
   st.textContent += `
   header{background:linear-gradient(90deg,#1e1b6b,#4c1d95 60%,#db2777)!important;box-shadow:0 6px 20px #1e1b4b40!important}
   .stu-tag{color:#fde68a;font-size:12px;letter-spacing:.5px;margin-top:2px}
-  body{background:linear-gradient(180deg,#f5f3ff,#fdf2f8)!important}
   .card{border-radius:22px!important;border:0!important;box-shadow:0 10px 28px #1e1b4b1f!important;background:#fff!important}
   .card h2{font-family:'Baloo 2',sans-serif;color:#1e1b4b}
   .btn{background:linear-gradient(90deg,#4c1d95,#db2777)!important;border-radius:99px!important;color:#fff!important;border:0!important;font-weight:700}
@@ -1654,22 +1736,102 @@ function stuCroppedDataUrl(){
   const im=window.__cropImg;if(!im)return null;
   const z=Number(document.getElementById('cr-z').value)/100,ox=Number(document.getElementById('cr-x').value)/100,oy=Number(document.getElementById('cr-y').value)/100;
   const side=Math.min(im.width,im.height)/z;const sx=(im.width-side)*ox,sy=(im.height-side)*oy;
-  const c=document.createElement('canvas');c.width=240;c.height=240;c.getContext('2d').drawImage(im,sx,sy,side,side,0,0,240,240);
-  let d=c.toDataURL('image/jpeg',.75);if(d.length>120000)d=c.toDataURL('image/jpeg',.6);
+  const c=document.createElement('canvas');c.width=120;c.height=120;c.getContext('2d').drawImage(im,sx,sy,side,side,0,0,120,120);
+  let d=c.toDataURL('image/jpeg',.7);if(d.length>120000)d=c.toDataURL('image/jpeg',.6);
   return d.length>120000?null:d;
+}
+
+function shrinkDataUrl(file,max,q){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',q))};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('image not readable'))};img.src=u})}
+function shrinkBlob(file,max,q){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);b?res(b):rej(new Error('resize failed'))},'image/jpeg',q)};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('image not readable'))};img.src=u})}
+const PHOTO_API_URL='https://biit-photos.computerinstitute1.workers.dev';
+async function uploadPhoto(dataUrl,kind){
+  if(!dataUrl||!String(dataUrl).startsWith('data:image/'))return null;
+  if(PHOTO_API_URL.includes('YOUR-PHOTO-WORKER'))return null;
+  try{
+    const sess=(await sb.auth.getSession()).data.session;if(!sess)return null;
+    const r=await fetch(PHOTO_API_URL+'/upload',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sess.access_token},body:JSON.stringify({kind:kind,image:dataUrl})});
+    if(!r.ok)return null;const j=await r.json();return j.url||null;
+  }catch(_){return null}
 }
 async function stuSaveProfile(){
   let ph=null;
   if(window.__cropImg&&!document.getElementById('cr-box').classList.contains('hide')){ph=stuCroppedDataUrl();if(!ph)return toast('Photo is too large. Zoom in a little or choose a smaller photo.',6000)}
+  if(ph)ph=(await uploadPhoto(ph,'profile'))||ph;
   const r=await sb.rpc('update_my_profile',{p_father:$('#ep-f').value,p_mother:$('#ep-m').value,p_address:$('#ep-a').value,p_dob:$('#ep-d').value||null,p_photo:ph});
   if(r.error)return toast('Could not save: '+r.error.message,7000);
   toast('Details saved',3000);
   const fresh=await sb.from('students').select('*').eq('id',window.__stuMe.id).maybeSingle();
   if(fresh.data)renderStudentPortal(fresh.data);
 }
+
+const STU_QUOTES=["Mehnat ka phal hamesha milta hai, bas thoda sabar rakho.", "Aaj ki padhai kal ka bhavishya banati hai.", "Har expert kabhi beginner tha. Aage badhte raho.", "Sapne woh nahi jo tum sote hue dekhte ho, sapne woh hain jo tumhe sone nahi dete.", "Code likhna seekhna ek safar hai, aur tum us raah par ho.", "Ek ek line, ek ek din, ek ek kadam. Yahi kamyabi hai.", "Jo aaj mehnat karega, woh kal garv se kahega: main kar sakta tha.", "Galtiyan seekhne ka sabse achha tareeka hain. Kabhi haar mat maano.", "Consistency sabse badi talent hai.", "Tumhari mehnat ek din tumhari pehchaan banegi.", "Chhoti chhoti roz ki koshishen bade parinam deti hain.", "Jitna tum seekhoge, utna aage badhoge.", "Padhai me lagaav hi asli taqat hai.", "Kal ka sabse achha din aaj se shuru hota hai.", "Har sawal ek naya darwaza hai. Poocho, seekho, aage badho.", "Mushkil raste hi manzil tak le jaate hain.", "Khud par bharosa rakho, sab mumkin hai.", "Computer ki duniya me tumhara swagat hai, aage badhte raho.", "Ek din tum wahi karoge jo tumne socha tha. Bas shuruaat karo.", "Dhairya aur mehnat dono saath ho to kuch bhi asambhav nahi.", "Aaj ka kaam aaj hi, yahi safalta ka mantra hai.", "Tumhara sabse bada competitor kal ka tum ho, aaj ka nahi.", "Har roz thoda behtar bano, yahi kaafi hai.", "Seekhna kabhi band mat karo, duniya tez chal rahi hai.", "Jab tak tum koshish karte ho, tab tak tum haarte nahi.", "Sabar ka phal meetha hota hai.", "Apni padhai par garv karo, aur usse aage badhte raho.", "Ek achha developer banne ke liye, roz kuch naya seekho.", "Tumhari mehnat ko koi chhin nahi sakta.", "Har mushkil ek lesson hai, aur har lesson ek jeet ki taiyari.", "Aaj ka dhyan, kal ki kamyabi."];
+const DAILY_API='https://biit-photos.computerinstitute1.workers.dev/today';
+
+function stuBuildSidebar(me){
+  if(document.getElementById('stu-side'))return;
+  const wide=window.matchMedia&&window.matchMedia('(min-width:900px)').matches;
+  const side=document.createElement('aside');side.id='stu-side';
+  const name=(me&&me.name)?String(me.name).replace(/[<>&"]/g,''):'Student';
+  const items=[['home','🏠','Dashboard'],['c-prof','👤','My Details'],['c-fee','💰','Fees'],['c-att','📅','Attendance'],['c-msg','💬','Messages'],['c-exam','📝','Online Exams']];
+  side.innerHTML='<div class="sb-brand"><img src="logo.png" alt=""><div><b>BIIT</b><small>COMPUTER INSTITUTE</small></div></div>'+
+    items.map((it,i)=>'<button type="button" data-k="'+it[0]+'"><span class="sb-ic">'+it[1]+'</span>'+it[2]+'</button>').join('')+
+    '<div class="sb-foot">Learn · Grow · Build Your Future<br>'+name+'</div>';
+  side.querySelectorAll('button').forEach(b=>b.onclick=()=>{side.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));stuGoto(b.dataset.k==='home'?'home':b.dataset.k,b)});
+  document.body.appendChild(side);
+  if(wide)document.body.classList.add('stu-mode');
+  window.addEventListener('resize',()=>{document.body.classList.toggle('stu-mode',window.matchMedia('(min-width:900px)').matches)});
+}
+
+function stuBuildHome(me){
+  if(document.getElementById('stu-home'))return;
+  const hero=document.querySelector('.dhero');
+  if(!hero)return;
+  document.body.classList.add('stu-mode');
+  const box=document.createElement('div');box.id='stu-home';
+  const items=[['c-att','📍','Mark Attendance'],['c-fee','₹','Pay Fees'],['c-exam','📊','Exam Results'],['c-msg','💬','Messages'],['c-prof','👤','My Details']];
+  box.innerHTML=items.map(it=>'<button class="qa" type="button" data-k="'+it[0]+'"><i>'+it[1]+'</i><span>'+it[2]+'</span></button>').join('');
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>stuGoto(b.dataset.k,null));
+  hero.insertAdjacentElement('afterend',box);
+}
+function stuMotivation(me){
+  try{
+    const key='biit-mot-hide-'+new Date().toISOString().slice(0,10);
+    if(localStorage.getItem(key))return;
+    if(document.getElementById('stu-motivation'))return;
+    const first=(me&&me.name?String(me.name).trim().split(/\s+/)[0]:'Student').replace(/[<>&"]/g,'');
+    const dayIdx=Math.floor(Date.now()/86400000)%STU_QUOTES.length;
+    const fallbackText='Namaste {naam}!\n'+STU_QUOTES[dayIdx];
+    const showBox=(text)=>{
+      if(document.getElementById('stu-motivation'))return;
+      const box=document.createElement('div');
+      box.id='stu-motivation';
+      box.style.cssText='margin:12px 0;padding:14px 16px;border-radius:18px;background:linear-gradient(120deg,#1e1b6b,#5b21b6 60%,#db2777);color:#fff;box-shadow:0 10px 24px -12px rgba(30,27,75,.6);display:flex;gap:12px;align-items:flex-start';
+      const lines=String(text).split('\n').map(l=>l.replace(/[<>&"]/g,'')).map(l=>l.split('{naam}').join(first)).filter(l=>l.trim()!=='');
+      box.classList.add('mot2');
+      const half=Math.ceil(lines.length/2);const parts=[lines.slice(0,half),lines.slice(half)].filter(p=>p.length);
+      box.innerHTML='<div class="mot-title">🌟 Today\'s Motivation <span class="tag">AI Generated</span><button class="mot-x" aria-label="Close">✕</button></div><div class="mot-cards"></div>';
+      const wrap=box.querySelector('.mot-cards');
+      parts.forEach((p,i)=>{const c=document.createElement('div');c.className='mot-card';c.innerHTML='<span class="q">“</span>';p.forEach(l=>{const d=document.createElement('div');d.textContent=l;c.appendChild(d)});const w=document.createElement('span');w.className='who';w.textContent=i===0?'— BIIT Family':'— Aap ke liye';c.appendChild(w);wrap.appendChild(c)});
+      box.querySelector('.mot-x').onclick=function(){localStorage.setItem(key,'1');box.remove()};
+      const hero=document.querySelector('.dhero');
+      if(hero){hero.insertAdjacentElement('afterend',box);return}
+      const anchor=document.querySelector('#c-prof');
+      if(anchor&&anchor.parentElement)anchor.parentElement.insertBefore(box,anchor);
+    };
+    const ctrl=('AbortController' in window)?new AbortController():null;
+    const timer=setTimeout(()=>{if(ctrl)ctrl.abort();showBox(fallbackText)},4000);
+    fetch(DAILY_API,{signal:ctrl?ctrl.signal:undefined}).then(r=>r.ok?r.json():null).then(d=>{
+      clearTimeout(timer);
+      showBox(d&&d.text?d.text:fallbackText);
+    }).catch(()=>{clearTimeout(timer);showBox(fallbackText)});
+  }catch(_){}
+}
 async function renderStudentPortal(me){
   only('portal');
   window.__stuMe=me;
+  setTimeout(()=>{try{stuBuildSidebar(me)}catch(_){}},200);
+  setTimeout(()=>{try{stuBuildHome(me)}catch(_){}},250);
+  setTimeout(()=>stuMotivation(me),400);
   loadPastPapers();
   $('#hname').textContent = BRAND;
 
@@ -1871,5 +2033,30 @@ window.__siteReady=loadPublicSiteContent();
 </script>
 <div class="center-info"></div>
 <footer class="credit">This website created by Aryan Yadav</footer>
+
+<script id="biit-update-check">
+(function(){
+  var MY_VER='2026-10-28-3';
+  function showBanner(){
+    if(document.getElementById('biit-update-bar'))return;
+    var b=document.createElement('div');b.id='biit-update-bar';
+    b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:999999;background:#4338ca;color:#fff;padding:10px 14px;font:14px/1.4 system-ui,sans-serif;display:flex;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 4px 14px rgba(0,0,0,.3)';
+    b.innerHTML='<span>Naya update aaya hai. Sahi chalne ke liye update karein.</span><button style="background:#fff;color:#4338ca;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer">Update</button>';
+    b.querySelector('button').onclick=function(){
+      if('caches' in window){caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}).finally(function(){location.reload()})}
+      else location.reload();
+    };
+    document.body.appendChild(b);
+  }
+  function check(){
+    fetch(location.pathname+location.search,{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){
+      var m=/<meta name="app-version" content="([^"]+)"/.exec(t);
+      if(m && m[1]!==MY_VER) showBanner();
+    }).catch(function(){});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',check); else check();
+  setInterval(check,600000);
+})();
+</script>
 </body>
 </html>
