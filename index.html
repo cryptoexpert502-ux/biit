@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-28-3">
+<meta name="app-version" content="2026-10-29-4">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -540,6 +540,144 @@ html body .hist-row,html body .msgitem{background:rgba(255,255,255,.05)!importan
 html body .stu-ring{filter:drop-shadow(0 0 14px rgba(47,224,255,.7))}
 html body #msg{background:#0b1240!important;color:#fff!important;border:1px solid var(--n-cyan)!important}
 @media(prefers-reduced-motion:no-preference){html body .card{animation:nIn .5s ease both}@keyframes nIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
+</style>
+<style id="biit-mockup-v3">
+:root{--m-bg:#050a1f;--m-glass:rgba(10,18,52,.72);--m-line:rgba(96,110,255,.35)}
+html body.stu-mode{background:radial-gradient(900px 520px at 85% -5%,rgba(255,120,60,.16),transparent 60%),radial-gradient(900px 600px at 0% 0%,rgba(60,90,255,.22),transparent 60%),linear-gradient(170deg,#040818,#0a0d33 55%,#1a0b3a)!important;background-attachment:fixed!important}
+html body #student-dashboard>.dhero,html body #student-dashboard>#stu-home,html body #student-dashboard>#stu-motivation{display:none!important}
+html body #stu-mock{display:block;color:#f1f4ff;font-family:'DM Sans',system-ui,sans-serif}
+#stu-mock .m-top{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:16px;margin-bottom:16px}
+#stu-mock .m-hero{position:relative;overflow:hidden;border-radius:26px;border:1px solid var(--m-line);padding:20px 22px 16px;min-height:360px;display:flex;flex-direction:column;justify-content:space-between;
+ background:linear-gradient(90deg,rgba(4,8,30,.88) 0%,rgba(4,8,30,.45) 55%,rgba(4,8,30,.05) 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 360' preserveAspectRatio='xMaxYMax slice'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%230c1250'/%3E%3Cstop offset='.5' stop-color='%23552a9a'/%3E%3Cstop offset='.8' stop-color='%23e8644a'/%3E%3Cstop offset='1' stop-color='%23ffb347'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='360' fill='url(%23s)'/%3E%3Ccircle cx='600' cy='250' r='60' fill='%23ffd27a' opacity='.55'/%3E%3Cg fill='%23140f3a'%3E%3Crect x='430' y='230' width='30' height='130'/%3E%3Crect x='470' y='190' width='24' height='170'/%3E%3Crect x='505' y='150' width='34' height='210'/%3E%3Cpolygon points='520,60 540,150 500,150'/%3E%3Crect x='552' y='210' width='26' height='150'/%3E%3Crect x='590' y='170' width='36' height='190'/%3E%3Crect x='640' y='215' width='28' height='145'/%3E%3Crect x='680' y='180' width='30' height='180'/%3E%3Crect x='720' y='225' width='40' height='135'/%3E%3Crect x='765' y='200' width='35' height='160'/%3E%3C/g%3E%3Cpath d='M0 360 L120 300 L210 340 L330 290 L450 350 L450 360Z' fill='%230b0b2a'/%3E%3C/svg%3E") right bottom/cover no-repeat;box-shadow:0 22px 50px -22px rgba(90,60,255,.7)}
+#stu-mock .m-hero-txt{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start}
+#stu-mock .m-av{width:74px;height:74px;border-radius:50%;border:3px solid #7aa2ff;overflow:hidden;display:grid;place-items:center;background:#1c2a7a;font:800 1.8rem system-ui;box-shadow:0 0 22px rgba(90,140,255,.6)}
+#stu-mock .m-av img{width:100%;height:100%;object-fit:cover}
+#stu-mock .m-greet small{font-size:1rem;font-weight:600;color:#e6ecff}
+#stu-mock .m-greet h1{margin:2px 0 4px;font:800 2.1rem/1.1 var(--head,'Bricolage Grotesque',system-ui);color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.6)}
+#stu-mock .m-greet h1 i{font-style:normal}
+#stu-mock .m-greet p{margin:0;color:#cfd9ff;font-size:.9rem}
+#stu-mock .m-when{text-align:right;font-size:.85rem;color:#e6ecff;display:flex;flex-direction:column;gap:6px}
+#stu-mock .m-when span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);padding:4px 12px;border-radius:999px;align-self:flex-end}
+#stu-mock blockquote{grid-column:1/-1;margin:10px 0 0;max-width:430px;font-size:1.1rem;line-height:1.5;font-weight:600;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+#stu-mock .m-stats{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+#stu-mock .m-stat{display:flex;gap:10px;align-items:center;padding:12px;border-radius:18px;background:rgba(8,14,48,.78);border:1px solid var(--m-line);backdrop-filter:blur(8px);min-width:0}
+#stu-mock .m-stat i{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:1.2rem;color:#fff}
+#stu-mock .s1{background:linear-gradient(135deg,#2563eb,#6366f1)}#stu-mock .s2{background:linear-gradient(135deg,#16a34a,#22c55e)}#stu-mock .s3{background:linear-gradient(135deg,#7c3aed,#c026d3)}#stu-mock .s4{background:linear-gradient(135deg,#f97316,#fb923c)}
+#stu-mock .m-stat span{display:flex;flex-direction:column;min-width:0}
+#stu-mock .m-stat small{font-size:.74rem;color:#dbe4ff}
+#stu-mock .m-stat b{font:800 1.3rem/1.15 var(--head,system-ui);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#stu-mock .m-stat b.paid{color:#34d399}#stu-mock .m-stat b.due{color:#fbbf24}
+#stu-mock .m-stat em{font-style:normal;font-size:.72rem;color:#9fb0e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#stu-mock .m-mot{border-radius:26px;border:1px solid rgba(140,110,255,.6);padding:16px;background:linear-gradient(160deg,rgba(76,40,200,.85),rgba(40,20,130,.9));box-shadow:0 0 30px -6px rgba(124,58,237,.8);display:flex;flex-direction:column;gap:12px}
+#stu-mock .m-mot-h{font:800 1.05rem var(--head,system-ui);color:#fff}
+#stu-mock .m-q{background:linear-gradient(120deg,#13317a,#2b4fd0 70%,#4f7bff);border:2px solid rgba(255,255,255,.7);border-radius:18px;padding:14px 16px;color:#fff;flex:1}
+#stu-mock .m-q.alt{background:linear-gradient(120deg,#1b3a6d,#25706b 60%,#3aa17a)}
+#stu-mock .m-q p{margin:0 0 8px;font-size:1.02rem;line-height:1.5;font-weight:600}
+#stu-mock .m-q small{color:#d3defd}
+#stu-mock #stu-motivation{margin:0!important;display:block!important;padding:0!important;background:none!important;box-shadow:none!important}
+#stu-mock #stu-motivation .mot-title{color:#fff;font:800 1.05rem var(--head,system-ui);display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+#stu-mock #stu-motivation .mot-cards{display:grid;gap:12px}
+#stu-mock #stu-motivation .mot-card{background:linear-gradient(120deg,#13317a,#2b4fd0 70%,#4f7bff);border:2px solid rgba(255,255,255,.7);border-radius:18px;padding:14px 16px;color:#fff;font-weight:600;line-height:1.5}
+#stu-mock #stu-motivation .mot-card+.mot-card{background:linear-gradient(120deg,#1b3a6d,#25706b 60%,#3aa17a)}
+#stu-mock #stu-motivation .mot-card *{color:#fff!important}
+#stu-mock .m-row{display:grid;grid-template-columns:1.25fr 1.1fr .95fr 1fr;gap:16px}
+#stu-mock .m-box{border-radius:22px;border:1px solid var(--m-line);background:var(--m-glass);backdrop-filter:blur(10px);padding:16px;min-width:0;box-shadow:0 18px 40px -22px #000}
+#stu-mock .m-box h3{margin:0 0 12px;font:800 1.05rem var(--head,system-ui);color:#fff;display:flex;justify-content:space-between;align-items:center}
+#stu-mock .m-box h3 button{all:unset;cursor:pointer;font:600 .78rem system-ui;color:#7fd6ff}
+#stu-mock .m-qa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#stu-mock .m-qa-grid button{all:unset;cursor:pointer;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:12px 6px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(120,130,255,.3);font:600 .78rem/1.2 system-ui;color:#fff}
+#stu-mock .m-qa-grid button:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}
+#stu-mock .m-qa-grid i{font-style:normal;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:1.3rem;font-weight:800}
+#stu-mock .q1{background:linear-gradient(135deg,#16a34a,#22c55e)}#stu-mock .q2{background:linear-gradient(135deg,#7c3aed,#c026d3)}#stu-mock .q3{background:linear-gradient(135deg,#f59e0b,#f97316)}#stu-mock .q4{background:linear-gradient(135deg,#2563eb,#38bdf8)}#stu-mock .q5{background:linear-gradient(135deg,#ec4899,#f43f5e)}#stu-mock .q6{background:linear-gradient(135deg,#0ea5e9,#6366f1)}
+#stu-mock .m-notice{all:unset;cursor:pointer;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(120,130,255,.2)}
+#stu-mock .m-notice:last-child{border:0}
+#stu-mock .m-nic{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-style:normal;background:rgba(239,68,68,.25)}
+#stu-mock .m-nic.c1{background:rgba(245,158,11,.25)}#stu-mock .m-nic.c2{background:rgba(34,197,94,.25)}
+#stu-mock .m-notice span{flex:1;min-width:0;display:flex;flex-direction:column}
+#stu-mock .m-notice b{font:700 .84rem/1.25 system-ui;color:#fff;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#stu-mock .m-notice small{font-size:.72rem;color:#a9b6e8}
+#stu-mock .m-notice em{font-style:normal;font-size:.68rem;font-weight:700;background:#ef4444;color:#fff;padding:2px 8px;border-radius:999px}
+#stu-mock .m-empty{color:#a9b6e8;font-size:.88rem;margin:0}
+#stu-mock .m-prog-in{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+#stu-mock .m-ring{--p:0;width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#22e0a8 calc(var(--p)*1%),rgba(255,255,255,.12) 0);position:relative;flex:none;filter:drop-shadow(0 0 10px rgba(34,224,168,.5))}
+#stu-mock .m-ring:before{content:"";position:absolute;inset:10px;border-radius:50%;background:#0a1236}
+#stu-mock .m-ring b{position:relative;font:800 1.5rem var(--head,system-ui);color:#fff}
+#stu-mock .m-bars{flex:1;min-width:150px;display:grid;gap:10px}
+#stu-mock .m-bars div{display:grid;grid-template-columns:78px 1fr 34px;gap:6px;align-items:center;font-size:.76rem;color:#dbe4ff}
+#stu-mock .m-bars u{height:6px;background:rgba(255,255,255,.12);border-radius:9px;overflow:hidden;display:block}
+#stu-mock .m-bars u i{display:block;height:100%;background:linear-gradient(90deg,#22e0a8,#38bdf8);border-radius:9px}
+#stu-mock .m-bars u i.b2{background:linear-gradient(90deg,#f59e0b,#ec4899)}#stu-mock .m-bars u i.b3{background:linear-gradient(90deg,#a78bfa,#6366f1)}
+#stu-mock .m-bars em{font-style:normal;text-align:right;font-weight:700}
+#stu-mock .m-fut{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;min-height:190px;background:linear-gradient(180deg,rgba(5,8,40,.2),rgba(5,8,40,.85)),linear-gradient(160deg,#4338ca,#be185d 60%,#f97316)}
+#stu-mock .m-fut:before{content:"";position:absolute;inset:auto 0 0 0;height:55%;background:linear-gradient(135deg,transparent 40%,rgba(10,10,40,.7) 41%),linear-gradient(225deg,transparent 45%,rgba(10,10,40,.55) 46%)}
+#stu-mock .m-fut h2{position:relative;margin:0;font:700 1.15rem/1.2 var(--head,system-ui);color:#fff}
+#stu-mock .m-fut h2 b{font-size:1.7rem;color:#fff}
+#stu-mock .m-fut p{position:relative;margin:6px 0 10px;font-size:.8rem;color:#e4e9ff}
+#stu-mock .m-fut button{position:relative;all:unset;cursor:pointer;align-self:flex-start;background:#2563eb;color:#fff;font:700 .85rem system-ui;padding:8px 16px;border-radius:10px;box-shadow:0 8px 20px -6px #2563eb}
+#stu-mock .m-foot{display:flex;gap:26px;align-items:center;justify-content:center;flex-wrap:wrap;margin:18px 0 4px;color:#e4e9ff;font-size:.85rem;font-weight:600}
+#stu-mock .m-brand{margin-left:auto;font-weight:800;display:flex;flex-direction:column;text-align:right}#stu-mock .m-brand small{font-weight:500;color:#a9b6e8;font-size:.7rem}
+.m-all-h{display:none}
+/* sidebar */
+@media(min-width:900px){
+ html body #stu-side{display:flex!important;width:238px;background:linear-gradient(180deg,rgba(4,9,36,.97),rgba(14,12,70,.97))!important;border-right:1px solid var(--m-line);padding:16px 12px;gap:4px;overflow:auto}
+ html body.stu-mode{margin-left:238px}
+ #stu-side .sb-brand{border:0;padding:4px 6px 14px;margin:0}
+ #stu-side .sb-brand img{width:46px;height:46px}
+ #stu-side .sb-brand b{font:800 1.5rem var(--head,system-ui);letter-spacing:1px}
+ #stu-side .sb-brand small{opacity:1;font-size:.78rem;letter-spacing:0;text-transform:none;font-weight:700;color:#fff}
+ #stu-side .sb-brand em{display:block;font-style:normal;font-size:.62rem;color:#a9b6e8}
+ #stu-side button,#stu-side a.sb-soc{all:unset;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;font:600 .92rem system-ui;color:#cdd6f6;position:relative}
+ #stu-side button:hover,#stu-side a.sb-soc:hover{background:rgba(255,255,255,.08);color:#fff}
+ #stu-side button.on{background:linear-gradient(90deg,#2563eb,#3b82f6);color:#fff;box-shadow:0 8px 20px -8px #2563eb}
+ #stu-side .sb-badge{margin-left:auto;background:#ef4444;color:#fff;font-size:.7rem;font-weight:800;border-radius:999px;min-width:20px;height:20px;display:grid;place-items:center}
+ #stu-side .sb-out{margin-top:auto;border:1px solid rgba(120,140,255,.5)!important;justify-content:center;background:rgba(40,60,200,.25)}
+ #stu-nav{display:none!important}
+ html body header.portal{background:transparent!important;border:0!important;box-shadow:none!important;justify-content:flex-end;padding:14px 22px 6px!important;min-height:0}
+ header.portal>div:first-child{display:none!important}
+ header.portal .btn{display:none!important}
+ .m-chip{display:flex!important}
+ html body main{max-width:none!important;padding:6px 22px 30px!important}
+ html body #student-dashboard .dtiles,html body #student-dashboard .m-all-h{display:none!important}
+}
+.m-chip{display:none;align-items:center;gap:10px;background:rgba(8,14,48,.8);border:1px solid var(--m-line);border-radius:14px;padding:6px 12px;color:#fff}
+.m-chip small{display:block;font-size:.7rem;color:#a9b6e8!important}.m-chip b{font-size:.88rem;color:#fff}
+.m-chip-av{width:34px;height:34px;border-radius:50%;overflow:hidden;background:#2b3fb8;display:grid!important;place-items:center;font-weight:800}.m-chip-av img{width:100%;height:100%;object-fit:cover}
+@media(max-width:1250px){#stu-mock .m-top{grid-template-columns:1fr}#stu-mock .m-row{grid-template-columns:1fr 1fr}#stu-mock .m-mot{flex-direction:row;flex-wrap:wrap}#stu-mock .m-mot-h{width:100%}#stu-mock .m-q{min-width:240px}}
+@media(max-width:899px){
+ #stu-mock .m-hero{min-height:0;padding:16px 14px 12px;border-radius:22px}
+ #stu-mock .m-hero-txt{grid-template-columns:auto 1fr}
+ #stu-mock .m-when{grid-column:1/-1;flex-direction:row;justify-content:space-between;text-align:left;align-items:center}
+ #stu-mock .m-av{width:58px;height:58px}#stu-mock .m-greet h1{font-size:1.5rem}
+ #stu-mock blockquote{font-size:.95rem}
+ #stu-mock .m-stats{grid-template-columns:1fr 1fr}
+ #stu-mock .m-row{grid-template-columns:1fr}
+ #stu-mock .m-foot{display:none}
+ #stu-mock .m-qa-grid{grid-template-columns:repeat(3,1fr)}
+ .m-all-h{display:block;margin:16px 4px 8px;font:800 1rem var(--head,system-ui);color:#fff}
+ html body #student-dashboard .dtile{min-height:92px!important;border-radius:18px!important}
+}
+/* v3b fixes */
+html body #stu-side button:not(.on),html body #stu-side a.sb-soc{background:transparent!important;box-shadow:none!important;border:0!important}
+html body #stu-side button.sb-out{background:rgba(40,60,200,.25)!important;border:1px solid rgba(120,140,255,.5)!important}
+html body #stu-side button.on{background:linear-gradient(90deg,#2563eb,#3b82f6)!important}
+html body #stu-mock .m-notice{background:transparent!important;box-shadow:none!important;border:0!important;border-bottom:1px solid rgba(120,130,255,.2)!important}
+html body #stu-mock .m-qa-grid button{background:rgba(255,255,255,.06)!important;box-shadow:none!important;border:1px solid rgba(120,130,255,.3)!important}
+html body #stu-mock .m-box h3 button{background:none!important;box-shadow:none!important;border:0!important}
+html body #stu-mock .m-fut button{background:#2563eb!important;border:0!important;opacity:1!important;color:#fff!important;box-shadow:0 8px 20px -6px #2563eb!important;position:relative;z-index:2}
+#stu-mock .m-mot .mot-cards{grid-template-columns:1fr!important}
+#stu-mock .m-mot .mot-x{background:none!important;border:0!important;box-shadow:none!important;margin-left:auto;color:#fff!important}
+@media(min-width:900px){#stu-mock blockquote{font-size:1.3rem;max-width:480px}#stu-mock .m-hero{min-height:390px}}
+/* v3c: readable sheets */
+html body .dash-option-sheet{background:linear-gradient(180deg,#070d2e,#0b1040)!important;border:1px solid var(--m-line)}
+html body .dash-option-sheet .card{background:rgba(14,22,66,.92)!important;border:1px solid var(--m-line)!important;border-top:2px solid #2fe0ff!important;color:#f1f4ff!important}
+html body .dash-option-sheet .card h2,html body .dash-option-sheet .card b,html body .dash-option-sheet .card label{color:#fff!important;text-shadow:none!important}
+html body .dash-option-sheet .grid>div,html body .dash-option-sheet .g3>div{background:rgba(255,255,255,.07)!important;border:1px solid rgba(120,130,255,.35)!important;color:#dbe4ff!important;border-radius:14px!important}
+html body .dash-option-sheet .grid>div b{color:#fff!important}
+html body .dash-option-sheet .grid b.p{color:#34d399!important}html body .dash-option-sheet .grid b.a,html body .dash-option-sheet .grid b.w{color:#fb7185!important}
+html body .dash-option-sheet .muted,html body .dash-option-sheet small{color:#b4c0ee!important}
+html body .dash-option-sheet .hist-row,html body .dash-option-sheet .msgitem{background:rgba(255,255,255,.06)!important;color:#f1f4ff!important;border:1px solid rgba(120,130,255,.28)!important}
+html body .dash-option-sheet input,html body .dash-option-sheet select,html body .dash-option-sheet textarea{background:#fff!important;color:#111827!important;-webkit-text-fill-color:#111827!important}
+html body .dash-option-sheet .btn.alt{background:rgba(255,255,255,.1)!important;color:#bfe9ff!important}
 </style>
 </head>
 <body>
@@ -1186,7 +1324,7 @@ async function loadExamList(){
   const box=[...document.querySelectorAll('#exam-list')].find(b=>b.offsetParent!==null||b.closest('#role-dashboard,#student-dashboard')&&!b.closest('.hide'))||document.getElementById('exam-list');if(!box)return;
   const r=await sb.rpc('exam_list');
   if(r.error){console.error('exam_list',r.error);box.innerHTML='<p class="muted">Online exams are not available yet.<br><small>'+esc(r.error.message||'')+'</small></p>';return}
-  const list=r.data||[];if(!list.length){box.innerHTML='<p class="muted">No exams are scheduled for you right now.</p>';return}
+  const list=r.data||[];window.__exListData=list;try{if(list[0])window.__exOff=Date.parse(list[0].server_now)-Date.now();stuMockExam()}catch(_){}if(!list.length){box.innerHTML='<p class="muted">No exams are scheduled for you right now.</p>';return}
   const bl=await sb.rpc('my_exam_blocks');const blk={};(bl.data||[]).forEach(x=>blk[String(x.exam_id)]=x.message);window.__blk={};list.forEach(x=>{if(blk[String(x.id)])window.__blk[String(x.id)]={title:x.title,msg:blk[String(x.id)]}});
   const off=Date.parse(list[0].server_now)-Date.now();window.__exOff=off;const now=Date.now()+off;
   box.innerHTML=list.map(e=>{
@@ -1487,35 +1625,41 @@ function getBestPosition(maxMs){
     t=setTimeout(fin,maxMs);
   });
 }
+async function saSettings(){
+  try{const r=await sb.from('attendance_settings').select('*').eq('id',1).maybeSingle();return r.error?null:(r.data||null)}catch(_){return null}
+}
+function saHtml(c,done,role){
+  const nt=(txt)=>`<p class="muted" style="font-size:.85rem;margin-top:.5rem">${txt}</p>`;
+  if(done)return `<p class="muted" style="margin-top:.6rem">Today: <b>${esc(done.status)}</b></p>`;
+  if(c&&!c.enabled)return nt('Self attendance is currently turned off by the institute.');
+  if(c&&c.lat==null)return nt('Institute location is not set yet. Please contact admin.');
+  const info=c?`You must be at the institute (${String(c.start_time||'').slice(0,5)} - ${String(c.end_time||'').slice(0,5)}). Allow location when asked.${c.face_required?' Your face is also checked.':''}`:'You must be at the institute. Allow location when asked.';
+  return `<button class="btn" id="self-att-btn" style="margin-top:.6rem" onclick="markMyAttendance(${role?`'${role}'`:''})">📍 Mark my attendance</button>${nt(info)}`;
+}
 async function selfAttBox(A,me){
   try{
     window.__saMe=me;
-    const r=await sb.from('attendance_settings').select('*').eq('id',1).maybeSingle();
-    const c=r.data;if(r.error||!c||!c.enabled||c.lat==null)return;c.face_required=false;
+    const c=await saSettings();
     const t=new Date().toLocaleDateString('en-CA',{timeZone:TZ});
     const done=(A||[]).find(x=>String(x.date).slice(0,10)===t);
     const el=$('#c-att');if(!el)return;
-    const fc='';
-    if(fc)el.insertAdjacentHTML('beforeend',fc);
-    el.insertAdjacentHTML('beforeend',done
-      ?`<p class="muted" style="margin-top:.6rem">Today: <b>${esc(done.status)}</b></p>`
-      :`<button class="btn" id="self-att-btn" style="margin-top:.6rem" onclick="markMyAttendance()">📍 Mark my attendance</button><p class="muted" style="font-size:.8rem">You must be at the institute (${String(c.start_time).slice(0,5)} - ${String(c.end_time).slice(0,5)}). Allow location when asked.</p>`);
+    const old=$('#self-att-wrap');if(old)old.remove();
+    let fc='';try{if(c&&c.enabled&&c.face_required)fc=await faceRegCard(c)||''}catch(_){}
+    el.insertAdjacentHTML('beforeend',`<div id="self-att-wrap">${fc}${saHtml(c,done)}</div>`);
   }catch(_){}
 }
 async function selfAttOther(role,row){
   try{
-    const r=await sb.from('attendance_settings').select('*').eq('id',1).maybeSingle();
-    const c=r.data;if(r.error||!c||!c.enabled||c.lat==null)return;c.face_required=false;
+    const c=await saSettings();
     const t=new Date().toLocaleDateString('en-CA',{timeZone:TZ});
     const q=role==='teacher'?sb.from('teacher_attendance').select('status').eq('teacher_id',row.id).eq('attendance_date',t).limit(1)
                             :sb.from('library_attendance').select('status').eq('library_id',row.id).eq('attendance_date',t).limit(1);
     const done=((await q).data||[])[0];
     window.__saRow=row;
     const el=$('#role-dashboard');if(!el)return;
-    const fc='';
-    el.insertAdjacentHTML('afterbegin',`<div class="card"><h2>Mark Attendance</h2>`+fc+(done
-      ?`<p>Today: <b>${esc(done.status)}</b></p>`
-      :`<button class="btn" id="self-att-btn" onclick="markMyAttendance('${role}')">📍 Mark my attendance</button><p class="muted" style="font-size:.8rem">You must be at the institute (${String(c.start_time).slice(0,5)} - ${String(c.end_time).slice(0,5)}). Allow location when asked.</p>`)+`</div>`);
+    const old=$('#self-att-wrap');if(old)old.remove();
+    let fc='';try{if(c&&c.enabled&&c.face_required)fc=await faceRegCard(c)||''}catch(_){}
+    el.insertAdjacentHTML('afterbegin',`<div class="card" id="self-att-wrap"><h2>Mark Attendance</h2>${fc}${saHtml(c,done,role)}</div>`);
   }catch(_){}
 }
 async function markMyAttendance(role){
@@ -1748,6 +1892,8 @@ function stuMotivation(me){
       const wrap=box.querySelector('.mot-cards');
       parts.forEach((p,i)=>{const c=document.createElement('div');c.className='mot-card';c.innerHTML='<span class="q">“</span>';p.forEach(l=>{const d=document.createElement('div');d.textContent=l;c.appendChild(d)});const w=document.createElement('span');w.className='who';w.textContent=i===0?'— BIIT Family':'— Aap ke liye';c.appendChild(w);wrap.appendChild(c)});
       box.querySelector('.mot-x').onclick=function(){localStorage.setItem(key,'1');box.remove()};
+      const slot=document.getElementById('m-mot-slot');
+      if(slot){slot.replaceChildren(box);return}
       const hero=document.querySelector('.dhero');
       if(hero){hero.insertAdjacentElement('afterend',box);return}
       const anchor=document.querySelector('#c-prof');
@@ -1761,6 +1907,118 @@ function stuMotivation(me){
     }).catch(()=>{clearTimeout(timer);showBox(fallbackText)});
   }catch(_){}
 }
+// ===== BIIT student dashboard (mockup style) =====
+const STU_HI=["हर दिन कुछ नया सीखो, क्योंकि यही आपकी सफलता की असली कुंजी है।","मेहनत का फल हमेशा मीठा होता है, बस लगे रहो।","आज की पढ़ाई ही कल का सुनहरा भविष्य बनाती है।","छोटे कदम भी बड़े मुकाम तक ले जाते हैं, बस हौसला कभी कम न होने पाए।","जो सीखता रहता है, वही आगे बढ़ता रहता है।","सपने वो नहीं जो सोते हुए देखें, सपने वो हैं जो सोने न दें।"];
+function stuIST(){return new Date().toLocaleString('en-GB',{timeZone:'Asia/Kolkata',hour12:false})}
+function stuHour(){return Number(new Date().toLocaleString('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',hour12:false}))%24}
+function stuDateTxt(){const o={timeZone:'Asia/Kolkata'},d=new Date();return d.toLocaleDateString('en-GB',{...o,day:'2-digit',month:'short',year:'numeric'})+', '+d.toLocaleDateString('en-US',{...o,weekday:'long'})}
+function stuTimeTxt(){return new Date().toLocaleTimeString('en-US',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit'})}
+function stuOpenGroup(re){
+  const G=window.__stuGroups||[];const i=G.findIndex(g=>re.test(g.t));if(i<0)return;
+  const tiles=document.querySelectorAll('#student-dashboard button.dtile');
+  if(window.__closeSheet)window.__closeSheet();
+  setTimeout(()=>{if(tiles[i])tiles[i].click();stuSideActive(i)},40);
+}
+function stuSideActive(i){document.querySelectorAll('#stu-side button[data-gi]').forEach(b=>b.classList.toggle('on',Number(b.dataset.gi)===i))}
+function stuMockExam(){
+  const v=document.getElementById('m-exam-v'),s=document.getElementById('m-exam-s');if(!v||!s)return;
+  const list=window.__exListData||[];if(!list.length){v.textContent='No exam';s.textContent='Nothing scheduled';return}
+  const off=window.__exOff||0,now=Date.now()+off;
+  const up=list.filter(e=>Date.parse(e.end_at)>now&&!(e.attempt_status&&e.attempt_status!=='in_progress')).sort((a,b)=>Date.parse(a.start_at)-Date.parse(b.start_at))[0];
+  if(!up){v.textContent='No exam';s.textContent='All done';return}
+  if(Date.parse(up.start_at)<=now){v.textContent='Open now';s.textContent=up.title}
+  else{v.textContent=new Date(up.start_at).toLocaleDateString('en-GB',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'});s.textContent=up.title}
+}
+function stuMock(me){
+  const root=document.getElementById('student-dashboard');if(!root||!window.__stuGroups)return;
+  const D=window.__stuData||{A:[],f:{total_fees:0,paid:0,pending:0},msgs:[]};
+  const A=D.A||[],f=D.f||{},msgs=D.msgs||[];
+  const present=A.filter(x=>x.status==='present').length;
+  const pct=A.length?Math.round(present*100/A.length):0;
+  const feePct=Number(f.total_fees)>0?Math.min(100,Math.round(Number(f.paid||0)*100/Number(f.total_fees))):0;
+  const g=stuHour(),greet=g<12?'Good Morning':g<17?'Good Afternoon':'Good Evening';
+  const first=esc(me.name||'Student');
+  const photo=me.profile_photo?`<img src="${me.profile_photo}" alt="">`:`<span>${esc((me.name||'?').trim().charAt(0).toUpperCase())}</span>`;
+  const owes=Number(f.pending)>0;
+  const hi=STU_HI[Math.floor(Date.now()/86400000)%STU_HI.length];
+  const hi2=STU_HI[(Math.floor(Date.now()/86400000)+3)%STU_HI.length];
+  const noticeHtml=msgs.slice(0,3).map((m,i)=>`<button type="button" class="m-notice" data-open="msg"><i class="m-nic c${i%3}">${['📢','🔔','📝'][i%3]}</i><span><b>${esc(String(m.message).slice(0,70))}</b><small>${esc(fmtTime(m.sent_at))}</small></span><em>New</em></button>`).join('')||'<p class="m-empty">No new notices right now.</p>';
+  const old=document.getElementById('stu-mock');if(old)old.remove();
+  const el=document.createElement('section');el.id='stu-mock';
+  el.innerHTML=`
+  <div class="m-top">
+    <div class="m-hero">
+      <div class="m-hero-txt">
+        <div class="m-av">${photo}</div>
+        <div class="m-greet"><small>${greet}</small><h1>${first} <i>👑</i></h1><p>${esc(me.class||'BIIT Student')} &nbsp;|&nbsp; Your Dreams, Our Mission</p></div>
+        <div class="m-when"><b id="m-date">${stuDateTxt()}</b><span id="m-time">🕙 ${stuTimeTxt()}</span></div>
+        <blockquote>“ ${esc(hi)}”</blockquote>
+      </div>
+      <div class="m-stats">
+        <div class="m-stat"><i class="s1">👥</i><span><small>Total Classes</small><b>${A.length}</b><em>Recorded</em></span></div>
+        <div class="m-stat"><i class="s2">✔</i><span><small>Present</small><b>${present}</b><em>/ ${A.length} Days</em></span></div>
+        <div class="m-stat"><i class="s3">₹</i><span><small>Fees Status</small><b class="${owes?'due':'paid'}">${owes?'Due':'Paid'}</b><em>${owes?money(f.pending)+' pending':'All clear'}</em></span></div>
+        <div class="m-stat"><i class="s4">📅</i><span><small>Next Exam</small><b id="m-exam-v">…</b><em id="m-exam-s">Checking</em></span></div>
+      </div>
+    </div>
+    <div class="m-mot" id="m-mot-slot">
+      <div class="m-mot-h">✨ Today's Motivation</div>
+      <div class="m-q"><p>“ ${esc(hi)}”</p><small>— BIIT Family</small></div>
+      <div class="m-q alt"><p>“ ${esc(hi2)}”</p><small>— आपके लिए</small></div>
+    </div>
+  </div>
+  <div class="m-row">
+    <div class="m-box m-qa"><h3>Quick Actions</h3><div class="m-qa-grid">
+      <button type="button" data-open="att"><i class="q1">📍</i>Mark Attendance</button>
+      <button type="button" data-open="fee"><i class="q2">₹</i>Pay Fees</button>
+      <button type="button" data-open="past"><i class="q3">📊</i>Exam Results</button>
+      <button type="button" data-open="exam"><i class="q4">📝</i>Online Exams</button>
+      <button type="button" data-open="msg"><i class="q5">💬</i>Messages</button>
+      <button type="button" data-open="det"><i class="q6">👤</i>My Details</button>
+    </div></div>
+    <div class="m-box m-not"><h3>Recent Notices <button type="button" data-open="msg">View all ›</button></h3>${noticeHtml}</div>
+    <div class="m-box m-prog"><h3>Progress</h3><div class="m-prog-in">
+      <div class="m-ring" style="--p:${pct}"><b>${pct}%</b></div>
+      <div class="m-bars"><div><span>Attendance</span><u><i style="width:${pct}%"></i></u><em>${pct}%</em></div><div><span>Fees Paid</span><u><i class="b2" style="width:${feePct}%"></i></u><em>${feePct}%</em></div><div><span>Present Days</span><u><i class="b3" style="width:${A.length?Math.min(100,present*100/A.length):0}%"></i></u><em>${present}</em></div></div></div></div>
+    <div class="m-box m-fut"><h2>Your Future is<br><b>in Your Hands</b></h2><p>With the right guidance, anything is possible.</p><button type="button" data-open="exam">Keep Going →</button></div>
+  </div>
+  <div class="m-foot"><span>📘 More Knowledge</span><span>🛠 More Skills</span><span>⭐ A Better You</span><span class="m-brand">BIIT Computer Institute<small>Learn Today… Lead Tomorrow…</small></span></div>`;
+  const map={att:/^my attendance/i,fee:/^my fees/i,past:/past/i,exam:/online exam/i,msg:/message/i,det:/detail/i};
+  el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>stuOpenGroup(map[b.dataset.open]));
+  const tiles=root.querySelector('.dtiles');
+  if(tiles){tiles.insertAdjacentHTML('beforebegin','<div class="m-all-h" id="m-all-h">All options</div>');root.insertBefore(el,root.querySelector('#m-all-h'))}else root.prepend(el);
+  // live clock
+  clearInterval(window.__mClock);window.__mClock=setInterval(()=>{const t=document.getElementById('m-time');if(!t){clearInterval(window.__mClock);return}t.textContent='🕙 '+stuTimeTxt();const d=document.getElementById('m-date');if(d)d.textContent=stuDateTxt()},30000);
+  // AI motivation (if it already arrived) goes into the right panel
+  const mot=document.getElementById('stu-motivation');const slot=document.getElementById('m-mot-slot');
+  if(mot&&slot&&!slot.contains(mot))slot.replaceChildren(mot);
+  stuMockExam();
+  stuMockSidebar(me,msgs.length);
+  stuMockHeader(me);
+}
+function stuMockSidebar(me,nMsg){
+  const old=document.getElementById('stu-side');if(old)old.remove();
+  const G=window.__stuGroups||[];const logo=(document.querySelector('header.portal img')||{}).src||'';
+  const side=document.createElement('aside');side.id='stu-side';
+  const cfg=window.__cfg||{};
+  const soc=[['youtube_url','▶','YouTube'],['instagram_url','📸','Instagram'],['whatsapp_url','💬','WhatsApp']].filter(x=>(cfg[x[0]]||'').trim());
+  side.innerHTML=`<div class="sb-brand"><img src="${logo}" alt=""><div><b>BIIT</b><small>Computer Institute</small><em>Learn Today… Lead Tomorrow…</em></div></div>
+   <button type="button" class="on" data-gi="-1"><span class="sb-ic">🏠</span>Dashboard</button>`+
+   G.map((x,i)=>`<button type="button" data-gi="${i}"><span class="sb-ic">${dashIcon(x.t)}</span>${esc(x.t.replace(/^My /,''))}${/message/i.test(x.t)&&nMsg?`<span class="sb-badge">${nMsg}</span>`:''}</button>`).join('')+
+   soc.map(x=>`<a class="sb-soc" href="${esc(cfg[x[0]])}" target="_blank" rel="noopener"><span class="sb-ic">${x[1]}</span>${x[2]}</a>`).join('')+
+   `<button type="button" class="sb-out" onclick="logout()"><span class="sb-ic">⏻</span>Log Out</button>`;
+  side.querySelectorAll('button[data-gi]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.gi);if(i<0){if(window.__closeSheet)window.__closeSheet();window.scrollTo({top:0,behavior:'smooth'});stuSideActive(-1);return}const tiles=document.querySelectorAll('#student-dashboard button.dtile');if(window.__closeSheet)window.__closeSheet();setTimeout(()=>{if(tiles[i])tiles[i].click();stuSideActive(i)},40)});
+  document.body.appendChild(side);
+  document.body.classList.add('stu-mode');
+  if(!window.__mObs){window.__mObs=new MutationObserver(()=>{if(!document.body.classList.contains('dash-option-open'))stuSideActive(-1)});window.__mObs.observe(document.body,{attributes:true,attributeFilter:['class']})}
+}
+function stuMockHeader(me){
+  const h=document.querySelector('header.portal');if(!h||h.querySelector('.m-chip'))return;
+  const c=document.createElement('div');c.className='m-chip';
+  c.innerHTML=`<span class="m-chip-av">${me.profile_photo?`<img src="${me.profile_photo}" alt="">`:esc((me.name||'?').trim().charAt(0).toUpperCase())}</span><span><b>${esc(me.name||'')}</b><small>Student</small></span>`;
+  const btn=h.querySelector('button');h.insertBefore(c,btn);
+}
+
 async function renderStudentPortal(me){
   only('portal');
   window.__stuMe=me;
@@ -1827,6 +2085,7 @@ async function renderStudentPortal(me){
     </div>`;
 
   selfAttBox(A,me);
+  window.__stuData={A,f,pays,msgs:(msgs.data||[]).filter(m=>!m.target_class||m.target_class===me.class)};
   pushBox('student');
   $('#c-att-hist').innerHTML = `<h2>Attendance History</h2>
     ${A.length ? A.slice(0,60).map(x => `
@@ -1841,7 +2100,7 @@ async function renderStudentPortal(me){
         <div class="muted" style="font-size:.8rem">${fmtTime(m.sent_at)}</div>
         ${esc(m.message)}
       </div>`).join('') || '<span class="muted">No messages yet.</span>'}`;
-  $('#student-dashboard').classList.remove('hide');$('#role-dashboard').classList.add('hide');if(!$('#student-dashboard #c-exam'))$('#student-dashboard').insertAdjacentHTML('beforeend','<div class="card" id="c-exam"><h2>Online Exams</h2><div id="exam-list"><p class="muted">Loading…</p></div></div>');(async()=>{try{await window.__siteReady}catch(_){}enhanceDashboard($('#student-dashboard'),'student',me.name);loadExamList()})();
+  $('#student-dashboard').classList.remove('hide');$('#role-dashboard').classList.add('hide');if(!$('#student-dashboard #c-exam'))$('#student-dashboard').insertAdjacentHTML('beforeend','<div class="card" id="c-exam"><h2>Online Exams</h2><div id="exam-list"><p class="muted">Loading…</p></div></div>');(async()=>{try{await window.__siteReady}catch(_){}enhanceDashboard($('#student-dashboard'),'student',me.name);try{stuMock(me)}catch(e){console.warn('mock',e)}loadExamList()})();
 }
 
 async function forgotPw(){
@@ -1971,7 +2230,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-28-3';
+  var MY_VER='2026-10-29-4';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
