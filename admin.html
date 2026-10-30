@@ -523,11 +523,11 @@ const cutoff = () => new Date(Date.now()-DAY).toISOString();   // Messages older
 let students = [], marks = {}, feeRows = [], courses = [], libraryRows=[], teacherRows=[], promoterRows=[];
 const only = id => ['login','app'].forEach(x=>{const el=$('#'+x);if(el)el.classList.toggle('hide',x!==id)});
 function toast(t,ms){const m=$('#msg');m.textContent=t;m.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>m.style.display='none',ms||3500)}
-async function aiReadPaper(images){
+async function aiReadPaper(images,text){
   try{
     const sess=(await sb.auth.getSession()).data.session;
     if(!sess)return {data:null,error:{message:'Please log in again.'}};
-    const r=await fetch('https://biit-photos.computerinstitute1.workers.dev/api/exam-from-photo',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sess.access_token},body:JSON.stringify({images})});
+    const r=await fetch('https://biit-photos.computerinstitute1.workers.dev/api/exam-from-photo',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sess.access_token},body:JSON.stringify(text!==undefined&&text!==null?{images:images||[],text}:{images})});
     const j=await r.json().catch(()=>({error:'Bad reply from AI server'}));
     if(!r.ok||j.error){const msg=j.error||('AI error '+r.status);return {data:{error:msg},error:{message:msg}}}
     return {data:j,error:null};
@@ -655,8 +655,22 @@ async function dash(){
 }
 
 // ============= STUDENTS =============
+
+function exportStudentsCSV(){
+  if(!students||!students.length)return toast('No students loaded yet. Open the Students page and wait a moment.');
+  const skip=new Set(['profile_photo','photo_url','aadhaar_url','documents','password','pin']);
+  const keys=[];
+  students.forEach(s=>Object.keys(s).forEach(k=>{if(!skip.has(k)&&!keys.includes(k))keys.push(k)}));
+  const cell=v=>{if(v===null||v===undefined)return '';if(typeof v==='object')v=JSON.stringify(v);v=String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const lines=[keys.join(',')].concat(students.map(s=>keys.map(k=>cell(s[k])).join(',')));
+  const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob),el=document.createElement('a');
+  el.href=url;el.download='BIIT-students-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(el);el.click();el.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+  toast('Downloaded '+students.length+' students. Open it in Excel.',5000);
+}
 function viewStudents(){
-  $('#v-stu').innerHTML = `<h2>Students (${students.length})</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('students')">📄 Download PDF</button></div>
+  $('#v-stu').innerHTML = `<h2>Students (${students.length})</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('students')">📄 Download PDF</button> <button class=\"btn sm alt\" onclick=\"exportStudentsCSV()\">📥 Download all students (Excel/CSV)</button></div>
   <div class="card"><b>Student Portal Link</b>
   <div class="muted">Share this link with students. They can register themselves and view their own records.</div>
   <input id="rl" readonly value="${esc(location.origin+'/')}">
@@ -1244,19 +1258,10 @@ async function delCommission(id){if(!confirm('Remove this commission entry?'))re
 async function togglePromoter(id,is_active){const {error}=await sb.from('promoters').update({is_active}).eq('id',id);if(error)return toast('Update failed: '+error.message);viewPromoters()}
 async function copyText(text){try{await navigator.clipboard.writeText(text);toast('Copied to clipboard.')}catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Copied to clipboard.')}}
 
-
-// ---- Cloudflare media cache: images are served via the biit-media worker so Supabase egress stays tiny ----
-const MEDIA_BASE='https://biit-photos.computerinstitute1.workers.dev';
-function mediaUrl(u){
-  try{ if(!u||!MEDIA_BASE) return u;
-    const m=String(u).match(/^https:\/\/bpsqafcfdjtvnvcvlotr\.supabase\.co\/storage\/v1\/object\/public\/(site-media\/.+)$/);
-    return m?MEDIA_BASE+'/m/'+m[1]:u }catch(_){return u}
-}
-function mediaImgFallback(img,orig){ img.onerror=function(){img.onerror=null;img.src=orig} }
 function applyLogo(url){
   try{ if(url){ localStorage.setItem('biitLogo',url) } else { localStorage.removeItem('biitLogo') } }catch(_){}
   if(!url) return;
-  document.querySelectorAll('.logo-mark img').forEach(i=>{mediaImgFallback(i,url);i.src=mediaUrl(url)});
+  document.querySelectorAll('.logo-mark img').forEach(i=>{i.src=url});
 }
 try{ const _l=localStorage.getItem('biitLogo'); if(_l) document.addEventListener('DOMContentLoaded',()=>applyLogo(_l)); }catch(_){}
 async function loadSiteLogo(){ try{ const r=await sb.from('site_settings').select('setting_value').eq('setting_key','site_logo_url').maybeSingle(); if(r.data?.setting_value) applyLogo(r.data.setting_value) }catch(_){} }
@@ -1710,19 +1715,19 @@ async function saveQuestion(){
 async function delQuestion(id){if(!confirm('Delete this question?'))return;const {error}=await sb.from('exam_questions').delete().eq('id',id);if(error)return toast(error.message);toast('Deleted.');viewExam()}
 // ---- Photo -> questions (OCR) ----
 function optIdx(ch){return 'abcd1234कखगघ'.indexOf(String(ch).toLowerCase())%4}
-function parseNumberedQ(raw){
+function parseNumberedQuestions(raw){
   // Tolerant parser: handles OCR mistakes (O/l/I instead of 0/1), Hindi digits, missing dots,
   // several questions glued on one line, options on one line "(a) x (b) y", options without ")".
   const HD='०१२३४५६७८९';
   const num=t=>{const v=parseInt(String(t).replace(/[०-९]/g,c=>HD.indexOf(c)).replace(/[OoDQ]/g,'0').replace(/[Il|!]/g,'1'),10);return isNaN(v)?0:v};
-  const lines=String(raw||'').replace(/\r/g,'').split('\n').map(l=>({t:l.replace(/[ \t\u00a0]+/g,' ').trim(),raw:l.replace(/\t/g,'    ').replace(/\u00a0/g,' ').replace(/\s+$/,'')})).filter(x=>x.t);
+  const lines=String(raw||'').replace(/\r/g,'').split('\n').map(l=>l.replace(/[ \t]+/g,' ').trim()).filter(Boolean);
   const OL='A-Da-dकखगघ';
   const qRe=new RegExp('^(?:(?:Q(?:uestion|ue|n)?|प्रश्न)\\.?\\s*)?([0-9०-९OoIl|]{1,3})\\s*[.)\\]:\\-–—]\\s*(\\S.*)$','i');
   const looseRe=/^(?:Q\s*)?(\d{1,3})\s+(\S.{8,})$/i;
   const oRe=new RegExp('^[(\\[]?\\s*(['+OL+'])\\s*[.)\\]:]\\s*(.*)$');
   const oOpenRe=new RegExp('^\\(\\s*(['+OL+'])\\s+(\\S.*)$');
   const o2Re=/^\(\s*([1-4])\s*\)\s*(.*)$/;
-  const ansRe=ANS_LINE_RE;
+  const ansRe=/^(?:ans(?:wer)?|उत्तर|correct)\s*[:.\-)]*\s*\(?\s*([A-Da-d1-4कखगघ])\s*\)?/i;
   const OLI=OL+'1-4';
   const inlineRe=new RegExp('\\(\\s*(['+OLI+'])\\s*\\)','g');
   const out=[];let cur=null,kind=null,lastNum=0,lastOpt=-1;
@@ -1739,12 +1744,12 @@ function parseNumberedQ(raw){
   };
   const queue=lines.slice();
   while(queue.length){
-    const item=queue.shift();let line=item.t,rawLine=item.raw;let m;
+    let line=queue.shift();let m;
     // several questions glued in one line: "... (d) xyz 11. next question"
     if(cur||qRe.test(line)){
       const qm=line.match(qRe),qn=qm?num(qm[1]):0,base=(qn>lastNum&&qn<=lastNum+6)?qn:lastNum;
       const nx=base+1,mm=line.match(new RegExp('^(.{10,}?)\\s+'+nx+'\\s*[.)]\\s+(\\S.*)$'));
-      if(mm){queue.unshift({t:nx+'. '+mm[2],raw:nx+'. '+mm[2]});line=mm[1];rawLine=mm[1]}
+      if(mm){queue.unshift(nx+'. '+mm[2]);line=mm[1]}
     }
     if((m=line.match(ansRe))&&cur&&cur.options.filter(Boolean).length){cur.answer=optIdx(m[1]);continue}
     if(cur&&(line.match(inlineRe)||[]).length>=2&&/^[(\[]?\s*[A-Da-dकखगघ]\s*[)\]]/.test(line)){if(addInline(line))continue}
@@ -1757,138 +1762,166 @@ function parseNumberedQ(raw){
     }
     // number without a dot, but it is exactly the next number and previous question looks finished
     if(cur&&cur.options.filter(Boolean).length>=2&&(m=line.match(looseRe))&&Number(m[1])===lastNum+1){startQ(Number(m[1]),m[2]);continue}
-    if(cur){if(kind==='o'&&lastOpt>=0)cur.options[lastOpt]+=' '+line;else cur.question+='\n'+rawLine}
+    if(cur){if(kind==='o'&&lastOpt>=0)cur.options[lastOpt]+=' '+line;else cur.question+=' '+line}
   }
   if(cur)out.push(cur);
   out.forEach(q=>{q.options=Array.from(q.options,o=>o||'')});
   return out.filter(q=>q.question.length>3);
 }
-// ===== Answer-line / answer-tail helpers (answer text must never stay inside question or options) =====
-const ANS_LINE_RE=/^[\[(]?\s*(?:correct\s+|right\s+)?(?:ans(?:wer)?|उत्तर|sahi\s*(?:jawab|answer|option)|jawab)\s*(?:is|hai|option|[:=\-–.)])*\s*[\[(]?\s*([A-Da-d1-4कखगघ])\s*[\])]?\s*(?:[.)]|$|\s.*)?$/i;
-const ANS_TEXT_RE=/^(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*[:=\-–]\s*(.+)$/i;
-const ANS_TAIL_OPT=/\s*[\[(]?\s*(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*(?:is|hai|[:=\-–.])+\s*[\[(]?\s*([A-Da-d1-4कखगघ])\s*[\])]?\.?\s*[\])]?\s*$/i;
-const ANS_TAIL_Q=/\s*[\[(]?\s*(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*[:=]\s*[\[(]?\s*([A-Da-d1-4कखगघ])\s*[\])]?\.?\s*[\])]?\s*$/i;
-function fixGluedOptions(q){
-  // AI reader / OCR sometimes returns  options[0]="2 b) 2 c) 3 d) 3"  or the options glued inside the question text
-  try{
-    const opts=(q.options||[]).map(o=>String(o||'').trim());
-    const glued=t=>/(?:^|\s)[(\[]?[bB]\s*[.)\]:](?=\s|$)/.test(t)&&/(?:^|\s)[(\[]?[cC]\s*[.)\]:](?=\s|$)|[(\[]?[aA]\s*[.)\]:]/.test(t);
-    if(!(opts.some(glued)||glued(String(q.question||''))))return q;
-    const txt=[String(q.question||'').trim(),...opts.map((o,k)=>o?'('+'ABCD'[k]+') '+o:'')].filter(Boolean).join('\n');
-    const lines=splitInlineOptions(txt).split('\n'),qs=[],no=[];let ans=q.answer;
-    lines.forEach(l=>{const m=l.match(/^\(([ABCD])\)\s?(.*)$/);if(m)no[ 'ABCD'.indexOf(m[1]) ]=m[2].trim();else qs.push(l)});
-    if(no.filter(Boolean).length>=2){q.question=qs.join(' ').trim()||q.question;q.options=[0,1,2,3].map(k=>no[k]||'')}
-  }catch(e){console.warn(e)}
-  return q;
+function errText(e){
+  if(!e)return 'unknown error';
+  if(typeof e==='string')return e;
+  if(e.message)return e.message;
+  if(e.type==='error'||(typeof Event!=='undefined'&&e instanceof Event))return 'This file could not be opened as a picture';
+  try{return JSON.stringify(e).slice(0,160)}catch(_){return String(e)}
 }
-function cleanQ(q){
-  fixGluedOptions(q);
-  // keep only 4 options, cut "Ans: B" leftovers out of text, move them into q.answer
-  q.options=(q.options||[]).slice(0,4).map(o=>{o=String(o||'').trim();if(/^[0-9OolI|,.]{3,}$/.test(o)&&/\d/.test(o)&&/[OolI|]/.test(o))o=o.replace(/[Oo]/g,'0').replace(/[lI|]/g,'1').replace(/\s+/g,'');const m=o.match(ANS_TAIL_OPT);if(m&&m.index>0||m&&o.slice(0,m.index).trim()){if(q.answer==null||q.answer===undefined)q.answer=optIdx(m[1]);o=o.slice(0,m.index).trim()}return o});
-  let t=String(q.question||'').replace(/^\s*\n+/,'').replace(/\s+$/,'');const m2=t.match(ANS_TAIL_Q);if(m2&&m2.index>0){if(q.answer==null)q.answer=optIdx(m2[1]);t=t.slice(0,m2.index).trim()}
-  q.question=t;
-  if(q.answer!=null&&!(q.options[q.answer]))q.answer=null;
-  return q;
-}
-// Parser for questions WITHOUT numbers ("Question? (A) .. (B) .. (C) .. (D) .. Ans: C")
-function parseUnnumberedQ(raw){
+// ---- Reads questions that have NO question numbers (just question text, then (A)(B)(C)(D) lines) ----
+function parseBlockQuestions(raw){
+  const OL='A-Da-dकखगघ';
+  const optRe=new RegExp('^[(\\[]?\\s*(['+OL+'])\\s*[.)\\]:\\-–]\\s*(\\S.*)$');
+  const optOpenRe=new RegExp('^\\(\\s*(['+OL+'])\\s+(\\S.*)$');
+  const optNumRe=/^\(\s*([1-4])\s*\)\s*(\S.*)$/;
+  const ansRe=/^(?:ans(?:wer)?|उत्तर|सही\s*उत्तर|correct(?:\s*answer)?)\s*[:.\-)=–]*\s*(?:option\s*)?\(?\s*([A-Da-d1-4कखगघ])\s*\)?/i;
+  const inlineAll=new RegExp('\\(\\s*(['+OL+'1-4])\\s*\\)','g');
   const lines=String(raw||'').replace(/\r/g,'').split('\n').map(l=>l.replace(/[ \t\u00a0]+/g,' ').trim());
-  const OPT=/^[(\[]?\s*([A-Da-dकखगघ1-4])\s*[.)\]:\-–]\s*(.*)$/;
-  const OPEN=/^\(\s*([A-Da-d])\s+(\S.*)$/;
-  const SPLIT=/\(\s*([A-Da-d1-4])\s*\)/;
-  const out=[];let cur=null,qbuf=[],lastOpt=-1;
-  const cnt=()=>cur?cur.options.filter(Boolean).length:0;
-  const flush=()=>{if(cur&&cur.question&&cnt()>=2)out.push(cur);cur=null;lastOpt=-1};
-  const stripNo=t=>t.replace(/^(?:Q(?:uestion|ue|n)?\.?\s*)?(?:\d{1,3}|[०-९]{1,3})\s*[.):\-–]\s+/i,'').trim();
-  const newQ=()=>{cur={num:0,question:stripNo(qbuf.join('\n').trim()),options:[],answer:null};qbuf=[];lastOpt=-1};
-  const setOpt=(k,t)=>{cur.options[k]=(cur.options[k]?cur.options[k]+' ':'')+String(t).trim();lastOpt=k};
+  const out=[];let q=[],opts=[],ans=null,done=false;
+  const clean=t=>t.replace(/^[\s•\-*▪●■◆►➤✔✅❓]+/,'').replace(/^(?:Q(?:uestion|ue|n)?\.?\s*|प्रश्न\s*)?[0-9०-९]{1,3}\s*[.)\]:\-–]\s*/i,'').trim();
+  const isHeading=l=>l.length<=70&&!/[?？।]/.test(l)&&/(chapter|test|exam|paper|unit|subject|name\s*:|date\s*:|marks|class\s*:|set\s*[a-d]\b|total|time\s*:|syllabus|worksheet|quiz|mcq|परीक्षा|प्रश्न\s*पत्र|अध्याय|विषय)/i.test(l);
+  const flush=()=>{
+    while(q.length>1&&isHeading(q[0]))q.shift();
+    const question=clean(q.join(' '));
+    if(question.length>3&&opts.filter(Boolean).length>=2){const o=[0,1,2,3].map(k=>opts[k]||'');out.push({num:out.length+1,question,options:o,answer:ans})}
+    q=[];opts=[];ans=null;done=false};
+  const setOpt=(k,t)=>{opts[k]=((opts[k]?opts[k]+' ':'')+t).trim();opts._last=k};
+  const splitInline=line=>{
+    const ms=[...line.matchAll(inlineAll)];
+    if(ms.length<2)return null;
+    const firstIdx=ms[0].index,pre=line.slice(0,firstIdx).trim(),res={pre,items:[]};
+    for(let i=0;i<ms.length;i++){const s=ms[i].index+ms[i][0].length,e=i+1<ms.length?ms[i+1].index:line.length;res.items.push([optIdx(ms[i][1]),line.slice(s,e).trim()])}
+    return res.items.every(x=>x[1])?res:null};
   for(const line of lines){
-    if(!line){if(cnt()>=2)flush();continue}
-    if(cur&&cnt()>=1){
-      let m=line.match(ANS_LINE_RE);
-      if(m){cur.answer=optIdx(m[1]);continue}
-      m=line.match(ANS_TEXT_RE);
-      if(m){const v=m[1].trim().toLowerCase();const k=cur.options.findIndex(o=>o&&o.trim().toLowerCase()===v);if(k>=0){cur.answer=k;continue}}
-    }
-    // all options (or question + options) on one line
-    const parts=line.split(SPLIT);
-    if(parts.length>=5&&(parts[0].trim()===''||!cur||cnt()>=2||!cur.options.length)){
-      if(parts[0].trim()){if(cur&&cnt()>=2)flush();if(!cur)qbuf.push(parts[0].trim())}
-      if(!cur){if(!qbuf.length)continue;newQ()}
-      else if(cnt()>=2&&parts[0].trim()===''&&cur.options[0]){flush();continue}
-      for(let i=1;i<parts.length;i+=2){const t=(parts[i+1]||'').trim();if(t)setOpt(optIdx(parts[i]),t)}
-      continue;
-    }
-    let m=line.match(OPT)||line.match(OPEN);
-    if(m){
+    if(!line){if(opts.filter(Boolean).length>=2)flush();continue}
+    let m;
+    if((m=line.match(ansRe))&&opts.filter(Boolean).length>=2){ans=optIdx(m[1]);done=true;continue}
+    const inl=splitInline(line);
+    if(inl){
+      if(done||opts.filter(Boolean).length>=4)flush();
+      if(inl.pre){if(opts.filter(Boolean).length)flush();q.push(inl.pre)}
+      inl.items.forEach(([k,t])=>setOpt(k,t));continue}
+    if((m=line.match(optRe))||(m=line.match(optOpenRe))||(m=line.match(optNumRe))){
       const k=optIdx(m[1]);
-      if(!cur){
-        if(k===0&&qbuf.length){newQ();setOpt(0,m[2]);continue}
-        qbuf.push(line);continue; // not an option really (e.g. a sentence starting with "A.")
-      }
-      if(k===0&&cnt()>=2){flush();continue}
-      setOpt(k,m[2]);continue;
-    }
+      if(q.length||opts.filter(Boolean).length){
+        if(done||(opts[k]&&opts.filter(Boolean).length>=2))flush();
+        if(q.length){setOpt(k,m[2]);continue}}}
     // plain text line
-    if(cur&&cnt()>=1){
-      const newQuestion=cnt()>=4||/[?:]\s*$/.test(line)||/^(?:Q(?:uestion)?\.?\s*)?\d{1,3}\s*[.)]\s/i.test(line);
-      if(!newQuestion&&lastOpt>=0){cur.options[lastOpt]+=' '+line;continue}
-      flush();
-    }
-    qbuf.push(line);
-  }
+    const n=opts.filter(Boolean).length;
+    if(done||n>=4){flush();q.push(line);continue}
+    if(n>=1&&opts._last!==undefined){opts[opts._last]=(opts[opts._last]+' '+line).trim();continue}
+    q.push(line)}
   flush();
   return out;
 }
-// Splits "a) 2 b) 2 c) 3 d) 3" / "A. x  B. y" / "(a) x (b) y" (options sitting on ONE line, or after the question text)
-// into separate lines "(A) x". Only splits when markers run in order a,b,(c,d) so normal sentences are not touched.
-function splitInlineOptions(raw){
-  const MK=/(^|[\s\u00a0\t])[(\[]?([A-Da-dकखगघ])\s*[.)\]:}|](?=\s|$)/g, ORD={a:0,b:1,c:2,d:3,'क':0,'ख':1,'ग':2,'घ':3};
-  const out=[];let lastK=-1;
-  String(raw||'').replace(/\r/g,'').split('\n').forEach(line=>{
-    const ms=[];let m;MK.lastIndex=0;
-    while((m=MK.exec(line))){const st=m.index+m[1].length;ms.push({st,end:MK.lastIndex,k:ORD[m[2].toLowerCase()]})}
-    // find a run a,b,c,d (at least a,b) of consecutive markers
-    let run=null;
-    for(let i=0;i<ms.length&&!run;i++){
-      if(ms[i].k!==0&&!(ms[i].k===lastK+1&&i===0))continue;
-      const r=[ms[i]];for(let j=i+1;j<ms.length&&ms[j].k===ms[i].k+r.length&&ms[i].k+r.length<4;j++)r.push(ms[j]);
-      if(r.length>=2||(ms[i].k>0&&r.length>=1&&ms[i].k===lastK+1&&ms.length===1&&false))run=r;
-    }
-    if(!run){const sm=line.match(/^\s*[(\[]?([A-Da-dकखगघ])\s*[.)\]:}|](?=\s|$)/);lastK=sm?ORD[sm[1].toLowerCase()]:-1;out.push(line);return}
-    const head=line.slice(0,run[0].st).trim();
-    // a lone option line like "a) text" already fine; only skip when the run is a single marker
-    if(head)out.push(head);
-    run.forEach((r,i)=>{const t=line.slice(r.end,i+1<run.length?run[i+1].st:undefined).trim();out.push('('+'ABCD'[r.k]+') '+t)});
-    lastK=run[run.length-1].k;
-  });
-  return out.join('\n');
-}
 function parseOcrQuestions(raw){
-  raw=splitInlineOptions(raw);
-  let a=[],b=[];
-  try{a=parseNumberedQ(raw)}catch(e){console.warn(e)}
-  try{b=parseUnnumberedQ(raw)}catch(e){console.warn(e)}
-  const good=l=>l.filter(q=>q.options.filter(Boolean).length>=2).length;
-  const out=(good(b)>good(a)?b:a).map(q=>cleanQ(q)).filter(q=>String(q.question||'').length>3);
-  out.forEach((q,i)=>{q.num=i+1;q.options=Array.from({length:4},(_,k)=>q.options[k]||'')});
-  return out;
+  const a=parseNumberedQuestions(raw),b=parseBlockQuestions(raw);
+  const sc=l=>l.length+l.filter(x=>x.options.filter(Boolean).length>=2).length*10+l.filter(x=>x.options.filter(Boolean).length>=4).length*3;
+  return sc(b)>sc(a)?b:a;
+}
+
+// ---- Word (.docx) reader: no library needed (zip + XML read in the browser) ----
+async function docxToText(file){
+  const buf=new Uint8Array(await file.arrayBuffer()),dv=new DataView(buf.buffer,buf.byteOffset,buf.byteLength);
+  let e=-1;for(let i=buf.length-22;i>=Math.max(0,buf.length-70000);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break}}
+  if(e<0)throw new Error('This is not a valid .docx file. If it is an old .doc file, open it in Word and use Save As .docx or PDF.');
+  const cnt=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true),found=null;
+  for(let k=0;k<cnt;k++){
+    if(dv.getUint32(p,true)!==0x02014b50)break;
+    const method=dv.getUint16(p+10,true),csize=dv.getUint32(p+20,true),nlen=dv.getUint16(p+28,true),elen=dv.getUint16(p+30,true),clen=dv.getUint16(p+32,true),lho=dv.getUint32(p+42,true);
+    const name=new TextDecoder().decode(buf.subarray(p+46,p+46+nlen));
+    if(name==='word/document.xml'){found={method,csize,lho};break}
+    p+=46+nlen+elen+clen}
+  if(!found)throw new Error('Could not find the text inside this Word file.');
+  const start=found.lho+30+dv.getUint16(found.lho+26,true)+dv.getUint16(found.lho+28,true),data=buf.subarray(start,start+found.csize);
+  let xml;
+  if(found.method===0)xml=new TextDecoder().decode(data);
+  else{if(typeof DecompressionStream==='undefined')throw new Error('This browser is too old to open Word files. Please update Chrome.');
+    xml=await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text()}
+  return docxXmlToText(xml);
+}
+function docxXmlToText(xml){
+  const dec=s=>s.replace(/&#x([0-9a-f]+);/gi,(_,h)=>String.fromCodePoint(parseInt(h,16))).replace(/&#(\d+);/g,(_,d)=>String.fromCodePoint(+d)).replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
+  const paras=xml.match(/<w:p[ >][\s\S]*?<\/w:p>/g)||[];
+  const counters={},lines=[];
+  for(const p of paras){
+    let t='';const re=/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>|<w:tab\/>|<w:br\/>|<w:cr\/>/g;let m;
+    while((m=re.exec(p))){t+=m[1]!==undefined?dec(m[1]):(m[0]==='<w:tab/>'?' ':'\n')}
+    t=t.replace(/\u00a0/g,' ');
+    const np=p.match(/<w:numPr>[\s\S]*?<\/w:numPr>/);
+    if(np&&t.trim()){
+      const lvl=+((np[0].match(/<w:ilvl w:val="(\d+)"/)||[0,0])[1]),id=(np[0].match(/<w:numId w:val="(\d+)"/)||[0,'0'])[1];
+      const c=counters[id]||(counters[id]=[]);c[lvl]=(c[lvl]||0)+1;for(let z=lvl+1;z<c.length;z++)c[z]=0;
+      if(!/^\s*[(\[]?\s*[A-Da-d0-9कखगघ]{1,3}\s*[.)\]:]/.test(t))t=(lvl===0?c[0]+'. ':'('+'ABCDEFGH'[Math.max(0,c[lvl]-1)%8]+') ')+t}
+    lines.push(t.trim())}
+  return lines.join('\n').replace(/\n{3,}/g,'\n\n');
+}
+
+function isWordFile(f){return /\.docx$/i.test(f.name)||/wordprocessingml/i.test(f.type||'')}
+function isOldDoc(f){return /\.doc$/i.test(f.name)}
+function isTextFile(f){return /\.txt$/i.test(f.name)||(f.type||'')==='text/plain'}
+function isPdfFile(f){return f.type==='application/pdf'||/\.pdf$/i.test(f.name)}
+const OLD_DOC_MSG='Old .doc files cannot be read. Open it in Word, choose Save As .docx (or PDF) and upload that file.';
+async function ensurePdfJs(){
+  if(window.pdfjsLib)return;
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+// PDF: read the text layer; if it is a scanned PDF (no text), turn the pages into pictures for the photo reader
+async function pdfToTextOrImages(file,st){
+  await ensurePdfJs();
+  const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+  const n=Math.min(pdf.numPages,40);let out='';
+  for(let pg=1;pg<=n;pg++){
+    if(st)st.textContent=`Reading PDF page ${pg} of ${n}…`;
+    const page=await pdf.getPage(pg),tc=await page.getTextContent(),rows=[];
+    tc.items.forEach(it=>{if(!it.str)return;const y=Math.round(it.transform[5]);let r=rows.find(r=>Math.abs(r.y-y)<=3);if(!r){r={y,items:[]};rows.push(r)}r.items.push({x:it.transform[4],s:it.str})});
+    rows.sort((a,b)=>b.y-a.y);
+    out+=rows.map(r=>r.items.sort((a,b)=>a.x-b.x).map(i=>i.s).join(' ').replace(/\s+/g,' ').trim()).filter(Boolean).join('\n')+'\n\n';
+  }
+  if((out.match(/[A-Za-z\u0900-\u097f]/g)||[]).length>=80)return {text:out,images:[]};
+  const images=[];
+  for(let pg=1;pg<=Math.min(pdf.numPages,12);pg++){
+    if(st)st.textContent=`Scanned PDF: preparing page ${pg}…`;
+    const page=await pdf.getPage(pg),vp=page.getViewport({scale:2.2}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+    await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+    images.push(await new Promise(res=>c.toBlob(res,'image/jpeg',.92)));
+  }
+  return {text:'',images};
+}
+// Word / text / PDF / photo -> {text, images}  (used by the reader that works WITHOUT AI)
+async function filesToTextAndImages(files,st){
+  let text='';const images=[];
+  for(const f of files){
+    if(isOldDoc(f))throw new Error(OLD_DOC_MSG);
+    if(isWordFile(f)){if(st)st.textContent='Reading the Word file…';text+='\n'+await docxToText(f);continue}
+    if(isTextFile(f)){text+='\n'+await f.text();continue}
+    if(isPdfFile(f))throw new Error('PDF files are turned off. Please upload a photo, a Word (.docx) file, or paste the text.');
+    images.push(f)}
+  return {text,images};
 }
 function photoCard(mode){
   const always=mode==='tab';
-  return `<div class="card"><b>📷 ${always?'Make questions from a paper photo':'Add all questions from a photo <small class="muted">(AI reader v2)</small>'}</b>
+  return `<div class="card"><b>📷 ${always?'Make questions from a paper photo':'Add all questions from a photo'}</b>
   <p class="muted">${always?'':'Instead of typing one question at a time, upload a photo of the question paper. '}The questions and options are read from the photo and shown as <b>text</b> (not as a picture). Check them, choose the correct answers, then save.</p>
-  <input id="ph-file" type="file" accept="image/*,application/pdf,.docx,.txt" multiple onchange="photoPicked('${mode}')"><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,application/pdf,.docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
+  <input id="ph-file" type="file" accept="image/*,.docx,.txt" multiple onchange="photoPicked('${mode}')"><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,.docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
   <div id="ph-panel" class="${always?'':'hide'}" data-mode="${mode}">
    <label class="muted">Subject</label>${optSel('ph-subject',subjectsList(),'-- Select subject --','Add new subject')}
    <label class="muted">Topic (optional)</label>${optSel('ph-topic',topicsList(),'-- No topic / select --','Add new topic')}
    <label class="muted">Who can take it?</label><select id="ph-aud"><option value="both">Computer Students + Library Students</option><option value="student">Computer Students only</option><option value="library_student">Library Students only</option></select><button type="button" class="btn sm alt" style="margin-top:.4rem" onclick="exAccess(null)">🔒 Student access (who can take it)</button>
    <label class="muted">Language in the photo</label><select id="ph-lang"><option value="hin+eng" selected>Hindi + English (best for most papers)</option><option value="eng">English only</option><option value="hin">Hindi only</option></select>
-   ${mode==='exam'?'<div class="btns" style="margin-bottom:.4rem"><button class="btn" style="background:#168a56;width:100%" onclick="autoPublish()">⚡ Auto Create &amp; Publish Exam</button></div><div class="muted" style="font-size:.8rem;margin-bottom:.5rem">Only set Start, End and Timer above. Questions are read from the photo and the exam is published automatically.</div>':''}<div class="btns"><button class="btn" onclick="runOcr()">Read Questions from Photo</button>${always?'':'<button class="btn alt" onclick="clearPhoto()">✕ Remove photo, type questions instead</button>'}</div><div class="btns" style="margin-top:.4rem"><button type="button" class="btn sm alt" onclick="runBasic()">🔤 Photo reader without AI (basic)</button></div><p id="ph-status" class="muted"></p><details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="ph-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('ph-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('ph-paste').value=''">Clear</button></div></details><div id="ph-result"></div></div></div>`;
+   <div class="btns"><button class="btn" onclick="runOcr()">Read Questions from Photo</button>${always?'':'<button class="btn alt" onclick="clearPhoto()">✕ Remove photo, type questions instead</button>'}</div><div class="btns" style="margin-top:.4rem"><button type="button" class="btn sm alt" onclick="runBasic()">🔤 Photo reader without AI (basic)</button></div><p id="ph-status" class="muted"></p><details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="ph-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('ph-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('ph-paste').value=''">Clear</button></div></details><div id="ph-result"></div></div></div>`;
 }
 window._phExtra=window._phExtra||[];
 function phFiles(){return [...((($('#ph-file')||{}).files)||[]),...(window._phExtra||[])]}
-function phAddOne(inp){const f=inp.files&&inp.files[0];if(f){window._phExtra=(window._phExtra||[]).concat([f]);inp.value='';const c=$('#ph-count');if(c)c.textContent=phFiles().length+' photo(s) selected';photoPicked(window._phMode||'tab')}}
+function phAddOne(inp){const f=inp.files&&inp.files[0];if(f){window._phExtra=(window._phExtra||[]).concat([f]);inp.value='';const c=$('#ph-count');if(c)c.textContent=phFiles().length+' file(s) selected';photoPicked(window._phMode||'tab')}}
 function photoPicked(mode){
   const has=(phFiles()).length>0;window._phMode=mode;
   $('#ph-panel').classList.toggle('hide',!has&&mode!=='tab');
@@ -1896,34 +1929,25 @@ function photoPicked(mode){
 }
 function clearPhoto(){window._phExtra=[];if($('#ph-count'))$('#ph-count').textContent='';$('#ph-file').value='';OCRQ=[];$('#ph-result').innerHTML='';$('#ph-status').textContent='';photoPicked(window._phMode)}
 function exAuto(){
-  window._picked=new Set();OCRQ=[];window._phMode='exam';window._dest={paper:'',start:''};window._qNums={};
+  window._picked=new Set();OCRQ=[];window._phMode='exam';
   $('#ex-body').innerHTML=`<div class="card"><b>📷 Photo to Exam</b>
-   <p class="muted">Exam ka naam likhein, time set karein aur question paper ki photo / Word file chunein. Questions usi naam ke exam me save hote hain. Doosri photo ke questions bhi usi naam se usi exam me jud jaate hain.</p>
-   <label class="muted">Exam / paper name</label><input id="ce-title" list="ce-names" placeholder="e.g. CCC Monthly Test" autocomplete="off" oninput="if(window._dest)window._dest.paper='';const dp=document.getElementById('dest-paper');if(dp)dp.value=''"><datalist id="ce-names"></datalist>
-   <div class="muted" style="font-size:.8rem;margin:-.2rem 0 .5rem">Same naam dobara likhne par naye questions usi exam me jud jaate hain (pehle wale questions rahenge).</div>
-   <div class="g3"><div><label class="muted">Start (IST)</label><input id="ce-start" type="datetime-local"></div><div><label class="muted">End (IST)</label><input id="ce-end" type="datetime-local"></div><div><label class="muted">Timer (minutes)</label><input id="ce-dur" type="number" min="1" placeholder="e.g. 30"></div></div>
-   <div class="btns" style="margin:.2rem 0 .5rem"><button class="btn sm alt" type="button" onclick="startNow()">⏱ Start now (24 hours)</button></div>
-   <div style="border:2px solid #7c3aed;border-radius:14px;padding:.6rem .7rem;margin:.4rem 0 .6rem"><b>📂 Paper chunein ya naya banayein</b>
-    <select id="dest-paper" onchange="destPick(this.value)"><option value="">-- Paper chunein --</option></select>
-    <div class="btns" style="margin:.4rem 0"><button type="button" class="btn sm" onclick="createPaper()">➕ Naya paper banayein (upar naam + time likhein)</button></div>
-    <div id="dest-info" class="muted" style="font-size:.85rem;margin:.2rem 0"></div>
-    <div class="btns" style="margin:.2rem 0 .5rem"><button type="button" class="btn sm" style="background:#168a56" onclick="publishPaper()">🚀 Paper publish karein (jab saare questions save ho jayein)</button></div>
-    <label class="muted">Pehla question kaun se number par lage?</label><input id="dest-start" type="number" min="1" value="1" oninput="destStart2(this.value)">
-    <div class="muted" style="font-size:.8rem">Neeche har question ke saath uska number alag se bhi badal sakte hain. Number se pehle wale questions apni jagah rahenge.</div></div>
-   <label class="muted">Question paper photo</label><input id="ph-file" type="file" accept="image/*,application/pdf,.docx,.txt" multiple><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,application/pdf,.docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
-   <div class="btns" style="margin-top:.6rem"><button id="auto-btn" class="btn" style="background:#168a56;width:100%" onclick="autoExam()">⚡ Questions paper me save karein</button></div>
+   <p class="muted">Just type the exam name and choose a photo of the question paper. Questions, time and marks are filled in automatically and the exam is published.</p>
+   <label class="muted">Exam name</label><input id="ce-title" placeholder="e.g. CCC Monthly Test">
+   <label class="muted">Question paper (photo / Word .docx / text .txt)</label><input id="ph-file" type="file" accept="image/*,.docx,.txt" multiple><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,.docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
+   <div class="btns" style="margin-top:.6rem"><button id="auto-btn" class="btn" style="background:#168a56;width:100%" onclick="autoExam()">⚡ Create &amp; Publish Exam</button></div>
    <div class="btns"><button type="button" class="btn sm alt" onclick="runBasic()">🔤 Photo reader without AI (basic)</button></div>
    <p id="ph-status" class="muted"></p>
    <details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="px-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('px-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('px-paste').value=''">Clear</button></div></details>
    <div id="ph-result"></div>
    <details style="margin-top:.4rem"><summary class="muted">More options (optional)</summary>
     <label class="muted">Who can take this exam?</label><select id="ce-aud"><option value="both">Computer + Library Students</option><option value="student">Computer Students only</option><option value="library_student">Library Students only</option></select><button type="button" class="btn sm alt" style="margin-top:.4rem" onclick="exAccess(null)">🔒 Student access (who can take it)</button>
+    <label class="muted">Timer (minutes) - leave empty for automatic</label><input id="ce-dur" type="number" min="1" placeholder="Auto">
     <div class="muted" style="margin:.3rem 0">Results are shown to students only after you press "Declare Results" in Results.</div>
     
     <label class="muted">Passing marks</label><input id="ce-pass" type="number" min="0" step="0.5" value="0">
    </details></div>
    <div class="hide">
-    <input id="ce-total" readonly><input id="ce-tabs" value="3">
+    <input id="ce-start"><input id="ce-end"><input id="ce-total" readonly><input id="ce-tabs" value="3">
     <input type="checkbox" id="ce-shuffle" checked><textarea id="ce-instr">${esc(DEFAULT_RULES)}</textarea>
     <select id="ph-subject"><option value=""></option></select><select id="ph-topic"><option value=""></option></select><select id="ph-aud"><option value="both"></option></select>
     <select id="ph-lang"><option value="hin+eng" selected>h</option></select>
@@ -1931,17 +1955,15 @@ function exAuto(){
     <select id="cq-subject"><option value=""></option></select><select id="cq-aud"><option value=""></option></select><div id="cq-count"></div><div id="cq-list"></div>
    </div>`;
   window._exAutoPage=true;
-  try{startNow.quiet=true;const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');$('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000)}catch(_){}
-  loadPapers(window._keepPaper);window._keepPaper=null;
 }
 async function autoExam(){
   if(window._autoBusy)return;
   if(!$('#ce-title').value.trim())return toast('Please type the exam name first.');
   if(!(phFiles()).length)return toast('Please choose the question paper photo.');
   const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');
-  if(!$('#ce-start').value)$('#ce-start').value=f(Date.now()-60000);if(!$('#ce-end').value)$('#ce-end').value=f(Date.now()+24*3600*1000);
+  $('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000);
   const b=$('#auto-btn');if(b){b.disabled=true;b.textContent='Working… please wait'}
-  try{await autoPublish()}finally{const b2=$('#auto-btn');if(b2){b2.disabled=false;b2.textContent='📥 Questions paper me save karein (publish baad me)'}}
+  try{await autoPublish()}finally{const b2=$('#auto-btn');if(b2){b2.disabled=false;b2.textContent='⚡ Create & Publish Exam'}}
 }
 function exPhoto(){window._exAutoPage=false;$('#ex-body').innerHTML=photoCard('tab');OCRQ=[];window._phMode='tab'}
 // Clean the photo before reading: grey, bigger, even lighting, black text on white
@@ -1950,7 +1972,7 @@ async function prepOcrImage(file,mode){
   // mode 'bw'  : adaptive black/white (helps shadows and uneven light)
   const url=URL.createObjectURL(file);
   try{
-    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Yeh file photo ki tarah khul nahi rahi (shayad Word/doc ya HEIC file hai). JPG/PNG photo ya PDF chunein.'));i.src=url});
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('This file is not a picture. Please choose a photo, PDF or Word (.docx) file.'));i.src=url});
     let w=img.naturalWidth,h=img.naturalHeight;const target=Math.min(Math.max(w,2000),3000),k=target/w;w=Math.round(w*k);h=Math.round(h*k);
     const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle='#fff';x.fillRect(0,0,w,h);x.imageSmoothingQuality='high';x.drawImage(img,0,0,w,h);
     const im=x.getImageData(0,0,w,h),d=im.data,g=new Uint8Array(w*h);
@@ -1979,32 +2001,38 @@ function ocrScore(t){const q=parseOcrQuestions(t);return q.length*100+q.filter(z
 async function photoToJpegB64(file){
   const url=URL.createObjectURL(file);
   try{
-    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Yeh file photo ki tarah khul nahi rahi (shayad Word/doc ya HEIC file hai). JPG/PNG photo ya PDF chunein.'));i.src=url});
-    const k=Math.min(1,2000/Math.max(img.naturalWidth,img.naturalHeight));
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('This file is not a picture. Please choose a photo, PDF or Word (.docx) file.'));i.src=url});
+    const k=Math.min(1,1700/Math.max(img.naturalWidth,img.naturalHeight));
     const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
     const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
-    return c.toDataURL('image/jpeg',0.9).split(',')[1];
+    return c.toDataURL('image/jpeg',0.88).split(',')[1];
   }finally{URL.revokeObjectURL(url)}
 }
-async function aiReadPhotos(files,st){
+async function aiReadPhotos(files,st){return {failed:true};
   try{
     const list=Array.from(files),all=[],keys=[];
     const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     for(let fi=0;fi<list.length;fi++){
       const f=list[fi],many=list.length>1;
       st.textContent=many?`Reading photo ${fi+1} of ${list.length} with AI…`:'Reading the photo with AI… (10-20 seconds)';
-      let img;
-      if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){
+      let img=null,tx=null;
+      if(isOldDoc(f))throw new Error(OLD_DOC_MSG);
+      if(isWordFile(f)||isTextFile(f)){tx=isWordFile(f)?await docxToText(f):await f.text();if(tx.trim().length<10)throw new Error('No text was found in this file.')}
+      else if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){
         if(f.size>10*1024*1024){toast('PDF is too big (max 10 MB). Please split it.',7000);return window._auto?{qs:[],text:'',failed:true}:null}
-        const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=()=>rej(new Error('PDF file read nahi ho payi'));r.readAsDataURL(f)});
+        const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(f)});
         img={media_type:'application/pdf',data:b64};
       }else img={media_type:'image/jpeg',data:await photoToJpegB64(f)};
       let data,error;
       for(let t=0;t<3;t++){
-        ({data,error}=await aiReadPaper([img]));
+        ({data,error}=tx!==null?await aiReadPaper([],tx):await aiReadPaper([img]));
         const m=JSON.stringify((data&&data.error)||'')+(error&&error.message||'');
         if(!(error||(data&&data.error))||!/high demand|overloaded|busy|try again|429|503|compute resources|idle timeout|timeout|resources/i.test(m))break;
         if(t<2){st.textContent=(many?`Photo ${fi+1}/${list.length}: `:'')+'AI server is busy, trying again… ('+(t+2)+'/3)';await sleep(8000)}
+      }
+      if(tx!==null&&(error||!data||data.error||!Array.isArray(data.questions))){
+        const loc=parseOcrQuestions(tx);
+        if(loc.length){loc.forEach((q,i)=>all.push({q:{num:q.num,question:q.question,options:q.options,answer:(q.answer===null||q.answer===undefined)?'':LET[q.answer]},fi,i}));continue}
       }
       if(error||!data||data.error||!Array.isArray(data.questions)){
         let why=(data&&data.error)||(error&&error.message)||'no reply';
@@ -2036,71 +2064,49 @@ async function aiReadPhotos(files,st){
     const qs=res.map((r,idx)=>{
       const q=r.q;let ans=q.answer&&'ABCDabcd'.includes(String(q.answer).trim()[0]||'-')?'ABCD'.indexOf(String(q.answer).trim()[0].toUpperCase()):null,ai=String(q.answer_source||'')==='ai';
       if(r.n!==null&&keyMap.has(r.n)&&(ans===null||ai)){ans=keyMap.get(r.n);ai=false}
-      return cleanQ({num:idx+1,question:String(q.question).trim(),options:(Array.isArray(q.options)?q.options:[]).map(o=>String(o||'').trim()),ai,answer:ans});
+      return {num:idx+1,question:String(q.question).trim(),options:(Array.isArray(q.options)?q.options:[]).slice(0,6).map(o=>String(o||'').trim()),ai,answer:ans};
     });
     return {qs,text:qs.map((q,i)=>(i+1)+'. '+q.question+'\n'+q.options.map((o,k)=>'('+LET[k]+') '+o).join('\n')).join('\n\n')};
-  }catch(e){console.warn('AI reader failed',e);toast('AI reader could not start: '+errMsg(e)+'  (using the basic reader instead)',9000);return null}
-}
-const isDocFile=f=>/\.(docx?|txt)$/i.test(f.name||'')||f.type==='text/plain'||/wordprocessingml|msword|officedocument/.test(f.type||'')||(!/^image\//.test(f.type||'')&&f.type!=='application/pdf'&&!/\.(jpe?g|png|webp|gif|heic|pdf)$/i.test(f.name||''));
-const errMsg=e=>e&&e.message?e.message:(e&&e.target&&e.target.error&&e.target.error.message)||(e&&e.type?'file load error ('+e.type+')':String(e));
-async function readDocText(f){
-  if(/\.txt$/i.test(f.name)||f.type==='text/plain')return await f.text();
-  try{const h=new Uint8Array(await f.slice(0,4).arrayBuffer());if(!(h[0]===0x50&&h[1]===0x4B)&&!/\.docx?$/i.test(f.name)&&!/word/.test(f.type||''))return await f.text()}catch(_){}
-  if(/\.doc$/i.test(f.name))throw new Error('Purani .doc file nahi padh sakte. Word me "Save As .docx" karke dubara chunein.');
-  if(!window.mammoth){try{await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js')}catch(_){await loadScript('https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js')}}
-  const r=await window.mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});
-  return r.value||'';
+  }catch(e){console.warn('AI reader failed',e);toast('AI reader could not start: '+errText(e)+'  (using the basic reader instead)',9000);return null}
 }
 async function runOcr(){
   const files=[...(phFiles())];if(!files.length)return toast('Choose a photo first.');
   const st=$('#ph-status');
-  const docs=files.filter(isDocFile);
-  if(docs.length){
-    if(docs.length!==files.length){st.textContent='';return toast('Word/text file aur photo ek saath nahi chalte. Ek hi type chunein.',7000)}
-    try{
-      st.textContent='File se questions padh raha hun…';let text='';
-      for(const f of docs)text+='\n'+await readDocText(f);
-      OCRQ=parseOcrQuestions(text);
-      st.textContent=OCRQ.length?`Found ${OCRQ.length} question(s). Please check them below.`:'File me koi question nahi mila. Har question ke neeche (A) (B) (C) (D) options alag lines me hone chahiye.';
-      renderOcr(text);
-    }catch(e){st.textContent='';toast('File nahi padh paya: '+errMsg(e),8000)}
-    return;
-  }
-  const ai=window._noAI?null:await aiReadPhotos(files,st);
+  const ai=null; /* AI reader removed: basic reader only */
   if(ai&&ai.failed){OCRQ=[];st.textContent='AI reader abhi kaam nahi kar raha. Neeche "Photo reader without AI (basic)" dabayein, ya questions ka text copy-paste karein.';return}
   if(ai){OCRQ=ai.qs;st.textContent=OCRQ.length?`Found ${OCRQ.length} question(s). Please check them below.`:'No questions were found in the photo.';renderOcr(ai.text);return}
-  if(Array.from(files).some(f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name))){st.textContent='';return toast('PDF files can only be read by the AI reader. Please check the AI reader setup, or upload a photo instead.',8000)}
+  let pre={text:'',images:[]};
+  try{pre=await filesToTextAndImages(files,st)}catch(e){st.textContent='';return toast('Could not open the file: '+errText(e),9000)}
+  if(!pre.images.length){
+    OCRQ=parseOcrQuestions(pre.text);
+    st.textContent=OCRQ.length?`Found ${OCRQ.length} question(s). Please check them below.`:'No questions were found. Questions need options like (A) (B) (C) (D) on separate lines, or paste the text below.';
+    renderOcr(pre.text);return;
+  }
+  const imgs=pre.images;
   st.textContent='Loading the reader… (first time takes a little while)';
   try{if(!window.Tesseract)await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js')}catch(e){st.textContent='';return toast('The photo reader could not load. Check your internet connection.',7000)}
-  const langSel=$('#ph-lang').value;let label='';
-  // Hinglish papers are written in English letters: the English model reads them far better than Hindi+English, so it goes first.
-  const langs=langSel==='eng'?['eng']:['eng','hin+eng'];
+  const lang=$('#ph-lang').value;let label='';
   const logger=m=>{if(m.status==='recognizing text')st.textContent=`${label} ${Math.round((m.progress||0)*100)}%`;else if(/loading|init/i.test(m.status||''))st.textContent=`${label} preparing reader (first time is slow)…`};
-  const suspect=s=>/[\[\]|{}]/.test(String(s||''))||!String(s||'').trim();
-  const isGood=t=>{const qs=parseOcrQuestions(t);return qs.length>0&&qs.filter(z=>z.options.filter(Boolean).length>=4&&!z.options.some(suspect)).length>=qs.length*0.8};
   let worker=null;
   try{
-    let text='';
-    for(let i=0;i<files.length;i++){
-      let best='',bestScore=-1,done=false;
-      for(const lang of langs){
-        if(done)break;
-        if(worker){try{await worker.terminate()}catch(_){}worker=null}
-        label=`Photo ${i+1}/${files.length} (${lang==='eng'?'English':'Hindi+English'}): loading…`;
-        try{worker=await Tesseract.createWorker(lang,1,{logger,langPath:'https://tessdata.projectnaptha.com/4.0.0_best'})}
-        catch(_){worker=await Tesseract.createWorker(lang,1,{logger})}
-        const passes=[['gray','6'],['gray','4'],['bw','6']];
-        for(let p=0;p<passes.length;p++){
-          const [mode,psm]=passes[p];
-          label=`Photo ${i+1}/${files.length} (${lang==='eng'?'English':'Hindi+English'}), try ${p+1}/${passes.length}: reading…`;
-          try{
-            await worker.setParameters({tessedit_pageseg_mode:psm,preserve_interword_spaces:'1',user_defined_dpi:'300'});
-            const src=await prepOcrImage(files[i],mode);
-            const res=await worker.recognize(src);const t=res.data.text||'';const sc=ocrScore(t);
-            if(sc>bestScore){bestScore=sc;best=t}
-            if(isGood(best)){done=true;break}   // every question has 4 clean options -> stop early
-          }catch(e){if(p===0&&!best){try{const r=await worker.recognize(files[i]);best=r.data.text||'';bestScore=ocrScore(best)}catch(_){}}}
-        }
+    try{worker=await Tesseract.createWorker(lang,1,{logger,langPath:'https://tessdata.projectnaptha.com/4.0.0_best'})}
+    catch(_){worker=await Tesseract.createWorker(lang,1,{logger})}
+    let text=pre.text||'';
+    for(let i=0;i<imgs.length;i++){
+      let best='',bestScore=-1;
+      const passes=[['gray','4'],['bw','4'],['gray','6']];
+      for(let p=0;p<passes.length;p++){
+        const [mode,psm]=passes[p];
+        label=`Photo ${i+1}/${imgs.length}, try ${p+1}/${passes.length}: reading…`;
+        try{
+          await worker.setParameters({tessedit_pageseg_mode:psm,preserve_interword_spaces:'1',user_defined_dpi:'300'});
+          const src=await prepOcrImage(imgs[i],mode);
+          const res=await worker.recognize(src);const t=res.data.text||'';const sc=ocrScore(t);
+          if(sc>bestScore){bestScore=sc;best=t}
+          const qs=parseOcrQuestions(best);
+          // good enough: enough questions and most of them have 3+ options -> stop early
+          if(qs.length>=3&&qs.filter(z=>z.options.filter(Boolean).length>=3).length>=qs.length*0.8)break;
+        }catch(e){if(p===0&&!best){try{const r=await worker.recognize(imgs[i]);best=r.data.text||'';bestScore=ocrScore(best)}catch(_){}}}
       }
       text+='\n'+best;
     }
@@ -2110,18 +2116,17 @@ async function runOcr(){
   }catch(e){st.textContent='';toast('Could not read the photo: '+(e.message||e),7000)}
   finally{try{if(worker)await worker.terminate()}catch(_){}}
 }
-function ocrOptions(i,q){const bad=k=>/[\[\]|{}]/.test(q.options[k]||'')||(k<2&&!(q.options[k]||'').trim());const any=[0,1,2,3].some(bad);return (any?'<div style="color:#c0392b;font-size:.82rem;margin:.3rem 0">⚠ Laal box wale option galat padhe gaye ho sakte hain. Photo dekh kar theek karein.</div>':'')+[0,1,2,3].map(k=>`<input id="oq${i}-o${k}" placeholder="Option ${LET[k]}" value="${esc(q.options[k]||'')}" ${bad(k)?'style="border:2px solid #c0392b"':''}>`).join('')}
-function ocrType(i){const t=($('#oq'+i+'-type')||{}).value;const a=$('#oq'+i+'-mcqbox'),b=$('#oq'+i+'-tfbox');if(a)a.style.display=t==='mcq'?'':'none';if(b)b.style.display=t==='tf'?'':'none';[0,1,2,3].forEach(k=>{const o=$('#oq'+i+'-o'+k);if(o)o.style.display=t==='mcq'?'':'none'})}
+function ocrOptions(i,q){return [0,1,2,3].map(k=>`<input id="oq${i}-o${k}" placeholder="Option ${LET[k]}" value="${esc(q.options[k]||'')}">`).join('')}
 function renderOcr(raw){
   const _ex=window._phMode==='exam';
   $('#ph-result').innerHTML=(OCRQ.length?`<div class="muted" style="margin:.5rem 0;font-size:.82rem">ℹ️ <b>Option A, B, C, D</b> = the 4 answer choices of an MCQ (type each choice in its own box). <b>Correct answer</b> = pick which option is right. Type = Subjective means no options were found, so change it to MCQ and fill the options.</div>`:'')+`${OCRQ.map((q,i)=>`<div class="card" id="oqc-${i}"><div class="row"><b>Question ${i+1}</b><button class="btn sm red" onclick="ocrDel(${i})">Remove</button></div>
-   <select id="oq${i}-type" onchange="ocrType(${i})">${(()=>{const tf=q.options.length===2&&/^true$/i.test(q.options[0])&&/^false$/i.test(q.options[1]);const t=tf?'tf':(q.options.length>=2?'mcq':'subjective');return [['mcq','MCQ'],['tf','True / False'],['subjective','Subjective']].map(o=>`<option value="${o[0]}" ${o[0]===t?'selected':''}>${o[1]}</option>`).join('')})()}</select>
-   <textarea id="oq${i}-q" rows="${Math.min(12,Math.max(3,String(q.question).split('\n').length+1))}" style="white-space:pre-wrap;tab-size:4">${esc(q.question)}</textarea>${ocrOptions(i,q)}
-   <div id="oq${i}-mcqbox"><label class="muted">Correct answer (MCQ)${q.ai?' 🤖 chosen by AI - please verify':''}</label><select id="oq${i}-ans"><option value="" ${q.answer==null?'selected':''}>-- Select correct answer --</option>${[0,1,2,3].map(k=>`<option value="${k}" ${q.answer===k?'selected':''}>Option ${LET[k]}</option>`).join('')}</select></div>
-   <div id="oq${i}-tfbox"><label class="muted">Correct answer (True / False)</label><select id="oq${i}-tf"><option value="true">True</option><option value="false" ${q.answer===1?'selected':''}>False</option></select></div>
-   <div class="g3"><div><label class="muted">Marks</label><input id="oq${i}-marks" type="number" step="0.5" value="1"></div><div><label class="muted">Negative</label><input id="oq${i}-neg" type="number" step="0.25" value="0"></div>${window._exAutoPage?`<div><label class="muted">Q. No. (paper me)</label><input id="oq${i}-no" type="number" min="1" value="${destStartNo()+i}"></div>`:''}</div></div>`).join('')}
-   ${OCRQ.length?'<div class="btns">'+(window._exAutoPage?'':'<button class="btn" onclick="saveOcr()">'+(_ex?'Save &amp; add to this exam':'Save All to Question Bank')+'</button>')+(_ex?'<button class="btn" style="background:#168a56" onclick="saveOcr(\''+(window._exAutoPage?'auto':'publish')+'\')">'+(window._exAutoPage?'💾 Paper me save karein (publish nahi hoga)':'🚀 Save &amp; Publish Exam')+'</button>':'')+'<button class="btn red" onclick="ocrClearAll()">🗑 Delete all these questions</button></div>':''}
-   <details class="card"><summary>Text read from the photo</summary><textarea id="ph-raw" rows="8" style="width:100%">${esc(raw||'')}</textarea><button class="btn sm alt" onclick="reparseOcr()">Re-read questions from this text</button></details>`;OCRQ.forEach((_,i)=>ocrType(i));
+   <select id="oq${i}-type">${(()=>{const tf=q.options.length===2&&/^true$/i.test(q.options[0])&&/^false$/i.test(q.options[1]);const t=tf?'tf':(q.options.length>=2?'mcq':'subjective');return [['mcq','MCQ'],['tf','True / False'],['subjective','Subjective']].map(o=>`<option value="${o[0]}" ${o[0]===t?'selected':''}>${o[1]}</option>`).join('')})()}</select>
+   <textarea id="oq${i}-q" rows="3">${esc(q.question)}</textarea>${ocrOptions(i,q)}
+   <label class="muted">Correct answer (MCQ)${q.ai?' 🤖 chosen by AI - please verify':''}</label><select id="oq${i}-ans">${[0,1,2,3].map(k=>`<option value="${k}" ${q.answer===k?'selected':''}>Option ${LET[k]}</option>`).join('')}</select>
+   <label class="muted">Correct answer (True / False)</label><select id="oq${i}-tf"><option value="true">True</option><option value="false" ${q.answer===1?'selected':''}>False</option></select>
+   <div class="g3"><div><label class="muted">Marks</label><input id="oq${i}-marks" type="number" step="0.5" value="1"></div><div><label class="muted">Negative</label><input id="oq${i}-neg" type="number" step="0.25" value="0"></div></div></div>`).join('')}
+   ${OCRQ.length?'<div class="btns">'+(window._exAutoPage?'':'<button class="btn" onclick="saveOcr()">'+(_ex?'Save &amp; add to this exam':'Save All to Question Bank')+'</button>')+(_ex?'<button class="btn" style="background:#168a56" onclick="saveOcr(\''+(window._exAutoPage?'auto':'publish')+'\')">🚀 Save &amp; Publish Exam</button>':'')+'<button class="btn red" onclick="ocrClearAll()">🗑 Delete all these questions</button></div>':''}
+   <details class="card"><summary>Text read from the photo</summary><textarea id="ph-raw" rows="8" style="width:100%">${esc(raw||'')}</textarea><button class="btn sm alt" onclick="reparseOcr()">Re-read questions from this text</button></details>`;
 }
 function runBasic(){
   window._noAI=true;
@@ -2135,10 +2140,10 @@ function pasteParse(id){
   if(window._exAutoPage){
     if(!$('#ce-title').value.trim())return toast('Pehle upar Exam name likhein.');
     const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');
-    if(!$('#ce-start').value)$('#ce-start').value=f(Date.now()-60000);if(!$('#ce-end').value)$('#ce-end').value=f(Date.now()+24*3600*1000);
+    $('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000);
   }
   OCRQ=parseOcrQuestions(t);
-  if(!OCRQ.length){if(st)st.textContent='Koi question nahi mila. Format: Question, phir (A) (B) (C) (D) alag lines me.';return toast('Koi question nahi mila. Har question ke neeche (A) (B) (C) (D) options alag lines me likhein.',7000)}
+  if(!OCRQ.length){if(st)st.textContent='Koi question nahi mila. Format: 1. Question  (A) .. (B) .. (C) .. (D) ..';return toast('Koi question nahi mila. "1. Question" ke baad (A) (B) (C) (D) options alag lines me rakhein.',7000)}
   if(window._exAutoPage&&!($('#ce-dur').value||'').trim())$('#ce-dur').value=Math.max(10,OCRQ.length);
   if(st)st.textContent='Found '+OCRQ.length+' question(s). Neeche check karein, phir Save kijiye.';
   renderOcr(t);
@@ -2150,34 +2155,32 @@ function ocrDel(i){OCRQ.splice(i,1);renderOcr($('#ph-raw')?.value||'')}
 async function saveOcr(then){
   if(then==='publish'||then==='auto'){const g=id=>($('#'+id)||{}).value||'';if(then!=='auto'&&!g('ce-title').trim())return toast('First type the Exam name at the top, then press Save & Publish.');if(!g('ce-start')||!g('ce-end'))return toast('First set the Start and End date & time at the top.')}
   let subject=optVal('ph-subject');if(!subject&&then==='auto')subject=(($('#ce-title')||{}).value||'').trim()||'General';const topic=optVal('ph-topic'),paud=(window._phMode==='exam'&&$('#ce-aud'))?$('#ce-aud').value:($('#ph-aud')?.value||'both');if(!subject){const nb=$('#ph-subject-new'),el=(nb&&!nb.classList.contains('hide'))?nb:$('#ph-subject');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus();el.style.outline='2px solid #c0392b'}return toast('First choose the Subject at the top of this section (or pick "Add new subject" and type it), then press Save again.',7000)}
-  const dpk=$('#dest-paper');if(dpk&&dpk.value){const pp=(window._papers||[]).find(x=>String(x.id)===String(dpk.value));if(pp&&$('#ce-title'))$('#ce-title').value=pp.title}
-  const rows=[],qnos=[];let skipped=0;
+  const rows=[];let skipped=0;
   for(let i=0;i<OCRQ.length;i++){
     const type=$('#oq'+i+'-type').value,question=$('#oq'+i+'-q').value.trim();if(!question)continue;
     if(then==='auto'&&type==='subjective'){skipped++;continue}
     const row={audience:paud,subject,topic:topic||null,qtype:type,question,marks:Number($('#oq'+i+'-marks').value)||0,negative_marks:Number($('#oq'+i+'-neg').value)||0,options:null,answer:null};
-    if(type==='mcq'){const opts=[0,1,2,3].map(k=>$('#oq'+i+'-o'+k).value.trim());const av=$('#oq'+i+'-ans').value;if(av===''&&!window._auto)return toast(`Question ${i+1}: sahi answer select karein (Correct answer).`,6000);const ai=av===''?0:Number(av);
+    if(type==='mcq'){const opts=[0,1,2,3].map(k=>$('#oq'+i+'-o'+k).value.trim());const ai=Number($('#oq'+i+'-ans').value);
       if(opts.filter(Boolean).length<2)return toast(`Question ${i+1}: enter at least two options.`);if(!opts[ai])return toast(`Question ${i+1}: the correct answer option is empty.`);
       const keep=[];let na=0;opts.forEach((o,k)=>{if(o){if(k===ai)na=keep.length;keep.push(o)}});row.options=keep;row.answer=String(na)}
     if(type==='tf')row.answer=$('#oq'+i+'-tf').value;
-    rows.push(row);qnos.push(Number(($('#oq'+i+'-no')||{}).value)||0);
+    rows.push(row);
   }
   if(!rows.length)return toast(skipped?'No multiple-choice questions were found in the photo, so the exam could not be created. Use a clearer photo or add questions manually.':'Nothing to save.',8000);
   if(skipped)toast(skipped+' question(s) had no options (they would need manual checking), so they were not added to the exam.',6000);
   const ins=await insertQ(rows);if(ins.error)return toast('Could not save: '+ins.error.message,7000);
-  window._qNums=window._qNums||{};(ins.data||[]).forEach((r,k)=>{if(qnos[k])window._qNums[r.id]=qnos[k]});
   if(window._phMode==='exam'){ // add straight into the exam being created
     (ins.data||[]).forEach(r=>_picked.add(r.id));
     const rr=await sb.from('exam_questions').select('*').order('created_at',{ascending:false});if(!rr.error)EXQ=rr.data||[];
     const sel=$('#cq-subject');if(sel)sel.innerHTML='<option value="">All subjects</option>'+subjectsList().map(s=>`<option>${esc(s)}</option>`).join('');
     $('#ph-file').value='';OCRQ=[];$('#ph-result').innerHTML='';$('#ph-status').textContent='';$('#ph-panel').classList.add('hide');$('#manual-box').classList.remove('hide');
-    renderPick();if(then==='publish'||then==='auto')return saveExam(then==='publish');if(!ins.warned)toast(rows.length+' question(s) saved and added to this exam.',5000);return;
+    renderPick();if(then==='publish'||then==='auto')return saveExam(true);if(!ins.warned)toast(rows.length+' question(s) saved and added to this exam.',5000);return;
   }
   if(!ins.warned)toast(rows.length+' question(s) saved to the Question Bank.');EXSUB='bank';viewExam();
 }
 // ---- Create exam ----
 const DEFAULT_RULES='1. Read every question carefully before answering.\n2. Do not open another tab or app during the exam.\n3. Copy, paste, right-click and screen switching are blocked.\n4. If you leave the exam screen too many times, the exam is submitted automatically.\n5. The exam is submitted automatically when the timer ends.\n6. Once submitted, you cannot take the exam again.';
-async function autoPublish(){
+async function autoPublish(){return toast('Auto publish is turned off. Read the questions, check them, then publish.',6000);
   if(window._autoBusy)return;
   const files=(phFiles());if(!files.length)return toast('First choose the question paper photo.');
   if(!$('#ce-start').value||!$('#ce-end').value)return toast('Set Start and End date & time (or tap "Start now") and the Timer, then press Auto Create.',6000);
@@ -2185,7 +2188,7 @@ async function autoPublish(){
   try{
     await runOcr();
     if(!OCRQ.length)return;
-    if(window._noAI){toast('Basic reader se questions mile. Neeche check/sudhaar karke "Paper me save karein" dabayein.',7000);return}
+    if(window._noAI){toast('Basic reader se questions mile. Neeche check/sudhaar karke Save & Publish dabayein.',7000);return}
     const aiN=OCRQ.filter(q=>q.ai&&q.answer!==null).length;window._aiNote=aiN?aiN+' answer(s) were worked out by AI (not printed in the paper). You can verify them in Question Bank.':'';
     if(!($('#ce-dur').value||'').trim())$('#ce-dur').value=Math.max(10,OCRQ.length);
     const miss=OCRQ.filter(q=>q.answer===null&&q.options.filter(Boolean).length>=2).length;
@@ -2224,53 +2227,6 @@ function renderPick(){
 function pickQ(id,on){on?_picked.add(id):_picked.delete(id);pickSummary()}
 function pickAll(on){const f=$('#cq-subject')?.value||'',fa=$('#cq-aud')?.value||'';EXQ.filter(q=>(!f||q.subject===f)&&audOk(q,fa)).forEach(q=>on?_picked.add(q.id):_picked.delete(q.id));renderPick()}
 function pickSummary(){const sel=EXQ.filter(q=>_picked.has(q.id));const t=sel.reduce((s,q)=>s+Number(q.marks||0),0);$('#cq-count').textContent=`${sel.length} question(s) selected · total ${t} marks`;if($('#ce-total'))$('#ce-total').value=t}
-async function loadPapers(selectId){
-  const r=await sb.from('exams').select('id,title,question_ids,total_marks,published').order('created_at',{ascending:false}).limit(60);
-  if(r.error||!r.data)return;window._papers=r.data;
-  const dl=$('#ce-names');if(dl)dl.innerHTML=[...new Set(r.data.map(x=>x.title))].map(t=>`<option value="${esc(t)}">`).join('');
-  const sl=$('#dest-paper');if(sl)sl.innerHTML='<option value="">-- Paper chunein --</option>'+r.data.map(p=>`<option value="${esc(p.id)}">${esc(p.title)} · ${(p.question_ids||[]).length} questions · ${p.published?'Published':'Draft'}</option>`).join('');
-  if(selectId){const sl2=$('#dest-paper');if(sl2)sl2.value=selectId;destPick(selectId)}else destInfo();
-}
-function destInfo(){const el=$('#dest-info');if(!el)return;const p=destPaper();el.innerHTML=p?`<b>${esc(p.title)}</b> · ${(p.question_ids||[]).length} questions · ${p.total_marks||0} marks · ${p.published?'<b style="color:#168a56">Published</b> (students dekh sakte hain)':'<b style="color:#c98a00">Draft</b> (abhi students ko nahi dikhega)'}`:'Koi paper nahi chuna. Naya paper banane ke liye upar naam likhein aur "Naya paper banayein" dabayein.'}
-async function createPaper(){
-  const g=id=>($('#'+id)||{}).value||'';const title=g('ce-title').trim();
-  if(!title)return toast('Pehle upar paper / exam ka naam likhein.');
-  if(!g('ce-start')||!g('ce-end'))return toast('Start aur End time set karein.');
-  const s=new Date(toIso(g('ce-start'))),e=new Date(toIso(g('ce-end')));if(!(e>s))return toast('End time start ke baad hona chahiye.');
-  const ex=await sb.from('exams').select('id').eq('title',title).limit(1);
-  if(!ex.error&&ex.data&&ex.data.length){await loadPapers(ex.data[0].id);return toast('Is naam ka paper pehle se hai. Wahi chun liya gaya.',6000)}
-  const pass=Number(g('ce-pass'))||0;
-  const row={title,instructions:withPhoto(g('ce-instr'),'off'),total_marks:0,pass_marks:pass,start_at:s.toISOString(),end_at:e.toISOString(),duration_min:Math.max(1,Number(g('ce-dur'))||30),shuffle:$('#ce-shuffle').checked,audience:g('ce-aud')||'both',question_ids:[],published:false,result_mode:'declared',tab_limit:Math.max(1,Number(g('ce-tabs'))||3)};
-  const r=await sb.from('exams').insert(row).select('id').single();
-  if(r.error)return toast('Paper nahi ban paya: '+r.error.message,9000);
-  await applyPendingBlocks(r.data&&r.data.id);
-  toast('Paper "'+title+'" ban gaya (Draft). Ab photo / paste / Word se questions save karein. Publish baad me.',8000);
-  await loadPapers(r.data.id);
-}
-async function publishPaper(){
-  const p=destPaper();if(!p)return toast('Pehle upar list se paper chunein.');
-  const r=await sb.from('exams').select('id,title,question_ids,total_marks,published').eq('id',p.id).maybeSingle();
-  if(r.error||!r.data)return toast('Paper nahi mila.');
-  const n=(r.data.question_ids||[]).length;
-  if(!n)return toast('Is paper me abhi koi question nahi hai. Pehle questions save karein.',7000);
-  if(r.data.published)return toast('Ye paper pehle se published hai.');
-  if(!confirm('"'+r.data.title+'" me '+n+' questions ('+(r.data.total_marks||0)+' marks) hain.\n\nAb students ke liye publish karein?'))return;
-  const u=await sb.from('exams').update({published:true}).eq('id',p.id);
-  if(u.error)return toast('Publish nahi hua: '+u.error.message,8000);
-  toast('Paper publish ho gaya. Ab students ye exam de sakte hain.',7000);await loadPapers(p.id);
-}
-function destPaper(){const d=window._dest||{};return (window._papers||[]).find(x=>String(x.id)===String(d.paper))||null}
-function destStartNo(){const d=window._dest||{};if(Number(d.start)>0)return Number(d.start);const p=destPaper();return p?(p.question_ids||[]).length+1:1}
-function fillNums(){const s=destStartNo();OCRQ.forEach((_,i)=>{const el=$('#oq'+i+'-no');if(el)el.value=s+i});const ds=$('#dest-start');if(ds&&document.activeElement!==ds)ds.value=s}
-function destPick(v){window._dest={paper:v,start:''};const p=destPaper();if(p&&$('#ce-title'))$('#ce-title').value=p.title;fillNums();destInfo()}
-function destStart2(v){window._dest=Object.assign(window._dest||{},{start:v});fillNums()}
-// put new questions at the numbers the admin chose (existing questions keep their order)
-function placeNew(existing,newQs){
-  const nums=window._qNums||{},list=[...existing];
-  newQs.filter(q=>!list.includes(q.id)).map((q,k)=>({id:q.id,n:Number(nums[q.id])||(list.length+k+1)})).sort((a,b)=>a.n-b.n)
-    .forEach(x=>{list.splice(Math.max(0,Math.min(list.length,x.n-1)),0,x.id)});
-  return list;
-}
 async function saveExam(publish){
   if(window._saving)return;
   const g=id=>$('#'+id).value;let title=g('ce-title').trim();if(!title&&window._auto){title='Exam '+today();$('#ce-title').value=title}
@@ -2280,24 +2236,8 @@ async function saveExam(publish){
   const bad=sel.filter(q=>!qFits(q,g('ce-aud')));if(bad.length){const ur=await sb.from('exam_questions').update({audience:'both'}).in('id',bad.map(q=>q.id));if(ur.error&&!/audience/i.test(ur.error.message))return toast('Could not prepare the questions: '+ur.error.message,7000)}
   const total=sel.reduce((t,q)=>t+Number(q.marks||0),0),pass=Number(g('ce-pass'))||0;if(!(total>0))return toast('Total marks are 0. Give each question at least 1 mark.');if(pass>total)return toast('Passing marks cannot be more than total marks.');
   const row={title,instructions:withPhoto(g('ce-instr'),'off'),total_marks:total,pass_marks:pass,start_at:s.toISOString(),end_at:e.toISOString(),duration_min:Math.max(1,Number(g('ce-dur'))||30),shuffle:$('#ce-shuffle').checked,audience:g('ce-aud'),question_ids:sel.map(q=>q.id),published:!!publish,result_mode:'declared',tab_limit:Math.max(1,Number(g('ce-tabs'))||3)};
-  if(window._auto||window._exAutoPage)row.question_ids=placeNew([],sel);
-  if(window._auto||window._exAutoPage){
-    const ex=await sb.from('exams').select('*').eq('title',title).order('created_at',{ascending:false}).limit(1);
-    if(!ex.error&&ex.data&&ex.data.length){
-      const old=ex.data[0],ids=placeNew(old.question_ids||[],sel);
-      const qm=await sb.from('exam_questions').select('id,marks').in('id',ids);if(qm.error)return toast('Could not read the questions: '+qm.error.message,7000);
-      const tot=(qm.data||[]).reduce((t,q)=>t+Number(q.marks||0),0);
-      const at=await sb.from('exam_attempts').select('id',{count:'exact',head:true}).eq('exam_id',old.id);
-      if(!at.error&&at.count>0&&!confirm(at.count+' student(s) have already started "'+title+'". New questions will appear for students who start it later. Add questions anyway?'))return;
-      const upd={question_ids:ids,total_marks:tot,pass_marks:Math.min(Number(old.pass_marks||0),tot),published:!!(old.published||publish)};
-      const typed=Number(g('ce-dur'));upd.duration_min=typed>0?typed:Math.max(Number(old.duration_min||0),Math.max(10,ids.length));
-      if(new Date(old.end_at)<new Date()){upd.start_at=s.toISOString();upd.end_at=e.toISOString()}
-      window._saving=true;const u=await sb.from('exams').update(upd).eq('id',old.id);window._saving=false;if(u.error)return toast('Could not add: '+u.error.message,7000);
-      toast(sel.length+' question(s) added to "'+title+'". Ab paper me '+ids.length+' questions hain ('+tot+' marks, '+upd.duration_min+' min). '+(upd.published?'':'Abhi publish nahi hua.'),8000);if(window._exAutoPage){window._keepPaper=old.id;exAuto()}else{EXSUB='list';viewExam()}return;
-    }
-  }
+  if(window._auto){const d=await sb.from('exams').select('id').eq('title',title).gte('created_at',new Date(Date.now()-15*60000).toISOString()).limit(1);if(!d.error&&d.data&&d.data.length)return toast('An exam named "'+title+'" was created a moment ago. Open the Results tab to see it, or use a different name.',9000)}
   window._saving=true;const {data:_ins,error}=await sb.from('exams').insert(row).select('id').single();window._saving=false;if(error)return toast('Could not save: '+error.message,7000);await applyPendingBlocks(_ins&&_ins.id);
-  if(!publish&&(window._auto||window._exAutoPage)){toast('Paper "'+title+'" me '+sel.length+' question(s) save ho gaye. Abhi publish nahi hua. Aur questions jodein, phir publish karein.',8000);window._keepPaper=_ins&&_ins.id;exAuto();return}
   toast(publish?(s>new Date()?'Exam published. The Start Exam button will appear for students at the start time.':'Exam published. Students can start it now.'):'Exam saved as draft.',6000);EXSUB='list';viewExam();
 }
 // ---- Exams list & results ----
@@ -2368,15 +2308,15 @@ async function exAccSave(){
 }
 async function exList(){
   const r=await ok(sb.from('exams').select('*').order('start_at',{ascending:false}));EXAMS=r;
-  const emptyN=r.filter(e=>e.published&&!(e.question_ids||[]).length).length;
+  const emptyN=r.filter(e=>!(e.question_ids||[]).length).length;
   $('#ex-body').innerHTML=(emptyN?`<div class="card"><b>${emptyN} exam(s) have no questions</b><p class="muted">These are failed attempts. Students cannot take them.</p><button class="btn sm red" onclick="exDeleteEmpty()">Delete empty exams</button></div>`:'')+r.map(e=>{const now=Date.now(),st=new Date(e.start_at),en=new Date(e.end_at);const state=!e.published?'Draft':now<st?'Upcoming':now>en?'Ended':'Running';
    return `<div class="card"><div class="row"><b>${esc(e.title)}</b><span class="muted">${state}</span></div><div class="muted">${fmtTime(e.start_at)} → ${fmtTime(e.end_at)}<br>${e.duration_min} min · ${e.total_marks} marks (pass ${e.pass_marks}) · ${(e.question_ids||[]).length} questions · ${({both:'All students',student:'Computer students',library_student:'Library students'})[e.audience]}<br>Results: ${e.result_mode==='instant'?'shown immediately':(e.results_declared?'declared':'not declared yet')}</div>
    
    <div class="btns"><button class="btn sm" onclick="exResults('${e.id}')">Results</button><button class="btn sm alt" onclick="exAccess('${e.id}')">Student access</button><button class="btn sm alt" onclick="exToggle('${e.id}','published',${!e.published})">${e.published?'Unpublish':'Publish'}</button>${e.result_mode==='declared'?`<button class="btn sm alt" onclick="exToggle('${e.id}','results_declared',${!e.results_declared})">${e.results_declared?'Hide Results':'Declare Results'}</button>`:''}<button class="btn sm alt" onclick="exToggle('${e.id}','show_past',${!e.show_past})">${e.show_past?'Hide questions from website':'Show questions on website'}</button><button class="btn sm red" onclick="exDelete('${e.id}')">Delete</button></div></div>`}).join('')||'<p class="muted">No exams yet. Create one first.</p>';
 }
-async function exDeleteEmpty(){const ids=EXAMS.filter(e=>e.published&&!(e.question_ids||[]).length).map(e=>e.id);if(!ids.length)return;if(!confirm('Delete '+ids.length+' exam(s) that have no questions?'))return;const {error}=await sb.from('exams').delete().in('id',ids);if(error)return toast(error.message);toast('Empty exams deleted.');exList()}
+async function exDeleteEmpty(){const ids=EXAMS.filter(e=>!(e.question_ids||[]).length).map(e=>e.id);if(!ids.length)return;if(!confirm('Delete '+ids.length+' exam(s) that have no questions?'))return;const {error}=await sb.from('exams').delete().in('id',ids);if(error)return toast(error.message);toast('Empty exams deleted.');exList()}
 async function exSetPhoto(id,m){const e=EXAMS.find(x=>x.id===id);if(!e)return;const {error}=await sb.from('exams').update({instructions:withPhoto(e.instructions,m)}).eq('id',id);if(error)return toast(error.message);toast('Photo setting saved.');exList()}
-async function exToggle(id,k,v){if(k==='published'&&v){const e0=(EXAMS||[]).find(x=>x.id===id);if(e0&&!(e0.question_ids||[]).length)return toast('Is paper me abhi koi question nahi hai. Pehle questions save karein, phir publish karein.',7000);if(e0&&!confirm('"'+e0.title+'" me '+(e0.question_ids||[]).length+' questions hain. Students ke liye publish karein?'))return}const {error}=await sb.from('exams').update({[k]:v}).eq('id',id);if(error)return toast(error.message);toast('Updated.');exList()}
+async function exToggle(id,k,v){const {error}=await sb.from('exams').update({[k]:v}).eq('id',id);if(error)return toast(error.message);toast('Updated.');exList()}
 async function exDelete(id){if(!confirm('Delete this exam and all student attempts?'))return;const {error}=await sb.from('exams').delete().eq('id',id);if(error)return toast(error.message);toast('Exam deleted.');exList()}
 let EXRES=[],EXCUR=null;
 const cwu=a=>{const d=a.detail||[];const c=k=>d.filter(x=>x.status===k).length;return a.status==='in_progress'?'':'Correct: <b>'+c('correct')+'</b> · Wrong: <b>'+c('wrong')+'</b> · Not answered: <b>'+c('unanswered')+'</b>'+(c('pending')?' · To check: <b>'+c('pending')+'</b>':'')};
@@ -2456,12 +2396,7 @@ async function exGrade(aid){
     let ans='',bc='';
     if(q.qtype==='subjective'){const g=q.given||{};let img='';if(g.photo){const s=/^https?:/.test(g.photo)?{data:{signedUrl:g.photo}}:await sb.storage.from('exam-answers').createSignedUrl(g.photo,600);if(s.data)img=`<br><a href="${s.data.signedUrl}" target="_blank"><img src="${s.data.signedUrl}" style="max-width:100%;border-radius:10px;margin-top:.4rem"></a>`}
       ans=`<div class="muted">Student's answer:</div><div style="white-space:pre-wrap">${esc(g.text||'(no text)')}</div>${img}<label class="muted">Marks (out of ${q.marks})</label><input id="gm-${i}" type="number" min="0" max="${q.marks}" step="0.5" value="${q.awarded??''}">`}
-    else{const o=(q.options||[]).slice(0,4);bc=q.status==='correct'?'#168a56':q.status==='wrong'?'#c0392b':'#c98a00';
-      const rows=o.map((t,k)=>{const isC=k===q.correct,isS=k===q.given;let st='border:1.5px solid #d9dcf0;background:#fff',tag='';
-        if(isC){st='border:2px solid #168a56;background:#e6f7ee';tag=isS?' <b style="color:#168a56">✓ Student ka answer (sahi)</b>':' <b style="color:#168a56">✓ Sahi answer</b>'}
-        else if(isS){st='border:2px solid #c0392b;background:#fdecea';tag=' <b style="color:#c0392b">✗ Student ka answer (galat)</b>'}
-        return `<div style="${st};border-radius:10px;padding:.45rem .6rem;margin:.3rem 0;color:#1b1f3a"><b>${LET[k]}.</b> ${esc(t)}${tag}</div>`}).join('');
-      ans=rows+`<div class="muted" style="margin-top:.2rem">${q.given==null?'<b style="color:#c98a00">Not answered</b> · ':''}${q.awarded} marks</div>`}
+    else{const o=q.options||[];bc=q.status==='correct'?'#168a56':q.status==='wrong'?'#c0392b':'#c98a00';ans=`<div class="muted">Student: <b>${q.given==null?'Not answered':LET[q.given]+'. '+esc(o[q.given])}</b><br>Correct: <b style="color:#168a56">${LET[q.correct]}. ${esc(o[q.correct])}</b> · <b style="color:${bc}">${q.status==='correct'?'✓ Correct':q.status==='wrong'?'✗ Wrong':'Not answered'}</b> (${q.awarded} marks)</div>`}
     return `<div class="card" ${bc?`style="border-left:5px solid ${bc}"`:''}><b>Q${i+1}. ${esc(q.question)}</b>${ans}</div>`}));
   const m=document.createElement('div');m.className='modal';m.id='grade-modal';
   m.innerHTML=`<div class="card">${photoModeOf(EXCUR.instructions)!=='off'?`<span id="sg-${a.id}" class="muted" style="float:right;font-size:.75rem">…</span>`:''}<h3 style="margin-top:0">${esc(a.student_name)} — ${a.score}/${EXCUR.total_marks}</h3><div class="muted" style="margin-bottom:.5rem">${cwu(a)}</div>${items.join('')}<div class="btns"><button class="btn" onclick="saveGrade('${aid}')">Save Marks</button><button class="btn alt" onclick="document.getElementById('grade-modal').remove()">Close</button></div></div>`;
