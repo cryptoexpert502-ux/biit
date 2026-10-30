@@ -863,7 +863,7 @@ var BIITIntro=(function(){
       return '<span class="iw">'+w.split('').map(function(ch){var s='<span class="ic" style="animation-delay:'+(0.5+idx*step/1000).toFixed(2)+'s">'+esc(ch)+'</span>';idx++;return s}).join('')+'</span>'}).join(' ');
     var sub=document.getElementById('in-sub');sub.textContent=o.sub||'';sub.style.display=o.sub?'':'none';sub.style.animationDelay=(0.9+idx*step/1000).toFixed(2)+'s';
     var old=el.querySelector('.in-media');if(old)old.remove();el.classList.remove('has-media');
-    if(o.media&&o.type==='image'){var im=document.createElement('img');im.className='in-media kb';im.src=o.media;im.alt='';el.insertBefore(im,el.firstChild);el.classList.add('has-media')}
+    if(o.media&&o.type==='image'){var im=document.createElement('img');im.className='in-media kb';var _om=o.media;im.onerror=function(){im.onerror=null;im.src=_om};im.src=(typeof mediaUrl==='function'?mediaUrl(_om):_om);im.alt='';el.insertBefore(im,el.firstChild);el.classList.add('has-media')}
     if(false&&o.media&&o.type==='video'){var v=document.createElement('video');v.className='in-media';v.src=o.media;v.muted=true;v.autoplay=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');
       v.onended=function(){close()};v.onerror=function(){v.remove();el.classList.remove('has-media')};el.insertBefore(v,el.firstChild);el.classList.add('has-media');var p=v.play&&v.play();if(p&&p.catch)p.catch(function(){})}
   }
@@ -2357,18 +2357,27 @@ try{$('#login-role').value=localStorage.getItem('biitLoginRole')||'student'}catc
 loginRoleChanged();
 loadCourses();
 
+
+// ---- Cloudflare media cache: images are served via the biit-media worker so Supabase egress stays tiny ----
+const MEDIA_BASE='https://biit-photos.computerinstitute1.workers.dev';
+function mediaUrl(u){
+  try{ if(!u||!MEDIA_BASE) return u;
+    const m=String(u).match(/^https:\/\/bpsqafcfdjtvnvcvlotr\.supabase\.co\/storage\/v1\/object\/public\/(site-media\/.+)$/);
+    return m?MEDIA_BASE+'/m/'+m[1]:u }catch(_){return u}
+}
+function mediaImgFallback(img,orig){ img.onerror=function(){img.onerror=null;img.src=orig} }
 function applyLogo(url){
   try{ if(url){ localStorage.setItem('biitLogo',url) } else { localStorage.removeItem('biitLogo') } }catch(_){}
   if(!url) return;
-  document.querySelectorAll('.logo-mark img').forEach(i=>{i.src=url});
-  document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]').forEach(l=>{l.href=url});
+  document.querySelectorAll('.logo-mark img').forEach(i=>{mediaImgFallback(i,url);i.src=mediaUrl(url)});
+  document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]').forEach(l=>{l.href=mediaUrl(url)});
 }
 try{ const _l=localStorage.getItem('biitLogo'); if(_l) document.addEventListener('DOMContentLoaded',()=>applyLogo(_l)); }catch(_){}
 function mountSlides(el,items){
   if(!el) return; clearInterval(el._t);
   if(!items.length){el.innerHTML='';el.classList.add('hide');return}
   el.classList.remove('hide');
-  el.innerHTML='<div class="slides">'+items.map((x,i)=>`<div class="slide${i?'':' on'}"><img ${i?'data-src':'src'}="${esc(x.public_url)}" alt="${esc(x.caption||'BIIT')}" decoding="async">${x.caption?`<div class="cap">${esc(x.caption)}</div>`:''}</div>`).join('')+(items.length>1?'<button type="button" class="sl-arrow sl-prev" aria-label="Previous">&#8249;</button><button type="button" class="sl-arrow sl-next" aria-label="Next">&#8250;</button><div class="sl-dots">'+items.map((x,i)=>`<i class="${i?'':'on'}" data-i="${i}"></i>`).join('')+'</div>':'')+'</div>';
+  el.innerHTML='<div class="slides">'+items.map((x,i)=>`<div class="slide${i?'':' on'}"><img ${i?'data-src':'src'}="${esc(mediaUrl(x.public_url))}" onerror="this.onerror=null;this.src='${esc(x.public_url)}'" alt="${esc(x.caption||'BIIT')}" decoding="async">${x.caption?`<div class="cap">${esc(x.caption)}</div>`:''}</div>`).join('')+(items.length>1?'<button type="button" class="sl-arrow sl-prev" aria-label="Previous">&#8249;</button><button type="button" class="sl-arrow sl-next" aria-label="Next">&#8250;</button><div class="sl-dots">'+items.map((x,i)=>`<i class="${i?'':'on'}" data-i="${i}"></i>`).join('')+'</div>':'')+'</div>';
   const sl=[...el.querySelectorAll('.slide')],dots=[...el.querySelectorAll('.sl-dots i')];let cur=0;
   const ld=k=>{const im=sl[(k+sl.length)%sl.length].querySelector('img[data-src]');if(im){im.src=im.dataset.src;im.removeAttribute('data-src')}};const show=n=>{cur=(n+sl.length)%sl.length;ld(cur);ld(cur+1);sl.forEach((d,i)=>d.classList.toggle('on',i===cur));dots.forEach((d,i)=>d.classList.toggle('on',i===cur))};
   const pv=el.querySelector('.sl-prev'),nx=el.querySelector('.sl-next');if(pv)pv.onclick=()=>{show(cur-1);restart()};if(nx)nx.onclick=()=>{show(cur+1);restart()};

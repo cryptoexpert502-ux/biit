@@ -1244,10 +1244,19 @@ async function delCommission(id){if(!confirm('Remove this commission entry?'))re
 async function togglePromoter(id,is_active){const {error}=await sb.from('promoters').update({is_active}).eq('id',id);if(error)return toast('Update failed: '+error.message);viewPromoters()}
 async function copyText(text){try{await navigator.clipboard.writeText(text);toast('Copied to clipboard.')}catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Copied to clipboard.')}}
 
+
+// ---- Cloudflare media cache: images are served via the biit-media worker so Supabase egress stays tiny ----
+const MEDIA_BASE='https://biit-photos.computerinstitute1.workers.dev';
+function mediaUrl(u){
+  try{ if(!u||!MEDIA_BASE) return u;
+    const m=String(u).match(/^https:\/\/bpsqafcfdjtvnvcvlotr\.supabase\.co\/storage\/v1\/object\/public\/(site-media\/.+)$/);
+    return m?MEDIA_BASE+'/m/'+m[1]:u }catch(_){return u}
+}
+function mediaImgFallback(img,orig){ img.onerror=function(){img.onerror=null;img.src=orig} }
 function applyLogo(url){
   try{ if(url){ localStorage.setItem('biitLogo',url) } else { localStorage.removeItem('biitLogo') } }catch(_){}
   if(!url) return;
-  document.querySelectorAll('.logo-mark img').forEach(i=>{i.src=url});
+  document.querySelectorAll('.logo-mark img').forEach(i=>{mediaImgFallback(i,url);i.src=mediaUrl(url)});
 }
 try{ const _l=localStorage.getItem('biitLogo'); if(_l) document.addEventListener('DOMContentLoaded',()=>applyLogo(_l)); }catch(_){}
 async function loadSiteLogo(){ try{ const r=await sb.from('site_settings').select('setting_value').eq('setting_key','site_logo_url').maybeSingle(); if(r.data?.setting_value) applyLogo(r.data.setting_value) }catch(_){} }
