@@ -1578,14 +1578,17 @@ function examTick(){
   if(left<=0)submitExam(true,'Time is over. Your exam was submitted automatically.');
 }
 async function examSave(){if(!EX||EX.done||!EX.dirty)return;EX.dirty=false;try{await sb.rpc('exam_save',{p_attempt:EX.d.attempt_id,p_answers:EX.answers,p_marked:EX.marked,p_violations:EX.violations})}catch(_){EX.dirty=true}}
+const _ANSO=/\s*[\[(]?\s*(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*(?:is|hai|[:=\-–.])+\s*[\[(]?\s*[A-Da-d1-4]\s*[\])]?\.?\s*[\])]?\s*$/i,_ANSQ=/\s*[\[(]?\s*(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*[:=]\s*[\[(]?\s*[A-Da-d1-4]\s*[\])]?\.?\s*[\])]?\s*$/i;
+function stripAnsO(t){return String(t==null?'':t).replace(_ANSO,'').trim()}
+function stripAnsQ(t){return String(t==null?'':t).replace(_ANSQ,'').trim()}
 function renderExam(){
   const d=EX.d,q=d.questions[EX.idx],i=EX.idx;EX.visited[q.id]=true;const a=EX.answers[q.id];
   let body='';
   if(q.qtype==='subjective'){const g=a||{};body=`<textarea id="ex-text" rows="8" placeholder="Type your answer here" oninput="exSubj()" style="width:100%">${esc(g.text||'')}</textarea><div class="muted" style="margin:.5rem 0 .2rem">Or upload a photo of your written answer:</div><input type="file" id="ex-photo" accept="image/*" onchange="exPhoto()">${g.photo?'<div class="muted" style="color:#168a56">✓ Photo uploaded</div>':''}<div id="ex-up" class="muted"></div>`}
-  else body=q.options.map((o,k)=>`<label class="ex-opt ${a===k?'sel':''}"><input type="radio" name="exopt" ${a===k?'checked':''} onchange="exPick(${k})"><span>${_L[k]}.</span><span>${esc(o)}</span></label>`).join('');
+  else body=(q.options||[]).slice(0,4).map((o,k)=>stripAnsO(o)?`<label class="ex-opt ${a===k?'sel':''}"><input type="radio" name="exopt" ${a===k?'checked':''} onchange="exPick(${k})"><span>${_L[k]}.</span><span>${esc(stripAnsO(o))}</span></label>`:'').join('');
   const pal=d.questions.map((x,k)=>{const ans=EX.answers[x.id];const has=ans!=null&&!(typeof ans==='object'&&!ans.text&&!ans.photo);const cls=EX.marked[x.id]?'mk':has?'an':EX.visited[x.id]?'vs':'nv';return `<button class="pal ${cls} ${k===i?'cur':''}" onclick="exGo(${k})">${k+1}</button>`}).join('');
   examUI(`<div class="ex-top"><b>${esc(d.title)}</b><span id="ex-timer" class="ex-timer">--:--</span></div>
-  <div class="ex-wrap">${exIdCard()}<div class="card"><div class="muted">Question ${i+1} of ${d.questions.length} · ${q.marks} mark(s)${q.qtype==='tf'?' · True / False':q.qtype==='subjective'?' · Written answer':''}</div><div class="ex-q">${esc(q.question)}</div>${body}</div>
+  <div class="ex-wrap">${exIdCard()}<div class="card"><div class="muted">Question ${i+1} of ${d.questions.length} · ${q.marks} mark(s)${q.qtype==='tf'?' · True / False':q.qtype==='subjective'?' · Written answer':''}</div><div class="ex-q">${esc(stripAnsQ(q.question))}</div>${body}</div>
   <div class="btns"><button class="btn sm alt" ${i===0?'disabled':''} onclick="exGo(${i-1})">← Previous</button><button class="btn sm alt" onclick="exClear()">Clear Response</button><button class="btn sm ${EX.marked[q.id]?'':'alt'}" onclick="exMark()">${EX.marked[q.id]?'★ Marked':'☆ Mark for Review'}</button><button class="btn sm" ${i===d.questions.length-1?'disabled':''} onclick="exGo(${i+1})">Next →</button></div>
   <div class="card"><div class="pal-legend"><span class="pal an">&nbsp;</span> Answered <span class="pal mk">&nbsp;</span> Marked <span class="pal vs">&nbsp;</span> Not answered <span class="pal nv">&nbsp;</span> Not visited</div><div class="pal-grid">${pal}</div></div>
   <button class="btn" style="width:100%" onclick="exFinish()">Submit Exam</button></div>`);
@@ -1622,7 +1625,7 @@ async function examResult(attemptId){
   if(d.state==='waiting'){examUI(`<div class="ex-wrap"><div class="card"><h2>Exam submitted ✓</h2><p>${esc(d.title)}</p><p class="muted">Your exam was submitted on ${fmtTime(d.submitted_at)}. Your result will be shown here after the teacher declares it.</p></div><button class="btn" onclick="examClose()">Back to Dashboard</button></div>`);return}
   const rows=(d.detail||[]).map((q,i)=>{
     if(q.qtype==='subjective'){const g=q.given||{};return `<div class="card"><b>Q${i+1}. ${esc(q.question)}</b><div class="muted">Your answer: ${esc(g.text||(g.photo?'(photo answer)':'Not answered'))}</div><div class="muted">${q.status==='graded'?'Marks: <b>'+q.awarded+'</b> / '+q.marks:'Waiting for teacher to check'}</div></div>`}
-    const o=q.options||[];return `<div class="card"><b>Q${i+1}. ${esc(q.question)}</b><div style="margin-top:.3rem">Your answer: <b>${q.given==null?'Not answered':_L[q.given]+'. '+esc(o[q.given])}</b></div></div>`}).join('');
+    const o=q.options||[];return `<div class="card"><b>Q${i+1}. ${esc(stripAnsQ(q.question))}</b><div style="margin-top:.3rem">Your answer: <b>${q.given==null?'Not answered':_L[q.given]+'. '+esc(stripAnsO(o[q.given]))}</b></div></div>`}).join('');
   examUI(`<div class="ex-wrap"><div class="card" style="text-align:center"><h2 style="margin:.2rem 0">${esc(d.title)}</h2><div style="font-size:2.2rem;font-weight:800">${d.score} / ${d.total}</div>
    <div style="font-weight:800;color:${d.passed?'#168a56':'#c0392b'}">${d.subjective_pending?'Result pending (written answers not checked yet)':d.passed?'PASS 🎉':'FAIL'}</div><div class="muted">Passing marks: ${d.pass_marks}</div></div>
    <div class="ex-meta"><div>Correct<b style="color:#168a56">${d.correct}</b></div><div>Wrong<b style="color:#c0392b">${d.wrong}</b></div><div>Not answered<b>${d.unanswered}</b></div></div>
@@ -1852,12 +1855,25 @@ async function loadPastPapers(){
   for(const a of list){
     const x=await sb.rpc('exam_result',{p_attempt:a.attempt_id});
     if(x.error||!x.data||x.data.state==='waiting')continue;
-    const d=x.data,qs=Array.isArray(d.questions)?d.questions:[];
-    const right=qs.filter(q=>q.status==='correct').length,wrong=qs.filter(q=>q.status==='wrong').length,skip=qs.length-right-wrong;
-    parts.push(`<div style="margin:.5rem 0"><b>${esc(a.title)}</b>${d.score!=null?' · Score '+d.score+(d.total_marks!=null?'/'+d.total_marks:''):''}</div>`);
+    const d=x.data,qs=Array.isArray(d.detail)?d.detail:(Array.isArray(d.questions)?d.questions:[]);
+    // correct answers are shown ONLY when the admin switched "Show questions on website" on for this exam
+    let allow=a.show_past!==undefined?a.show_past:d.show_past;
+    if(allow===undefined){const eid=a.exam_id||d.exam_id;if(eid){const ex=await sb.from('exams').select('show_past').eq('id',eid).maybeSingle();if(ex.data)allow=ex.data.show_past}}
+    const tot=d.total_marks!=null?d.total_marks:d.total;
+    let html=`<div style="margin:.5rem 0"><b>${esc(a.title)}</b>${d.score!=null?' · Score '+d.score+(tot!=null?'/'+tot:''):''}</div>`;
+    if(allow===true&&qs.length){
+      const rows=qs.map((q,i)=>{
+        if(q.qtype==='subjective')return `<div class="card"><b>Q${i+1}. ${esc(stripAnsQ(q.question))}</b><div class="muted">${q.status==='graded'?'Marks: '+q.awarded+' / '+q.marks:'Teacher ne abhi check nahi kiya'}</div></div>`;
+        const o=(q.options||[]).slice(0,4),st=q.status,col=st==='correct'?'#168a56':st==='wrong'?'#c0392b':'#c98a00';
+        const given=q.given==null?'Not answered':LET(q.given)+'. '+esc(stripAnsO(o[q.given]));
+        const right=(q.correct==null)?'':`<div>Correct answer: <b style="color:#168a56">${LET(q.correct)}. ${esc(stripAnsO(o[q.correct]))}</b></div>`;
+        return `<div class="card" style="border-left:5px solid ${col}"><b>Q${i+1}. ${esc(stripAnsQ(q.question))}</b><div style="margin-top:.3rem">Your answer: <b>${given}</b> · <b style="color:${col}">${st==='correct'?'✓ Sahi':st==='wrong'?'✗ Galat':'Not answered'}</b></div>${right}</div>`}).join('');
+      html+=`<details style="margin:.3rem 0 .8rem"><summary>Dekhein: aapke answers aur sahi answers</summary>${rows}</details>`;
+    }
+    parts.push(html);
   }
   const box=document.createElement('div');box.id='past-papers';box.className='card';
-  box.innerHTML='<h2>📚 Past exam results</h2><div class="muted" style="margin-bottom:.4rem">Your answers and the correct answers, after the admin has shown the result.</div>'+(parts.length?parts.join(''):'<p class="muted">No past exam results are shown yet.</p>');
+  box.innerHTML='<h2>📚 Past exam results</h2><div class="muted" style="margin-bottom:.4rem">Sahi answers tabhi dikhte hain jab admin result dikhane ki permission deta hai.</div>'+(parts.length?parts.join(''):'<p class="muted">No past exam results are shown yet.</p>');
   (document.getElementById('student-dashboard')||document.body).appendChild(box);
 }
 // ---- student mockup look ----
@@ -1931,19 +1947,11 @@ function stuPhotoSmall(file){return new Promise(res=>{const img=new Image();img.
 function stuEditProfile(){
   const me=window.__stuMe||{};window.__cropImg=null;
   $('#c-prof').innerHTML = `<h2>Edit My Details</h2>
-    <div class="muted" style="margin-bottom:.5rem">You can change your father's name, mother's name, address, date of birth and photo. Name, course and mobile can only be changed by the institute.</div>
+    <div class="muted" style="margin-bottom:.5rem">You can change your father's name, mother's name, address and date of birth. Name, course and mobile can only be changed by the institute.</div>
     <label class="muted">Father's name</label><input id="ep-f" value="${esc(me.father_name||'')}">
     <label class="muted">Mother's name</label><input id="ep-m" value="${esc(me.mother_name||'')}">
     <label class="muted">Address</label><input id="ep-a" value="${esc(me.address||'')}">
     <label class="muted">Date of birth</label><input id="ep-d" type="date" value="${esc(me.dob||'')}">
-    <label class="muted">My photo (optional)</label><input id="ep-p" type="file" accept="image/*" onchange="stuCropLoad(this)">
-    <div id="cr-box" class="hide" style="margin:.5rem 0">
-      <div class="muted" style="margin-bottom:.3rem">Crop: use the sliders so your face fits inside the square.</div>
-      <canvas id="cr-cv" width="200" height="200" style="width:200px;height:200px;border-radius:12px;border:1px solid #ccc;background:#eee;display:block"></canvas>
-      <label class="muted">Zoom</label><input id="cr-z" type="range" min="100" max="300" value="100" oninput="stuCropDraw()">
-      <label class="muted">Move left / right</label><input id="cr-x" type="range" min="0" max="100" value="50" oninput="stuCropDraw()">
-      <label class="muted">Move up / down</label><input id="cr-y" type="range" min="0" max="100" value="50" oninput="stuCropDraw()">
-    </div>
     <div class="btns" style="margin-top:.6rem"><button class="btn" onclick="stuSaveProfile()">Save</button><button class="btn alt" onclick="renderStudentPortal(window.__stuMe)">Cancel</button></div>`;
 }
 function stuCropDraw(){
@@ -1982,8 +1990,6 @@ async function uploadPhoto(dataUrl,kind){
 }
 async function stuSaveProfile(){
   let ph=null;
-  if(window.__cropImg&&!document.getElementById('cr-box').classList.contains('hide')){ph=stuCroppedDataUrl();if(!ph)return toast('Photo is too large. Zoom in a little or choose a smaller photo.',6000)}
-  if(ph)ph=(await uploadPhoto(ph,'profile'))||ph;
   const r=await sb.rpc('update_my_profile',{p_father:$('#ep-f').value,p_mother:$('#ep-m').value,p_address:$('#ep-a').value,p_dob:$('#ep-d').value||null,p_photo:ph});
   if(r.error)return toast('Could not save: '+r.error.message,7000);
   toast('Details saved',3000);
@@ -2238,7 +2244,7 @@ async function renderStudentPortal(me){
     <div class="stu-md-head"><span class="stu-md-ico">👤</span><b>My Details</b></div>
     <div class="stu-md-body">
       <div class="stu-md-left">
-        <div class="stu-ring">${me.profile_photo?`<img src="${me.profile_photo}" alt="">`:`<span>${esc((me.name||'?').trim().charAt(0).toUpperCase())}</span>`}<button class="stu-cam" onclick="stuEditProfile()" aria-label="Change photo">📷</button></div>
+        <div class="stu-ring">${me.profile_photo?`<img src="${me.profile_photo}" alt="">`:`<span>${esc((me.name||'?').trim().charAt(0).toUpperCase())}</span>`}</div>
         <div class="stu-slogan">Small Steps<br>Big Dreams</div>
         <button class="stu-edit" onclick="stuEditProfile()">✏️ Edit my details ›</button>
       </div>

@@ -1701,7 +1701,7 @@ async function saveQuestion(){
 async function delQuestion(id){if(!confirm('Delete this question?'))return;const {error}=await sb.from('exam_questions').delete().eq('id',id);if(error)return toast(error.message);toast('Deleted.');viewExam()}
 // ---- Photo -> questions (OCR) ----
 function optIdx(ch){return 'abcd1234कखगघ'.indexOf(String(ch).toLowerCase())%4}
-function parseOcrQuestions(raw){
+function parseNumberedQ(raw){
   // Tolerant parser: handles OCR mistakes (O/l/I instead of 0/1), Hindi digits, missing dots,
   // several questions glued on one line, options on one line "(a) x (b) y", options without ")".
   const HD='०१२३४५६७८९';
@@ -1713,7 +1713,7 @@ function parseOcrQuestions(raw){
   const oRe=new RegExp('^[(\\[]?\\s*(['+OL+'])\\s*[.)\\]:]\\s*(.*)$');
   const oOpenRe=new RegExp('^\\(\\s*(['+OL+'])\\s+(\\S.*)$');
   const o2Re=/^\(\s*([1-4])\s*\)\s*(.*)$/;
-  const ansRe=/^(?:ans(?:wer)?|उत्तर|correct)\s*[:.\-)]*\s*\(?\s*([A-Da-d1-4कखगघ])\s*\)?/i;
+  const ansRe=ANS_LINE_RE;
   const OLI=OL+'1-4';
   const inlineRe=new RegExp('\\(\\s*(['+OLI+'])\\s*\\)','g');
   const out=[];let cur=null,kind=null,lastNum=0,lastOpt=-1;
@@ -1754,11 +1754,83 @@ function parseOcrQuestions(raw){
   out.forEach(q=>{q.options=Array.from(q.options,o=>o||'')});
   return out.filter(q=>q.question.length>3);
 }
+// ===== Answer-line / answer-tail helpers (answer text must never stay inside question or options) =====
+const ANS_LINE_RE=/^[\[(]?\s*(?:correct\s+|right\s+)?(?:ans(?:wer)?|उत्तर|sahi\s*(?:jawab|answer|option)|jawab)\s*(?:is|hai|option|[:=\-–.)])*\s*[\[(]?\s*([A-Da-d1-4कखगघ])\s*[\])]?\s*(?:[.)]|$|\s.*)?$/i;
+const ANS_TEXT_RE=/^(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*[:=\-–]\s*(.+)$/i;
+const ANS_TAIL_OPT=/\s*[\[(]?\s*(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*(?:is|hai|[:=\-–.])+\s*[\[(]?\s*([A-Da-d1-4कखगघ])\s*[\])]?\.?\s*[\])]?\s*$/i;
+const ANS_TAIL_Q=/\s*[\[(]?\s*(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*[:=]\s*[\[(]?\s*([A-Da-d1-4कखगघ])\s*[\])]?\.?\s*[\])]?\s*$/i;
+function cleanQ(q){
+  // keep only 4 options, cut "Ans: B" leftovers out of text, move them into q.answer
+  q.options=(q.options||[]).slice(0,4).map(o=>{o=String(o||'').trim();if(/^[0-9OolI|,.\s]{3,}$/.test(o)&&/\d/.test(o))o=o.replace(/[Oo]/g,'0').replace(/[lI|]/g,'1').replace(/\s+/g,'');const m=o.match(ANS_TAIL_OPT);if(m&&m.index>0||m&&o.slice(0,m.index).trim()){if(q.answer==null||q.answer===undefined)q.answer=optIdx(m[1]);o=o.slice(0,m.index).trim()}return o});
+  let t=String(q.question||'').trim();const m2=t.match(ANS_TAIL_Q);if(m2&&m2.index>0){if(q.answer==null)q.answer=optIdx(m2[1]);t=t.slice(0,m2.index).trim()}
+  q.question=t;
+  if(q.answer!=null&&!(q.options[q.answer]))q.answer=null;
+  return q;
+}
+// Parser for questions WITHOUT numbers ("Question? (A) .. (B) .. (C) .. (D) .. Ans: C")
+function parseUnnumberedQ(raw){
+  const lines=String(raw||'').replace(/\r/g,'').split('\n').map(l=>l.replace(/[ \t\u00a0]+/g,' ').trim());
+  const OPT=/^[(\[]?\s*([A-Da-dकखगघ1-4])\s*[.)\]:\-–]\s*(.*)$/;
+  const OPEN=/^\(\s*([A-Da-d])\s+(\S.*)$/;
+  const SPLIT=/\(\s*([A-Da-d1-4])\s*\)/;
+  const out=[];let cur=null,qbuf=[],lastOpt=-1;
+  const cnt=()=>cur?cur.options.filter(Boolean).length:0;
+  const flush=()=>{if(cur&&cur.question&&cnt()>=2)out.push(cur);cur=null;lastOpt=-1};
+  const stripNo=t=>t.replace(/^(?:Q(?:uestion|ue|n)?\.?\s*)?(?:\d{1,3}|[०-९]{1,3})\s*[.):\-–]\s+/i,'').trim();
+  const newQ=()=>{cur={num:0,question:stripNo(qbuf.join(' ').trim()),options:[],answer:null};qbuf=[];lastOpt=-1};
+  const setOpt=(k,t)=>{cur.options[k]=(cur.options[k]?cur.options[k]+' ':'')+String(t).trim();lastOpt=k};
+  for(const line of lines){
+    if(!line){if(cnt()>=2)flush();continue}
+    if(cur&&cnt()>=1){
+      let m=line.match(ANS_LINE_RE);
+      if(m){cur.answer=optIdx(m[1]);continue}
+      m=line.match(ANS_TEXT_RE);
+      if(m){const v=m[1].trim().toLowerCase();const k=cur.options.findIndex(o=>o&&o.trim().toLowerCase()===v);if(k>=0){cur.answer=k;continue}}
+    }
+    // all options (or question + options) on one line
+    const parts=line.split(SPLIT);
+    if(parts.length>=5&&(parts[0].trim()===''||!cur||cnt()>=2||!cur.options.length)){
+      if(parts[0].trim()){if(cur&&cnt()>=2)flush();if(!cur)qbuf.push(parts[0].trim())}
+      if(!cur){if(!qbuf.length)continue;newQ()}
+      else if(cnt()>=2&&parts[0].trim()===''&&cur.options[0]){flush();continue}
+      for(let i=1;i<parts.length;i+=2){const t=(parts[i+1]||'').trim();if(t)setOpt(optIdx(parts[i]),t)}
+      continue;
+    }
+    let m=line.match(OPT)||line.match(OPEN);
+    if(m){
+      const k=optIdx(m[1]);
+      if(!cur){
+        if(k===0&&qbuf.length){newQ();setOpt(0,m[2]);continue}
+        qbuf.push(line);continue; // not an option really (e.g. a sentence starting with "A.")
+      }
+      if(k===0&&cnt()>=2){flush();continue}
+      setOpt(k,m[2]);continue;
+    }
+    // plain text line
+    if(cur&&cnt()>=1){
+      const newQuestion=cnt()>=4||/[?:]\s*$/.test(line)||/^(?:Q(?:uestion)?\.?\s*)?\d{1,3}\s*[.)]\s/i.test(line);
+      if(!newQuestion&&lastOpt>=0){cur.options[lastOpt]+=' '+line;continue}
+      flush();
+    }
+    qbuf.push(line);
+  }
+  flush();
+  return out;
+}
+function parseOcrQuestions(raw){
+  let a=[],b=[];
+  try{a=parseNumberedQ(raw)}catch(e){console.warn(e)}
+  try{b=parseUnnumberedQ(raw)}catch(e){console.warn(e)}
+  const good=l=>l.filter(q=>q.options.filter(Boolean).length>=2).length;
+  const out=(good(b)>good(a)?b:a).map(q=>cleanQ(q)).filter(q=>String(q.question||'').length>3);
+  out.forEach((q,i)=>{q.num=i+1;q.options=Array.from({length:4},(_,k)=>q.options[k]||'')});
+  return out;
+}
 function photoCard(mode){
   const always=mode==='tab';
   return `<div class="card"><b>📷 ${always?'Make questions from a paper photo':'Add all questions from a photo <small class="muted">(AI reader v2)</small>'}</b>
   <p class="muted">${always?'':'Instead of typing one question at a time, upload a photo of the question paper. '}The questions and options are read from the photo and shown as <b>text</b> (not as a picture). Check them, choose the correct answers, then save.</p>
-  <input id="ph-file" type="file" accept="image/*,application/pdf" multiple onchange="photoPicked('${mode}')"><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,application/pdf" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
+  <input id="ph-file" type="file" accept="image/*,application/pdf,.docx,.txt" multiple onchange="photoPicked('${mode}')"><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,application/pdf,.docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
   <div id="ph-panel" class="${always?'':'hide'}" data-mode="${mode}">
    <label class="muted">Subject</label>${optSel('ph-subject',subjectsList(),'-- Select subject --','Add new subject')}
    <label class="muted">Topic (optional)</label>${optSel('ph-topic',topicsList(),'-- No topic / select --','Add new topic')}
@@ -1780,7 +1852,7 @@ function exAuto(){
   $('#ex-body').innerHTML=`<div class="card"><b>📷 Photo to Exam</b>
    <p class="muted">Just type the exam name and choose a photo of the question paper. Questions, time and marks are filled in automatically and the exam is published.</p>
    <label class="muted">Exam name</label><input id="ce-title" placeholder="e.g. CCC Monthly Test">
-   <label class="muted">Question paper photo</label><input id="ph-file" type="file" accept="image/*,application/pdf" multiple><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,application/pdf" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
+   <label class="muted">Question paper photo</label><input id="ph-file" type="file" accept="image/*,application/pdf,.docx,.txt" multiple><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,application/pdf,.docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
    <div class="btns" style="margin-top:.6rem"><button id="auto-btn" class="btn" style="background:#168a56;width:100%" onclick="autoExam()">⚡ Create &amp; Publish Exam</button></div>
    <div class="btns"><button type="button" class="btn sm alt" onclick="runBasic()">🔤 Photo reader without AI (basic)</button></div>
    <p id="ph-status" class="muted"></p>
@@ -1819,7 +1891,7 @@ async function prepOcrImage(file,mode){
   // mode 'bw'  : adaptive black/white (helps shadows and uneven light)
   const url=URL.createObjectURL(file);
   try{
-    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Yeh file photo ki tarah khul nahi rahi (shayad Word/doc ya HEIC file hai). JPG/PNG photo ya PDF chunein.'));i.src=url});
     let w=img.naturalWidth,h=img.naturalHeight;const target=Math.min(Math.max(w,2000),3000),k=target/w;w=Math.round(w*k);h=Math.round(h*k);
     const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle='#fff';x.fillRect(0,0,w,h);x.imageSmoothingQuality='high';x.drawImage(img,0,0,w,h);
     const im=x.getImageData(0,0,w,h),d=im.data,g=new Uint8Array(w*h);
@@ -1848,11 +1920,11 @@ function ocrScore(t){const q=parseOcrQuestions(t);return q.length*100+q.filter(z
 async function photoToJpegB64(file){
   const url=URL.createObjectURL(file);
   try{
-    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
-    const k=Math.min(1,1700/Math.max(img.naturalWidth,img.naturalHeight));
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Yeh file photo ki tarah khul nahi rahi (shayad Word/doc ya HEIC file hai). JPG/PNG photo ya PDF chunein.'));i.src=url});
+    const k=Math.min(1,2000/Math.max(img.naturalWidth,img.naturalHeight));
     const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
     const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
-    return c.toDataURL('image/jpeg',0.88).split(',')[1];
+    return c.toDataURL('image/jpeg',0.9).split(',')[1];
   }finally{URL.revokeObjectURL(url)}
 }
 async function aiReadPhotos(files,st){
@@ -1905,42 +1977,69 @@ async function aiReadPhotos(files,st){
     const qs=res.map((r,idx)=>{
       const q=r.q;let ans=q.answer&&'ABCDabcd'.includes(String(q.answer).trim()[0]||'-')?'ABCD'.indexOf(String(q.answer).trim()[0].toUpperCase()):null,ai=String(q.answer_source||'')==='ai';
       if(r.n!==null&&keyMap.has(r.n)&&(ans===null||ai)){ans=keyMap.get(r.n);ai=false}
-      return {num:idx+1,question:String(q.question).trim(),options:(Array.isArray(q.options)?q.options:[]).slice(0,6).map(o=>String(o||'').trim()),ai,answer:ans};
+      return cleanQ({num:idx+1,question:String(q.question).trim(),options:(Array.isArray(q.options)?q.options:[]).map(o=>String(o||'').trim()),ai,answer:ans});
     });
     return {qs,text:qs.map((q,i)=>(i+1)+'. '+q.question+'\n'+q.options.map((o,k)=>'('+LET[k]+') '+o).join('\n')).join('\n\n')};
   }catch(e){console.warn('AI reader failed',e);toast('AI reader could not start: '+(e.message||e)+'  (using the basic reader instead)',9000);return null}
 }
+const isDocFile=f=>/\.(docx?|txt)$/i.test(f.name||'')||f.type==='text/plain'||/wordprocessingml|msword/.test(f.type||'');
+async function readDocText(f){
+  if(/\.txt$/i.test(f.name)||f.type==='text/plain')return await f.text();
+  if(/\.doc$/i.test(f.name))throw new Error('Purani .doc file nahi padh sakte. Word me "Save As .docx" karke dubara chunein.');
+  if(!window.mammoth)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+  const r=await window.mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});
+  return r.value||'';
+}
 async function runOcr(){
   const files=[...(phFiles())];if(!files.length)return toast('Choose a photo first.');
   const st=$('#ph-status');
+  const docs=files.filter(isDocFile);
+  if(docs.length){
+    if(docs.length!==files.length){st.textContent='';return toast('Word/text file aur photo ek saath nahi chalte. Ek hi type chunein.',7000)}
+    try{
+      st.textContent='File se questions padh raha hun…';let text='';
+      for(const f of docs)text+='\n'+await readDocText(f);
+      OCRQ=parseOcrQuestions(text);
+      st.textContent=OCRQ.length?`Found ${OCRQ.length} question(s). Please check them below.`:'File me koi question nahi mila. Har question ke neeche (A) (B) (C) (D) options alag lines me hone chahiye.';
+      renderOcr(text);
+    }catch(e){st.textContent='';toast('File nahi padh paya: '+(e.message||e),8000)}
+    return;
+  }
   const ai=window._noAI?null:await aiReadPhotos(files,st);
   if(ai&&ai.failed){OCRQ=[];st.textContent='AI reader abhi kaam nahi kar raha. Neeche "Photo reader without AI (basic)" dabayein, ya questions ka text copy-paste karein.';return}
   if(ai){OCRQ=ai.qs;st.textContent=OCRQ.length?`Found ${OCRQ.length} question(s). Please check them below.`:'No questions were found in the photo.';renderOcr(ai.text);return}
   if(Array.from(files).some(f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name))){st.textContent='';return toast('PDF files can only be read by the AI reader. Please check the AI reader setup, or upload a photo instead.',8000)}
   st.textContent='Loading the reader… (first time takes a little while)';
   try{if(!window.Tesseract)await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js')}catch(e){st.textContent='';return toast('The photo reader could not load. Check your internet connection.',7000)}
-  const lang=$('#ph-lang').value;let label='';
+  const langSel=$('#ph-lang').value;let label='';
+  // Hinglish papers are written in English letters: the English model reads them far better than Hindi+English, so it goes first.
+  const langs=langSel==='eng'?['eng']:['eng','hin+eng'];
   const logger=m=>{if(m.status==='recognizing text')st.textContent=`${label} ${Math.round((m.progress||0)*100)}%`;else if(/loading|init/i.test(m.status||''))st.textContent=`${label} preparing reader (first time is slow)…`};
+  const suspect=s=>/[\[\]|{}]/.test(String(s||''))||!String(s||'').trim();
+  const isGood=t=>{const qs=parseOcrQuestions(t);return qs.length>0&&qs.filter(z=>z.options.filter(Boolean).length>=4&&!z.options.some(suspect)).length>=qs.length*0.8};
   let worker=null;
   try{
-    try{worker=await Tesseract.createWorker(lang,1,{logger,langPath:'https://tessdata.projectnaptha.com/4.0.0_best'})}
-    catch(_){worker=await Tesseract.createWorker(lang,1,{logger})}
     let text='';
     for(let i=0;i<files.length;i++){
-      let best='',bestScore=-1;
-      const passes=[['gray','4'],['bw','4'],['gray','6']];
-      for(let p=0;p<passes.length;p++){
-        const [mode,psm]=passes[p];
-        label=`Photo ${i+1}/${files.length}, try ${p+1}/${passes.length}: reading…`;
-        try{
-          await worker.setParameters({tessedit_pageseg_mode:psm,preserve_interword_spaces:'1',user_defined_dpi:'300'});
-          const src=await prepOcrImage(files[i],mode);
-          const res=await worker.recognize(src);const t=res.data.text||'';const sc=ocrScore(t);
-          if(sc>bestScore){bestScore=sc;best=t}
-          const qs=parseOcrQuestions(best);
-          // good enough: enough questions and most of them have 3+ options -> stop early
-          if(qs.length>=3&&qs.filter(z=>z.options.filter(Boolean).length>=3).length>=qs.length*0.8)break;
-        }catch(e){if(p===0&&!best){try{const r=await worker.recognize(files[i]);best=r.data.text||'';bestScore=ocrScore(best)}catch(_){}}}
+      let best='',bestScore=-1,done=false;
+      for(const lang of langs){
+        if(done)break;
+        if(worker){try{await worker.terminate()}catch(_){}worker=null}
+        label=`Photo ${i+1}/${files.length} (${lang==='eng'?'English':'Hindi+English'}): loading…`;
+        try{worker=await Tesseract.createWorker(lang,1,{logger,langPath:'https://tessdata.projectnaptha.com/4.0.0_best'})}
+        catch(_){worker=await Tesseract.createWorker(lang,1,{logger})}
+        const passes=[['gray','6'],['gray','4'],['bw','6']];
+        for(let p=0;p<passes.length;p++){
+          const [mode,psm]=passes[p];
+          label=`Photo ${i+1}/${files.length} (${lang==='eng'?'English':'Hindi+English'}), try ${p+1}/${passes.length}: reading…`;
+          try{
+            await worker.setParameters({tessedit_pageseg_mode:psm,preserve_interword_spaces:'1',user_defined_dpi:'300'});
+            const src=await prepOcrImage(files[i],mode);
+            const res=await worker.recognize(src);const t=res.data.text||'';const sc=ocrScore(t);
+            if(sc>bestScore){bestScore=sc;best=t}
+            if(isGood(best)){done=true;break}   // every question has 4 clean options -> stop early
+          }catch(e){if(p===0&&!best){try{const r=await worker.recognize(files[i]);best=r.data.text||'';bestScore=ocrScore(best)}catch(_){}}}
+        }
       }
       text+='\n'+best;
     }
@@ -1950,17 +2049,18 @@ async function runOcr(){
   }catch(e){st.textContent='';toast('Could not read the photo: '+(e.message||e),7000)}
   finally{try{if(worker)await worker.terminate()}catch(_){}}
 }
-function ocrOptions(i,q){return [0,1,2,3].map(k=>`<input id="oq${i}-o${k}" placeholder="Option ${LET[k]}" value="${esc(q.options[k]||'')}">`).join('')}
+function ocrOptions(i,q){const bad=k=>/[\[\]|{}]/.test(q.options[k]||'')||(k<2&&!(q.options[k]||'').trim());const any=[0,1,2,3].some(bad);return (any?'<div style="color:#c0392b;font-size:.82rem;margin:.3rem 0">⚠ Laal box wale option galat padhe gaye ho sakte hain. Photo dekh kar theek karein.</div>':'')+[0,1,2,3].map(k=>`<input id="oq${i}-o${k}" placeholder="Option ${LET[k]}" value="${esc(q.options[k]||'')}" ${bad(k)?'style="border:2px solid #c0392b"':''}>`).join('')}
+function ocrType(i){const t=($('#oq'+i+'-type')||{}).value;const a=$('#oq'+i+'-mcqbox'),b=$('#oq'+i+'-tfbox');if(a)a.style.display=t==='mcq'?'':'none';if(b)b.style.display=t==='tf'?'':'none';[0,1,2,3].forEach(k=>{const o=$('#oq'+i+'-o'+k);if(o)o.style.display=t==='mcq'?'':'none'})}
 function renderOcr(raw){
   const _ex=window._phMode==='exam';
   $('#ph-result').innerHTML=(OCRQ.length?`<div class="muted" style="margin:.5rem 0;font-size:.82rem">ℹ️ <b>Option A, B, C, D</b> = the 4 answer choices of an MCQ (type each choice in its own box). <b>Correct answer</b> = pick which option is right. Type = Subjective means no options were found, so change it to MCQ and fill the options.</div>`:'')+`${OCRQ.map((q,i)=>`<div class="card" id="oqc-${i}"><div class="row"><b>Question ${i+1}</b><button class="btn sm red" onclick="ocrDel(${i})">Remove</button></div>
-   <select id="oq${i}-type">${(()=>{const tf=q.options.length===2&&/^true$/i.test(q.options[0])&&/^false$/i.test(q.options[1]);const t=tf?'tf':(q.options.length>=2?'mcq':'subjective');return [['mcq','MCQ'],['tf','True / False'],['subjective','Subjective']].map(o=>`<option value="${o[0]}" ${o[0]===t?'selected':''}>${o[1]}</option>`).join('')})()}</select>
+   <select id="oq${i}-type" onchange="ocrType(${i})">${(()=>{const tf=q.options.length===2&&/^true$/i.test(q.options[0])&&/^false$/i.test(q.options[1]);const t=tf?'tf':(q.options.length>=2?'mcq':'subjective');return [['mcq','MCQ'],['tf','True / False'],['subjective','Subjective']].map(o=>`<option value="${o[0]}" ${o[0]===t?'selected':''}>${o[1]}</option>`).join('')})()}</select>
    <textarea id="oq${i}-q" rows="3">${esc(q.question)}</textarea>${ocrOptions(i,q)}
-   <label class="muted">Correct answer (MCQ)${q.ai?' 🤖 chosen by AI - please verify':''}</label><select id="oq${i}-ans">${[0,1,2,3].map(k=>`<option value="${k}" ${q.answer===k?'selected':''}>Option ${LET[k]}</option>`).join('')}</select>
-   <label class="muted">Correct answer (True / False)</label><select id="oq${i}-tf"><option value="true">True</option><option value="false" ${q.answer===1?'selected':''}>False</option></select>
+   <div id="oq${i}-mcqbox"><label class="muted">Correct answer (MCQ)${q.ai?' 🤖 chosen by AI - please verify':''}</label><select id="oq${i}-ans"><option value="" ${q.answer==null?'selected':''}>-- Select correct answer --</option>${[0,1,2,3].map(k=>`<option value="${k}" ${q.answer===k?'selected':''}>Option ${LET[k]}</option>`).join('')}</select></div>
+   <div id="oq${i}-tfbox"><label class="muted">Correct answer (True / False)</label><select id="oq${i}-tf"><option value="true">True</option><option value="false" ${q.answer===1?'selected':''}>False</option></select></div>
    <div class="g3"><div><label class="muted">Marks</label><input id="oq${i}-marks" type="number" step="0.5" value="1"></div><div><label class="muted">Negative</label><input id="oq${i}-neg" type="number" step="0.25" value="0"></div></div></div>`).join('')}
    ${OCRQ.length?'<div class="btns">'+(window._exAutoPage?'':'<button class="btn" onclick="saveOcr()">'+(_ex?'Save &amp; add to this exam':'Save All to Question Bank')+'</button>')+(_ex?'<button class="btn" style="background:#168a56" onclick="saveOcr(\''+(window._exAutoPage?'auto':'publish')+'\')">🚀 Save &amp; Publish Exam</button>':'')+'<button class="btn red" onclick="ocrClearAll()">🗑 Delete all these questions</button></div>':''}
-   <details class="card"><summary>Text read from the photo</summary><textarea id="ph-raw" rows="8" style="width:100%">${esc(raw||'')}</textarea><button class="btn sm alt" onclick="reparseOcr()">Re-read questions from this text</button></details>`;
+   <details class="card"><summary>Text read from the photo</summary><textarea id="ph-raw" rows="8" style="width:100%">${esc(raw||'')}</textarea><button class="btn sm alt" onclick="reparseOcr()">Re-read questions from this text</button></details>`;OCRQ.forEach((_,i)=>ocrType(i));
 }
 function runBasic(){
   window._noAI=true;
@@ -1977,7 +2077,7 @@ function pasteParse(id){
     $('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000);
   }
   OCRQ=parseOcrQuestions(t);
-  if(!OCRQ.length){if(st)st.textContent='Koi question nahi mila. Format: 1. Question  (A) .. (B) .. (C) .. (D) ..';return toast('Koi question nahi mila. "1. Question" ke baad (A) (B) (C) (D) options alag lines me rakhein.',7000)}
+  if(!OCRQ.length){if(st)st.textContent='Koi question nahi mila. Format: Question, phir (A) (B) (C) (D) alag lines me.';return toast('Koi question nahi mila. Har question ke neeche (A) (B) (C) (D) options alag lines me likhein.',7000)}
   if(window._exAutoPage&&!($('#ce-dur').value||'').trim())$('#ce-dur').value=Math.max(10,OCRQ.length);
   if(st)st.textContent='Found '+OCRQ.length+' question(s). Neeche check karein, phir Save kijiye.';
   renderOcr(t);
@@ -1994,7 +2094,7 @@ async function saveOcr(then){
     const type=$('#oq'+i+'-type').value,question=$('#oq'+i+'-q').value.trim();if(!question)continue;
     if(then==='auto'&&type==='subjective'){skipped++;continue}
     const row={audience:paud,subject,topic:topic||null,qtype:type,question,marks:Number($('#oq'+i+'-marks').value)||0,negative_marks:Number($('#oq'+i+'-neg').value)||0,options:null,answer:null};
-    if(type==='mcq'){const opts=[0,1,2,3].map(k=>$('#oq'+i+'-o'+k).value.trim());const ai=Number($('#oq'+i+'-ans').value);
+    if(type==='mcq'){const opts=[0,1,2,3].map(k=>$('#oq'+i+'-o'+k).value.trim());const av=$('#oq'+i+'-ans').value;if(av===''&&!window._auto)return toast(`Question ${i+1}: sahi answer select karein (Correct answer).`,6000);const ai=av===''?0:Number(av);
       if(opts.filter(Boolean).length<2)return toast(`Question ${i+1}: enter at least two options.`);if(!opts[ai])return toast(`Question ${i+1}: the correct answer option is empty.`);
       const keep=[];let na=0;opts.forEach((o,k)=>{if(o){if(k===ai)na=keep.length;keep.push(o)}});row.options=keep;row.answer=String(na)}
     if(type==='tf')row.answer=$('#oq'+i+'-tf').value;
