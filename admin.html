@@ -1715,7 +1715,7 @@ function parseNumberedQ(raw){
   // several questions glued on one line, options on one line "(a) x (b) y", options without ")".
   const HD='०१२३४५६७८९';
   const num=t=>{const v=parseInt(String(t).replace(/[०-९]/g,c=>HD.indexOf(c)).replace(/[OoDQ]/g,'0').replace(/[Il|!]/g,'1'),10);return isNaN(v)?0:v};
-  const lines=String(raw||'').replace(/\r/g,'').split('\n').map(l=>l.replace(/[ \t]+/g,' ').trim()).filter(Boolean);
+  const lines=String(raw||'').replace(/\r/g,'').split('\n').map(l=>({t:l.replace(/[ \t\u00a0]+/g,' ').trim(),raw:l.replace(/\t/g,'    ').replace(/\u00a0/g,' ').replace(/\s+$/,'')})).filter(x=>x.t);
   const OL='A-Da-dकखगघ';
   const qRe=new RegExp('^(?:(?:Q(?:uestion|ue|n)?|प्रश्न)\\.?\\s*)?([0-9०-९OoIl|]{1,3})\\s*[.)\\]:\\-–—]\\s*(\\S.*)$','i');
   const looseRe=/^(?:Q\s*)?(\d{1,3})\s+(\S.{8,})$/i;
@@ -1739,12 +1739,12 @@ function parseNumberedQ(raw){
   };
   const queue=lines.slice();
   while(queue.length){
-    let line=queue.shift();let m;
+    const item=queue.shift();let line=item.t,rawLine=item.raw;let m;
     // several questions glued in one line: "... (d) xyz 11. next question"
     if(cur||qRe.test(line)){
       const qm=line.match(qRe),qn=qm?num(qm[1]):0,base=(qn>lastNum&&qn<=lastNum+6)?qn:lastNum;
       const nx=base+1,mm=line.match(new RegExp('^(.{10,}?)\\s+'+nx+'\\s*[.)]\\s+(\\S.*)$'));
-      if(mm){queue.unshift(nx+'. '+mm[2]);line=mm[1]}
+      if(mm){queue.unshift({t:nx+'. '+mm[2],raw:nx+'. '+mm[2]});line=mm[1];rawLine=mm[1]}
     }
     if((m=line.match(ansRe))&&cur&&cur.options.filter(Boolean).length){cur.answer=optIdx(m[1]);continue}
     if(cur&&(line.match(inlineRe)||[]).length>=2&&/^[(\[]?\s*[A-Da-dकखगघ]\s*[)\]]/.test(line)){if(addInline(line))continue}
@@ -1757,7 +1757,7 @@ function parseNumberedQ(raw){
     }
     // number without a dot, but it is exactly the next number and previous question looks finished
     if(cur&&cur.options.filter(Boolean).length>=2&&(m=line.match(looseRe))&&Number(m[1])===lastNum+1){startQ(Number(m[1]),m[2]);continue}
-    if(cur){if(kind==='o'&&lastOpt>=0)cur.options[lastOpt]+=' '+line;else cur.question+=' '+line}
+    if(cur){if(kind==='o'&&lastOpt>=0)cur.options[lastOpt]+=' '+line;else cur.question+='\n'+rawLine}
   }
   if(cur)out.push(cur);
   out.forEach(q=>{q.options=Array.from(q.options,o=>o||'')});
@@ -1768,10 +1768,24 @@ const ANS_LINE_RE=/^[\[(]?\s*(?:correct\s+|right\s+)?(?:ans(?:wer)?|उत्त
 const ANS_TEXT_RE=/^(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*[:=\-–]\s*(.+)$/i;
 const ANS_TAIL_OPT=/\s*[\[(]?\s*(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*(?:is|hai|[:=\-–.])+\s*[\[(]?\s*([A-Da-d1-4कखगघ])\s*[\])]?\.?\s*[\])]?\s*$/i;
 const ANS_TAIL_Q=/\s*[\[(]?\s*(?:correct\s+)?(?:ans(?:wer)?|उत्तर)\s*[:=]\s*[\[(]?\s*([A-Da-d1-4कखगघ])\s*[\])]?\.?\s*[\])]?\s*$/i;
+function fixGluedOptions(q){
+  // AI reader / OCR sometimes returns  options[0]="2 b) 2 c) 3 d) 3"  or the options glued inside the question text
+  try{
+    const opts=(q.options||[]).map(o=>String(o||'').trim());
+    const glued=t=>/(?:^|\s)[(\[]?[bB]\s*[.)\]:](?=\s|$)/.test(t)&&/(?:^|\s)[(\[]?[cC]\s*[.)\]:](?=\s|$)|[(\[]?[aA]\s*[.)\]:]/.test(t);
+    if(!(opts.some(glued)||glued(String(q.question||''))))return q;
+    const txt=[String(q.question||'').trim(),...opts.map((o,k)=>o?'('+'ABCD'[k]+') '+o:'')].filter(Boolean).join('\n');
+    const lines=splitInlineOptions(txt).split('\n'),qs=[],no=[];let ans=q.answer;
+    lines.forEach(l=>{const m=l.match(/^\(([ABCD])\)\s?(.*)$/);if(m)no[ 'ABCD'.indexOf(m[1]) ]=m[2].trim();else qs.push(l)});
+    if(no.filter(Boolean).length>=2){q.question=qs.join(' ').trim()||q.question;q.options=[0,1,2,3].map(k=>no[k]||'')}
+  }catch(e){console.warn(e)}
+  return q;
+}
 function cleanQ(q){
+  fixGluedOptions(q);
   // keep only 4 options, cut "Ans: B" leftovers out of text, move them into q.answer
-  q.options=(q.options||[]).slice(0,4).map(o=>{o=String(o||'').trim();if(/^[0-9OolI|,.\s]{3,}$/.test(o)&&/\d/.test(o))o=o.replace(/[Oo]/g,'0').replace(/[lI|]/g,'1').replace(/\s+/g,'');const m=o.match(ANS_TAIL_OPT);if(m&&m.index>0||m&&o.slice(0,m.index).trim()){if(q.answer==null||q.answer===undefined)q.answer=optIdx(m[1]);o=o.slice(0,m.index).trim()}return o});
-  let t=String(q.question||'').trim();const m2=t.match(ANS_TAIL_Q);if(m2&&m2.index>0){if(q.answer==null)q.answer=optIdx(m2[1]);t=t.slice(0,m2.index).trim()}
+  q.options=(q.options||[]).slice(0,4).map(o=>{o=String(o||'').trim();if(/^[0-9OolI|,.]{3,}$/.test(o)&&/\d/.test(o)&&/[OolI|]/.test(o))o=o.replace(/[Oo]/g,'0').replace(/[lI|]/g,'1').replace(/\s+/g,'');const m=o.match(ANS_TAIL_OPT);if(m&&m.index>0||m&&o.slice(0,m.index).trim()){if(q.answer==null||q.answer===undefined)q.answer=optIdx(m[1]);o=o.slice(0,m.index).trim()}return o});
+  let t=String(q.question||'').replace(/^\s*\n+/,'').replace(/\s+$/,'');const m2=t.match(ANS_TAIL_Q);if(m2&&m2.index>0){if(q.answer==null)q.answer=optIdx(m2[1]);t=t.slice(0,m2.index).trim()}
   q.question=t;
   if(q.answer!=null&&!(q.options[q.answer]))q.answer=null;
   return q;
@@ -1786,7 +1800,7 @@ function parseUnnumberedQ(raw){
   const cnt=()=>cur?cur.options.filter(Boolean).length:0;
   const flush=()=>{if(cur&&cur.question&&cnt()>=2)out.push(cur);cur=null;lastOpt=-1};
   const stripNo=t=>t.replace(/^(?:Q(?:uestion|ue|n)?\.?\s*)?(?:\d{1,3}|[०-९]{1,3})\s*[.):\-–]\s+/i,'').trim();
-  const newQ=()=>{cur={num:0,question:stripNo(qbuf.join(' ').trim()),options:[],answer:null};qbuf=[];lastOpt=-1};
+  const newQ=()=>{cur={num:0,question:stripNo(qbuf.join('\n').trim()),options:[],answer:null};qbuf=[];lastOpt=-1};
   const setOpt=(k,t)=>{cur.options[k]=(cur.options[k]?cur.options[k]+' ':'')+String(t).trim();lastOpt=k};
   for(const line of lines){
     if(!line){if(cnt()>=2)flush();continue}
@@ -1826,7 +1840,32 @@ function parseUnnumberedQ(raw){
   flush();
   return out;
 }
+// Splits "a) 2 b) 2 c) 3 d) 3" / "A. x  B. y" / "(a) x (b) y" (options sitting on ONE line, or after the question text)
+// into separate lines "(A) x". Only splits when markers run in order a,b,(c,d) so normal sentences are not touched.
+function splitInlineOptions(raw){
+  const MK=/(^|[\s\u00a0\t])[(\[]?([A-Da-dकखगघ])\s*[.)\]:}|](?=\s|$)/g, ORD={a:0,b:1,c:2,d:3,'क':0,'ख':1,'ग':2,'घ':3};
+  const out=[];let lastK=-1;
+  String(raw||'').replace(/\r/g,'').split('\n').forEach(line=>{
+    const ms=[];let m;MK.lastIndex=0;
+    while((m=MK.exec(line))){const st=m.index+m[1].length;ms.push({st,end:MK.lastIndex,k:ORD[m[2].toLowerCase()]})}
+    // find a run a,b,c,d (at least a,b) of consecutive markers
+    let run=null;
+    for(let i=0;i<ms.length&&!run;i++){
+      if(ms[i].k!==0&&!(ms[i].k===lastK+1&&i===0))continue;
+      const r=[ms[i]];for(let j=i+1;j<ms.length&&ms[j].k===ms[i].k+r.length&&ms[i].k+r.length<4;j++)r.push(ms[j]);
+      if(r.length>=2||(ms[i].k>0&&r.length>=1&&ms[i].k===lastK+1&&ms.length===1&&false))run=r;
+    }
+    if(!run){const sm=line.match(/^\s*[(\[]?([A-Da-dकखगघ])\s*[.)\]:}|](?=\s|$)/);lastK=sm?ORD[sm[1].toLowerCase()]:-1;out.push(line);return}
+    const head=line.slice(0,run[0].st).trim();
+    // a lone option line like "a) text" already fine; only skip when the run is a single marker
+    if(head)out.push(head);
+    run.forEach((r,i)=>{const t=line.slice(r.end,i+1<run.length?run[i+1].st:undefined).trim();out.push('('+'ABCD'[r.k]+') '+t)});
+    lastK=run[run.length-1].k;
+  });
+  return out.join('\n');
+}
 function parseOcrQuestions(raw){
+  raw=splitInlineOptions(raw);
   let a=[],b=[];
   try{a=parseNumberedQ(raw)}catch(e){console.warn(e)}
   try{b=parseUnnumberedQ(raw)}catch(e){console.warn(e)}
@@ -1957,7 +1996,7 @@ async function aiReadPhotos(files,st){
       let img;
       if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){
         if(f.size>10*1024*1024){toast('PDF is too big (max 10 MB). Please split it.',7000);return window._auto?{qs:[],text:'',failed:true}:null}
-        const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(f)});
+        const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=()=>rej(new Error('PDF file read nahi ho payi'));r.readAsDataURL(f)});
         img={media_type:'application/pdf',data:b64};
       }else img={media_type:'image/jpeg',data:await photoToJpegB64(f)};
       let data,error;
@@ -2000,13 +2039,15 @@ async function aiReadPhotos(files,st){
       return cleanQ({num:idx+1,question:String(q.question).trim(),options:(Array.isArray(q.options)?q.options:[]).map(o=>String(o||'').trim()),ai,answer:ans});
     });
     return {qs,text:qs.map((q,i)=>(i+1)+'. '+q.question+'\n'+q.options.map((o,k)=>'('+LET[k]+') '+o).join('\n')).join('\n\n')};
-  }catch(e){console.warn('AI reader failed',e);toast('AI reader could not start: '+(e.message||e)+'  (using the basic reader instead)',9000);return null}
+  }catch(e){console.warn('AI reader failed',e);toast('AI reader could not start: '+errMsg(e)+'  (using the basic reader instead)',9000);return null}
 }
-const isDocFile=f=>/\.(docx?|txt)$/i.test(f.name||'')||f.type==='text/plain'||/wordprocessingml|msword/.test(f.type||'');
+const isDocFile=f=>/\.(docx?|txt)$/i.test(f.name||'')||f.type==='text/plain'||/wordprocessingml|msword|officedocument/.test(f.type||'')||(!/^image\//.test(f.type||'')&&f.type!=='application/pdf'&&!/\.(jpe?g|png|webp|gif|heic|pdf)$/i.test(f.name||''));
+const errMsg=e=>e&&e.message?e.message:(e&&e.target&&e.target.error&&e.target.error.message)||(e&&e.type?'file load error ('+e.type+')':String(e));
 async function readDocText(f){
   if(/\.txt$/i.test(f.name)||f.type==='text/plain')return await f.text();
+  try{const h=new Uint8Array(await f.slice(0,4).arrayBuffer());if(!(h[0]===0x50&&h[1]===0x4B)&&!/\.docx?$/i.test(f.name)&&!/word/.test(f.type||''))return await f.text()}catch(_){}
   if(/\.doc$/i.test(f.name))throw new Error('Purani .doc file nahi padh sakte. Word me "Save As .docx" karke dubara chunein.');
-  if(!window.mammoth)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+  if(!window.mammoth){try{await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js')}catch(_){await loadScript('https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js')}}
   const r=await window.mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});
   return r.value||'';
 }
@@ -2022,7 +2063,7 @@ async function runOcr(){
       OCRQ=parseOcrQuestions(text);
       st.textContent=OCRQ.length?`Found ${OCRQ.length} question(s). Please check them below.`:'File me koi question nahi mila. Har question ke neeche (A) (B) (C) (D) options alag lines me hone chahiye.';
       renderOcr(text);
-    }catch(e){st.textContent='';toast('File nahi padh paya: '+(e.message||e),8000)}
+    }catch(e){st.textContent='';toast('File nahi padh paya: '+errMsg(e),8000)}
     return;
   }
   const ai=window._noAI?null:await aiReadPhotos(files,st);
@@ -2075,7 +2116,7 @@ function renderOcr(raw){
   const _ex=window._phMode==='exam';
   $('#ph-result').innerHTML=(OCRQ.length?`<div class="muted" style="margin:.5rem 0;font-size:.82rem">ℹ️ <b>Option A, B, C, D</b> = the 4 answer choices of an MCQ (type each choice in its own box). <b>Correct answer</b> = pick which option is right. Type = Subjective means no options were found, so change it to MCQ and fill the options.</div>`:'')+`${OCRQ.map((q,i)=>`<div class="card" id="oqc-${i}"><div class="row"><b>Question ${i+1}</b><button class="btn sm red" onclick="ocrDel(${i})">Remove</button></div>
    <select id="oq${i}-type" onchange="ocrType(${i})">${(()=>{const tf=q.options.length===2&&/^true$/i.test(q.options[0])&&/^false$/i.test(q.options[1]);const t=tf?'tf':(q.options.length>=2?'mcq':'subjective');return [['mcq','MCQ'],['tf','True / False'],['subjective','Subjective']].map(o=>`<option value="${o[0]}" ${o[0]===t?'selected':''}>${o[1]}</option>`).join('')})()}</select>
-   <textarea id="oq${i}-q" rows="3">${esc(q.question)}</textarea>${ocrOptions(i,q)}
+   <textarea id="oq${i}-q" rows="${Math.min(12,Math.max(3,String(q.question).split('\n').length+1))}" style="white-space:pre-wrap;tab-size:4">${esc(q.question)}</textarea>${ocrOptions(i,q)}
    <div id="oq${i}-mcqbox"><label class="muted">Correct answer (MCQ)${q.ai?' 🤖 chosen by AI - please verify':''}</label><select id="oq${i}-ans"><option value="" ${q.answer==null?'selected':''}>-- Select correct answer --</option>${[0,1,2,3].map(k=>`<option value="${k}" ${q.answer===k?'selected':''}>Option ${LET[k]}</option>`).join('')}</select></div>
    <div id="oq${i}-tfbox"><label class="muted">Correct answer (True / False)</label><select id="oq${i}-tf"><option value="true">True</option><option value="false" ${q.answer===1?'selected':''}>False</option></select></div>
    <div class="g3"><div><label class="muted">Marks</label><input id="oq${i}-marks" type="number" step="0.5" value="1"></div><div><label class="muted">Negative</label><input id="oq${i}-neg" type="number" step="0.25" value="0"></div>${window._exAutoPage?`<div><label class="muted">Q. No. (paper me)</label><input id="oq${i}-no" type="number" min="1" value="${destStartNo()+i}"></div>`:''}</div></div>`).join('')}
