@@ -1848,25 +1848,34 @@ function photoPicked(mode){
 }
 function clearPhoto(){window._phExtra=[];if($('#ph-count'))$('#ph-count').textContent='';$('#ph-file').value='';OCRQ=[];$('#ph-result').innerHTML='';$('#ph-status').textContent='';photoPicked(window._phMode)}
 function exAuto(){
-  window._picked=new Set();OCRQ=[];window._phMode='exam';
+  window._picked=new Set();OCRQ=[];window._phMode='exam';window._dest={paper:'',start:''};window._qNums={};
   $('#ex-body').innerHTML=`<div class="card"><b>📷 Photo to Exam</b>
-   <p class="muted">Just type the exam name and choose a photo of the question paper. Questions, time and marks are filled in automatically and the exam is published.</p>
-   <label class="muted">Exam name</label><input id="ce-title" placeholder="e.g. CCC Monthly Test">
+   <p class="muted">Exam ka naam likhein, time set karein aur question paper ki photo / Word file chunein. Questions usi naam ke exam me save hote hain. Doosri photo ke questions bhi usi naam se usi exam me jud jaate hain.</p>
+   <label class="muted">Exam / paper name</label><input id="ce-title" list="ce-names" placeholder="e.g. CCC Monthly Test" autocomplete="off" oninput="if(window._dest)window._dest.paper='';const dp=document.getElementById('dest-paper');if(dp)dp.value=''"><datalist id="ce-names"></datalist>
+   <div class="muted" style="font-size:.8rem;margin:-.2rem 0 .5rem">Same naam dobara likhne par naye questions usi exam me jud jaate hain (pehle wale questions rahenge).</div>
+   <div class="g3"><div><label class="muted">Start (IST)</label><input id="ce-start" type="datetime-local"></div><div><label class="muted">End (IST)</label><input id="ce-end" type="datetime-local"></div><div><label class="muted">Timer (minutes)</label><input id="ce-dur" type="number" min="1" placeholder="e.g. 30"></div></div>
+   <div class="btns" style="margin:.2rem 0 .5rem"><button class="btn sm alt" type="button" onclick="startNow()">⏱ Start now (24 hours)</button></div>
+   <div style="border:2px solid #7c3aed;border-radius:14px;padding:.6rem .7rem;margin:.4rem 0 .6rem"><b>📂 Paper chunein ya naya banayein</b>
+    <select id="dest-paper" onchange="destPick(this.value)"><option value="">-- Paper chunein --</option></select>
+    <div class="btns" style="margin:.4rem 0"><button type="button" class="btn sm" onclick="createPaper()">➕ Naya paper banayein (upar naam + time likhein)</button></div>
+    <div id="dest-info" class="muted" style="font-size:.85rem;margin:.2rem 0"></div>
+    <div class="btns" style="margin:.2rem 0 .5rem"><button type="button" class="btn sm" style="background:#168a56" onclick="publishPaper()">🚀 Paper publish karein (jab saare questions save ho jayein)</button></div>
+    <label class="muted">Pehla question kaun se number par lage?</label><input id="dest-start" type="number" min="1" value="1" oninput="destStart2(this.value)">
+    <div class="muted" style="font-size:.8rem">Neeche har question ke saath uska number alag se bhi badal sakte hain. Number se pehle wale questions apni jagah rahenge.</div></div>
    <label class="muted">Question paper photo</label><input id="ph-file" type="file" accept="image/*,application/pdf,.docx,.txt" multiple><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,application/pdf,.docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
-   <div class="btns" style="margin-top:.6rem"><button id="auto-btn" class="btn" style="background:#168a56;width:100%" onclick="autoExam()">⚡ Create &amp; Publish Exam</button></div>
+   <div class="btns" style="margin-top:.6rem"><button id="auto-btn" class="btn" style="background:#168a56;width:100%" onclick="autoExam()">⚡ Questions paper me save karein</button></div>
    <div class="btns"><button type="button" class="btn sm alt" onclick="runBasic()">🔤 Photo reader without AI (basic)</button></div>
    <p id="ph-status" class="muted"></p>
    <details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="px-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('px-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('px-paste').value=''">Clear</button></div></details>
    <div id="ph-result"></div>
    <details style="margin-top:.4rem"><summary class="muted">More options (optional)</summary>
     <label class="muted">Who can take this exam?</label><select id="ce-aud"><option value="both">Computer + Library Students</option><option value="student">Computer Students only</option><option value="library_student">Library Students only</option></select><button type="button" class="btn sm alt" style="margin-top:.4rem" onclick="exAccess(null)">🔒 Student access (who can take it)</button>
-    <label class="muted">Timer (minutes) - leave empty for automatic</label><input id="ce-dur" type="number" min="1" placeholder="Auto">
     <div class="muted" style="margin:.3rem 0">Results are shown to students only after you press "Declare Results" in Results.</div>
     
     <label class="muted">Passing marks</label><input id="ce-pass" type="number" min="0" step="0.5" value="0">
    </details></div>
    <div class="hide">
-    <input id="ce-start"><input id="ce-end"><input id="ce-total" readonly><input id="ce-tabs" value="3">
+    <input id="ce-total" readonly><input id="ce-tabs" value="3">
     <input type="checkbox" id="ce-shuffle" checked><textarea id="ce-instr">${esc(DEFAULT_RULES)}</textarea>
     <select id="ph-subject"><option value=""></option></select><select id="ph-topic"><option value=""></option></select><select id="ph-aud"><option value="both"></option></select>
     <select id="ph-lang"><option value="hin+eng" selected>h</option></select>
@@ -1874,15 +1883,17 @@ function exAuto(){
     <select id="cq-subject"><option value=""></option></select><select id="cq-aud"><option value=""></option></select><div id="cq-count"></div><div id="cq-list"></div>
    </div>`;
   window._exAutoPage=true;
+  try{startNow.quiet=true;const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');$('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000)}catch(_){}
+  loadPapers(window._keepPaper);window._keepPaper=null;
 }
 async function autoExam(){
   if(window._autoBusy)return;
   if(!$('#ce-title').value.trim())return toast('Please type the exam name first.');
   if(!(phFiles()).length)return toast('Please choose the question paper photo.');
   const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');
-  $('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000);
+  if(!$('#ce-start').value)$('#ce-start').value=f(Date.now()-60000);if(!$('#ce-end').value)$('#ce-end').value=f(Date.now()+24*3600*1000);
   const b=$('#auto-btn');if(b){b.disabled=true;b.textContent='Working… please wait'}
-  try{await autoPublish()}finally{const b2=$('#auto-btn');if(b2){b2.disabled=false;b2.textContent='⚡ Create & Publish Exam'}}
+  try{await autoPublish()}finally{const b2=$('#auto-btn');if(b2){b2.disabled=false;b2.textContent='📥 Questions paper me save karein (publish baad me)'}}
 }
 function exPhoto(){window._exAutoPage=false;$('#ex-body').innerHTML=photoCard('tab');OCRQ=[];window._phMode='tab'}
 // Clean the photo before reading: grey, bigger, even lighting, black text on white
@@ -2058,8 +2069,8 @@ function renderOcr(raw){
    <textarea id="oq${i}-q" rows="3">${esc(q.question)}</textarea>${ocrOptions(i,q)}
    <div id="oq${i}-mcqbox"><label class="muted">Correct answer (MCQ)${q.ai?' 🤖 chosen by AI - please verify':''}</label><select id="oq${i}-ans"><option value="" ${q.answer==null?'selected':''}>-- Select correct answer --</option>${[0,1,2,3].map(k=>`<option value="${k}" ${q.answer===k?'selected':''}>Option ${LET[k]}</option>`).join('')}</select></div>
    <div id="oq${i}-tfbox"><label class="muted">Correct answer (True / False)</label><select id="oq${i}-tf"><option value="true">True</option><option value="false" ${q.answer===1?'selected':''}>False</option></select></div>
-   <div class="g3"><div><label class="muted">Marks</label><input id="oq${i}-marks" type="number" step="0.5" value="1"></div><div><label class="muted">Negative</label><input id="oq${i}-neg" type="number" step="0.25" value="0"></div></div></div>`).join('')}
-   ${OCRQ.length?'<div class="btns">'+(window._exAutoPage?'':'<button class="btn" onclick="saveOcr()">'+(_ex?'Save &amp; add to this exam':'Save All to Question Bank')+'</button>')+(_ex?'<button class="btn" style="background:#168a56" onclick="saveOcr(\''+(window._exAutoPage?'auto':'publish')+'\')">🚀 Save &amp; Publish Exam</button>':'')+'<button class="btn red" onclick="ocrClearAll()">🗑 Delete all these questions</button></div>':''}
+   <div class="g3"><div><label class="muted">Marks</label><input id="oq${i}-marks" type="number" step="0.5" value="1"></div><div><label class="muted">Negative</label><input id="oq${i}-neg" type="number" step="0.25" value="0"></div>${window._exAutoPage?`<div><label class="muted">Q. No. (paper me)</label><input id="oq${i}-no" type="number" min="1" value="${destStartNo()+i}"></div>`:''}</div></div>`).join('')}
+   ${OCRQ.length?'<div class="btns">'+(window._exAutoPage?'':'<button class="btn" onclick="saveOcr()">'+(_ex?'Save &amp; add to this exam':'Save All to Question Bank')+'</button>')+(_ex?'<button class="btn" style="background:#168a56" onclick="saveOcr(\''+(window._exAutoPage?'auto':'publish')+'\')">'+(window._exAutoPage?'💾 Paper me save karein (publish nahi hoga)':'🚀 Save &amp; Publish Exam')+'</button>':'')+'<button class="btn red" onclick="ocrClearAll()">🗑 Delete all these questions</button></div>':''}
    <details class="card"><summary>Text read from the photo</summary><textarea id="ph-raw" rows="8" style="width:100%">${esc(raw||'')}</textarea><button class="btn sm alt" onclick="reparseOcr()">Re-read questions from this text</button></details>`;OCRQ.forEach((_,i)=>ocrType(i));
 }
 function runBasic(){
@@ -2074,7 +2085,7 @@ function pasteParse(id){
   if(window._exAutoPage){
     if(!$('#ce-title').value.trim())return toast('Pehle upar Exam name likhein.');
     const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');
-    $('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000);
+    if(!$('#ce-start').value)$('#ce-start').value=f(Date.now()-60000);if(!$('#ce-end').value)$('#ce-end').value=f(Date.now()+24*3600*1000);
   }
   OCRQ=parseOcrQuestions(t);
   if(!OCRQ.length){if(st)st.textContent='Koi question nahi mila. Format: Question, phir (A) (B) (C) (D) alag lines me.';return toast('Koi question nahi mila. Har question ke neeche (A) (B) (C) (D) options alag lines me likhein.',7000)}
@@ -2089,7 +2100,8 @@ function ocrDel(i){OCRQ.splice(i,1);renderOcr($('#ph-raw')?.value||'')}
 async function saveOcr(then){
   if(then==='publish'||then==='auto'){const g=id=>($('#'+id)||{}).value||'';if(then!=='auto'&&!g('ce-title').trim())return toast('First type the Exam name at the top, then press Save & Publish.');if(!g('ce-start')||!g('ce-end'))return toast('First set the Start and End date & time at the top.')}
   let subject=optVal('ph-subject');if(!subject&&then==='auto')subject=(($('#ce-title')||{}).value||'').trim()||'General';const topic=optVal('ph-topic'),paud=(window._phMode==='exam'&&$('#ce-aud'))?$('#ce-aud').value:($('#ph-aud')?.value||'both');if(!subject){const nb=$('#ph-subject-new'),el=(nb&&!nb.classList.contains('hide'))?nb:$('#ph-subject');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus();el.style.outline='2px solid #c0392b'}return toast('First choose the Subject at the top of this section (or pick "Add new subject" and type it), then press Save again.',7000)}
-  const rows=[];let skipped=0;
+  const dpk=$('#dest-paper');if(dpk&&dpk.value){const pp=(window._papers||[]).find(x=>String(x.id)===String(dpk.value));if(pp&&$('#ce-title'))$('#ce-title').value=pp.title}
+  const rows=[],qnos=[];let skipped=0;
   for(let i=0;i<OCRQ.length;i++){
     const type=$('#oq'+i+'-type').value,question=$('#oq'+i+'-q').value.trim();if(!question)continue;
     if(then==='auto'&&type==='subjective'){skipped++;continue}
@@ -2098,17 +2110,18 @@ async function saveOcr(then){
       if(opts.filter(Boolean).length<2)return toast(`Question ${i+1}: enter at least two options.`);if(!opts[ai])return toast(`Question ${i+1}: the correct answer option is empty.`);
       const keep=[];let na=0;opts.forEach((o,k)=>{if(o){if(k===ai)na=keep.length;keep.push(o)}});row.options=keep;row.answer=String(na)}
     if(type==='tf')row.answer=$('#oq'+i+'-tf').value;
-    rows.push(row);
+    rows.push(row);qnos.push(Number(($('#oq'+i+'-no')||{}).value)||0);
   }
   if(!rows.length)return toast(skipped?'No multiple-choice questions were found in the photo, so the exam could not be created. Use a clearer photo or add questions manually.':'Nothing to save.',8000);
   if(skipped)toast(skipped+' question(s) had no options (they would need manual checking), so they were not added to the exam.',6000);
   const ins=await insertQ(rows);if(ins.error)return toast('Could not save: '+ins.error.message,7000);
+  window._qNums=window._qNums||{};(ins.data||[]).forEach((r,k)=>{if(qnos[k])window._qNums[r.id]=qnos[k]});
   if(window._phMode==='exam'){ // add straight into the exam being created
     (ins.data||[]).forEach(r=>_picked.add(r.id));
     const rr=await sb.from('exam_questions').select('*').order('created_at',{ascending:false});if(!rr.error)EXQ=rr.data||[];
     const sel=$('#cq-subject');if(sel)sel.innerHTML='<option value="">All subjects</option>'+subjectsList().map(s=>`<option>${esc(s)}</option>`).join('');
     $('#ph-file').value='';OCRQ=[];$('#ph-result').innerHTML='';$('#ph-status').textContent='';$('#ph-panel').classList.add('hide');$('#manual-box').classList.remove('hide');
-    renderPick();if(then==='publish'||then==='auto')return saveExam(true);if(!ins.warned)toast(rows.length+' question(s) saved and added to this exam.',5000);return;
+    renderPick();if(then==='publish'||then==='auto')return saveExam(then==='publish');if(!ins.warned)toast(rows.length+' question(s) saved and added to this exam.',5000);return;
   }
   if(!ins.warned)toast(rows.length+' question(s) saved to the Question Bank.');EXSUB='bank';viewExam();
 }
@@ -2122,7 +2135,7 @@ async function autoPublish(){
   try{
     await runOcr();
     if(!OCRQ.length)return;
-    if(window._noAI){toast('Basic reader se questions mile. Neeche check/sudhaar karke Save & Publish dabayein.',7000);return}
+    if(window._noAI){toast('Basic reader se questions mile. Neeche check/sudhaar karke "Paper me save karein" dabayein.',7000);return}
     const aiN=OCRQ.filter(q=>q.ai&&q.answer!==null).length;window._aiNote=aiN?aiN+' answer(s) were worked out by AI (not printed in the paper). You can verify them in Question Bank.':'';
     if(!($('#ce-dur').value||'').trim())$('#ce-dur').value=Math.max(10,OCRQ.length);
     const miss=OCRQ.filter(q=>q.answer===null&&q.options.filter(Boolean).length>=2).length;
@@ -2161,6 +2174,53 @@ function renderPick(){
 function pickQ(id,on){on?_picked.add(id):_picked.delete(id);pickSummary()}
 function pickAll(on){const f=$('#cq-subject')?.value||'',fa=$('#cq-aud')?.value||'';EXQ.filter(q=>(!f||q.subject===f)&&audOk(q,fa)).forEach(q=>on?_picked.add(q.id):_picked.delete(q.id));renderPick()}
 function pickSummary(){const sel=EXQ.filter(q=>_picked.has(q.id));const t=sel.reduce((s,q)=>s+Number(q.marks||0),0);$('#cq-count').textContent=`${sel.length} question(s) selected · total ${t} marks`;if($('#ce-total'))$('#ce-total').value=t}
+async function loadPapers(selectId){
+  const r=await sb.from('exams').select('id,title,question_ids,total_marks,published').order('created_at',{ascending:false}).limit(60);
+  if(r.error||!r.data)return;window._papers=r.data;
+  const dl=$('#ce-names');if(dl)dl.innerHTML=[...new Set(r.data.map(x=>x.title))].map(t=>`<option value="${esc(t)}">`).join('');
+  const sl=$('#dest-paper');if(sl)sl.innerHTML='<option value="">-- Paper chunein --</option>'+r.data.map(p=>`<option value="${esc(p.id)}">${esc(p.title)} · ${(p.question_ids||[]).length} questions · ${p.published?'Published':'Draft'}</option>`).join('');
+  if(selectId){const sl2=$('#dest-paper');if(sl2)sl2.value=selectId;destPick(selectId)}else destInfo();
+}
+function destInfo(){const el=$('#dest-info');if(!el)return;const p=destPaper();el.innerHTML=p?`<b>${esc(p.title)}</b> · ${(p.question_ids||[]).length} questions · ${p.total_marks||0} marks · ${p.published?'<b style="color:#168a56">Published</b> (students dekh sakte hain)':'<b style="color:#c98a00">Draft</b> (abhi students ko nahi dikhega)'}`:'Koi paper nahi chuna. Naya paper banane ke liye upar naam likhein aur "Naya paper banayein" dabayein.'}
+async function createPaper(){
+  const g=id=>($('#'+id)||{}).value||'';const title=g('ce-title').trim();
+  if(!title)return toast('Pehle upar paper / exam ka naam likhein.');
+  if(!g('ce-start')||!g('ce-end'))return toast('Start aur End time set karein.');
+  const s=new Date(toIso(g('ce-start'))),e=new Date(toIso(g('ce-end')));if(!(e>s))return toast('End time start ke baad hona chahiye.');
+  const ex=await sb.from('exams').select('id').eq('title',title).limit(1);
+  if(!ex.error&&ex.data&&ex.data.length){await loadPapers(ex.data[0].id);return toast('Is naam ka paper pehle se hai. Wahi chun liya gaya.',6000)}
+  const pass=Number(g('ce-pass'))||0;
+  const row={title,instructions:withPhoto(g('ce-instr'),'off'),total_marks:0,pass_marks:pass,start_at:s.toISOString(),end_at:e.toISOString(),duration_min:Math.max(1,Number(g('ce-dur'))||30),shuffle:$('#ce-shuffle').checked,audience:g('ce-aud')||'both',question_ids:[],published:false,result_mode:'declared',tab_limit:Math.max(1,Number(g('ce-tabs'))||3)};
+  const r=await sb.from('exams').insert(row).select('id').single();
+  if(r.error)return toast('Paper nahi ban paya: '+r.error.message,9000);
+  await applyPendingBlocks(r.data&&r.data.id);
+  toast('Paper "'+title+'" ban gaya (Draft). Ab photo / paste / Word se questions save karein. Publish baad me.',8000);
+  await loadPapers(r.data.id);
+}
+async function publishPaper(){
+  const p=destPaper();if(!p)return toast('Pehle upar list se paper chunein.');
+  const r=await sb.from('exams').select('id,title,question_ids,total_marks,published').eq('id',p.id).maybeSingle();
+  if(r.error||!r.data)return toast('Paper nahi mila.');
+  const n=(r.data.question_ids||[]).length;
+  if(!n)return toast('Is paper me abhi koi question nahi hai. Pehle questions save karein.',7000);
+  if(r.data.published)return toast('Ye paper pehle se published hai.');
+  if(!confirm('"'+r.data.title+'" me '+n+' questions ('+(r.data.total_marks||0)+' marks) hain.\n\nAb students ke liye publish karein?'))return;
+  const u=await sb.from('exams').update({published:true}).eq('id',p.id);
+  if(u.error)return toast('Publish nahi hua: '+u.error.message,8000);
+  toast('Paper publish ho gaya. Ab students ye exam de sakte hain.',7000);await loadPapers(p.id);
+}
+function destPaper(){const d=window._dest||{};return (window._papers||[]).find(x=>String(x.id)===String(d.paper))||null}
+function destStartNo(){const d=window._dest||{};if(Number(d.start)>0)return Number(d.start);const p=destPaper();return p?(p.question_ids||[]).length+1:1}
+function fillNums(){const s=destStartNo();OCRQ.forEach((_,i)=>{const el=$('#oq'+i+'-no');if(el)el.value=s+i});const ds=$('#dest-start');if(ds&&document.activeElement!==ds)ds.value=s}
+function destPick(v){window._dest={paper:v,start:''};const p=destPaper();if(p&&$('#ce-title'))$('#ce-title').value=p.title;fillNums();destInfo()}
+function destStart2(v){window._dest=Object.assign(window._dest||{},{start:v});fillNums()}
+// put new questions at the numbers the admin chose (existing questions keep their order)
+function placeNew(existing,newQs){
+  const nums=window._qNums||{},list=[...existing];
+  newQs.filter(q=>!list.includes(q.id)).map((q,k)=>({id:q.id,n:Number(nums[q.id])||(list.length+k+1)})).sort((a,b)=>a.n-b.n)
+    .forEach(x=>{list.splice(Math.max(0,Math.min(list.length,x.n-1)),0,x.id)});
+  return list;
+}
 async function saveExam(publish){
   if(window._saving)return;
   const g=id=>$('#'+id).value;let title=g('ce-title').trim();if(!title&&window._auto){title='Exam '+today();$('#ce-title').value=title}
@@ -2170,8 +2230,24 @@ async function saveExam(publish){
   const bad=sel.filter(q=>!qFits(q,g('ce-aud')));if(bad.length){const ur=await sb.from('exam_questions').update({audience:'both'}).in('id',bad.map(q=>q.id));if(ur.error&&!/audience/i.test(ur.error.message))return toast('Could not prepare the questions: '+ur.error.message,7000)}
   const total=sel.reduce((t,q)=>t+Number(q.marks||0),0),pass=Number(g('ce-pass'))||0;if(!(total>0))return toast('Total marks are 0. Give each question at least 1 mark.');if(pass>total)return toast('Passing marks cannot be more than total marks.');
   const row={title,instructions:withPhoto(g('ce-instr'),'off'),total_marks:total,pass_marks:pass,start_at:s.toISOString(),end_at:e.toISOString(),duration_min:Math.max(1,Number(g('ce-dur'))||30),shuffle:$('#ce-shuffle').checked,audience:g('ce-aud'),question_ids:sel.map(q=>q.id),published:!!publish,result_mode:'declared',tab_limit:Math.max(1,Number(g('ce-tabs'))||3)};
-  if(window._auto){const d=await sb.from('exams').select('id').eq('title',title).gte('created_at',new Date(Date.now()-15*60000).toISOString()).limit(1);if(!d.error&&d.data&&d.data.length)return toast('An exam named "'+title+'" was created a moment ago. Open the Results tab to see it, or use a different name.',9000)}
+  if(window._auto||window._exAutoPage)row.question_ids=placeNew([],sel);
+  if(window._auto||window._exAutoPage){
+    const ex=await sb.from('exams').select('*').eq('title',title).order('created_at',{ascending:false}).limit(1);
+    if(!ex.error&&ex.data&&ex.data.length){
+      const old=ex.data[0],ids=placeNew(old.question_ids||[],sel);
+      const qm=await sb.from('exam_questions').select('id,marks').in('id',ids);if(qm.error)return toast('Could not read the questions: '+qm.error.message,7000);
+      const tot=(qm.data||[]).reduce((t,q)=>t+Number(q.marks||0),0);
+      const at=await sb.from('exam_attempts').select('id',{count:'exact',head:true}).eq('exam_id',old.id);
+      if(!at.error&&at.count>0&&!confirm(at.count+' student(s) have already started "'+title+'". New questions will appear for students who start it later. Add questions anyway?'))return;
+      const upd={question_ids:ids,total_marks:tot,pass_marks:Math.min(Number(old.pass_marks||0),tot),published:!!(old.published||publish)};
+      const typed=Number(g('ce-dur'));upd.duration_min=typed>0?typed:Math.max(Number(old.duration_min||0),Math.max(10,ids.length));
+      if(new Date(old.end_at)<new Date()){upd.start_at=s.toISOString();upd.end_at=e.toISOString()}
+      window._saving=true;const u=await sb.from('exams').update(upd).eq('id',old.id);window._saving=false;if(u.error)return toast('Could not add: '+u.error.message,7000);
+      toast(sel.length+' question(s) added to "'+title+'". Ab paper me '+ids.length+' questions hain ('+tot+' marks, '+upd.duration_min+' min). '+(upd.published?'':'Abhi publish nahi hua.'),8000);if(window._exAutoPage){window._keepPaper=old.id;exAuto()}else{EXSUB='list';viewExam()}return;
+    }
+  }
   window._saving=true;const {data:_ins,error}=await sb.from('exams').insert(row).select('id').single();window._saving=false;if(error)return toast('Could not save: '+error.message,7000);await applyPendingBlocks(_ins&&_ins.id);
+  if(!publish&&(window._auto||window._exAutoPage)){toast('Paper "'+title+'" me '+sel.length+' question(s) save ho gaye. Abhi publish nahi hua. Aur questions jodein, phir publish karein.',8000);window._keepPaper=_ins&&_ins.id;exAuto();return}
   toast(publish?(s>new Date()?'Exam published. The Start Exam button will appear for students at the start time.':'Exam published. Students can start it now.'):'Exam saved as draft.',6000);EXSUB='list';viewExam();
 }
 // ---- Exams list & results ----
@@ -2242,15 +2318,15 @@ async function exAccSave(){
 }
 async function exList(){
   const r=await ok(sb.from('exams').select('*').order('start_at',{ascending:false}));EXAMS=r;
-  const emptyN=r.filter(e=>!(e.question_ids||[]).length).length;
+  const emptyN=r.filter(e=>e.published&&!(e.question_ids||[]).length).length;
   $('#ex-body').innerHTML=(emptyN?`<div class="card"><b>${emptyN} exam(s) have no questions</b><p class="muted">These are failed attempts. Students cannot take them.</p><button class="btn sm red" onclick="exDeleteEmpty()">Delete empty exams</button></div>`:'')+r.map(e=>{const now=Date.now(),st=new Date(e.start_at),en=new Date(e.end_at);const state=!e.published?'Draft':now<st?'Upcoming':now>en?'Ended':'Running';
    return `<div class="card"><div class="row"><b>${esc(e.title)}</b><span class="muted">${state}</span></div><div class="muted">${fmtTime(e.start_at)} → ${fmtTime(e.end_at)}<br>${e.duration_min} min · ${e.total_marks} marks (pass ${e.pass_marks}) · ${(e.question_ids||[]).length} questions · ${({both:'All students',student:'Computer students',library_student:'Library students'})[e.audience]}<br>Results: ${e.result_mode==='instant'?'shown immediately':(e.results_declared?'declared':'not declared yet')}</div>
    
    <div class="btns"><button class="btn sm" onclick="exResults('${e.id}')">Results</button><button class="btn sm alt" onclick="exAccess('${e.id}')">Student access</button><button class="btn sm alt" onclick="exToggle('${e.id}','published',${!e.published})">${e.published?'Unpublish':'Publish'}</button>${e.result_mode==='declared'?`<button class="btn sm alt" onclick="exToggle('${e.id}','results_declared',${!e.results_declared})">${e.results_declared?'Hide Results':'Declare Results'}</button>`:''}<button class="btn sm alt" onclick="exToggle('${e.id}','show_past',${!e.show_past})">${e.show_past?'Hide questions from website':'Show questions on website'}</button><button class="btn sm red" onclick="exDelete('${e.id}')">Delete</button></div></div>`}).join('')||'<p class="muted">No exams yet. Create one first.</p>';
 }
-async function exDeleteEmpty(){const ids=EXAMS.filter(e=>!(e.question_ids||[]).length).map(e=>e.id);if(!ids.length)return;if(!confirm('Delete '+ids.length+' exam(s) that have no questions?'))return;const {error}=await sb.from('exams').delete().in('id',ids);if(error)return toast(error.message);toast('Empty exams deleted.');exList()}
+async function exDeleteEmpty(){const ids=EXAMS.filter(e=>e.published&&!(e.question_ids||[]).length).map(e=>e.id);if(!ids.length)return;if(!confirm('Delete '+ids.length+' exam(s) that have no questions?'))return;const {error}=await sb.from('exams').delete().in('id',ids);if(error)return toast(error.message);toast('Empty exams deleted.');exList()}
 async function exSetPhoto(id,m){const e=EXAMS.find(x=>x.id===id);if(!e)return;const {error}=await sb.from('exams').update({instructions:withPhoto(e.instructions,m)}).eq('id',id);if(error)return toast(error.message);toast('Photo setting saved.');exList()}
-async function exToggle(id,k,v){const {error}=await sb.from('exams').update({[k]:v}).eq('id',id);if(error)return toast(error.message);toast('Updated.');exList()}
+async function exToggle(id,k,v){if(k==='published'&&v){const e0=(EXAMS||[]).find(x=>x.id===id);if(e0&&!(e0.question_ids||[]).length)return toast('Is paper me abhi koi question nahi hai. Pehle questions save karein, phir publish karein.',7000);if(e0&&!confirm('"'+e0.title+'" me '+(e0.question_ids||[]).length+' questions hain. Students ke liye publish karein?'))return}const {error}=await sb.from('exams').update({[k]:v}).eq('id',id);if(error)return toast(error.message);toast('Updated.');exList()}
 async function exDelete(id){if(!confirm('Delete this exam and all student attempts?'))return;const {error}=await sb.from('exams').delete().eq('id',id);if(error)return toast(error.message);toast('Exam deleted.');exList()}
 let EXRES=[],EXCUR=null;
 const cwu=a=>{const d=a.detail||[];const c=k=>d.filter(x=>x.status===k).length;return a.status==='in_progress'?'':'Correct: <b>'+c('correct')+'</b> · Wrong: <b>'+c('wrong')+'</b> · Not answered: <b>'+c('unanswered')+'</b>'+(c('pending')?' · To check: <b>'+c('pending')+'</b>':'')};
@@ -2330,7 +2406,12 @@ async function exGrade(aid){
     let ans='',bc='';
     if(q.qtype==='subjective'){const g=q.given||{};let img='';if(g.photo){const s=/^https?:/.test(g.photo)?{data:{signedUrl:g.photo}}:await sb.storage.from('exam-answers').createSignedUrl(g.photo,600);if(s.data)img=`<br><a href="${s.data.signedUrl}" target="_blank"><img src="${s.data.signedUrl}" style="max-width:100%;border-radius:10px;margin-top:.4rem"></a>`}
       ans=`<div class="muted">Student's answer:</div><div style="white-space:pre-wrap">${esc(g.text||'(no text)')}</div>${img}<label class="muted">Marks (out of ${q.marks})</label><input id="gm-${i}" type="number" min="0" max="${q.marks}" step="0.5" value="${q.awarded??''}">`}
-    else{const o=q.options||[];bc=q.status==='correct'?'#168a56':q.status==='wrong'?'#c0392b':'#c98a00';ans=`<div class="muted">Student: <b>${q.given==null?'Not answered':LET[q.given]+'. '+esc(o[q.given])}</b><br>Correct: <b style="color:#168a56">${LET[q.correct]}. ${esc(o[q.correct])}</b> · <b style="color:${bc}">${q.status==='correct'?'✓ Correct':q.status==='wrong'?'✗ Wrong':'Not answered'}</b> (${q.awarded} marks)</div>`}
+    else{const o=(q.options||[]).slice(0,4);bc=q.status==='correct'?'#168a56':q.status==='wrong'?'#c0392b':'#c98a00';
+      const rows=o.map((t,k)=>{const isC=k===q.correct,isS=k===q.given;let st='border:1.5px solid #d9dcf0;background:#fff',tag='';
+        if(isC){st='border:2px solid #168a56;background:#e6f7ee';tag=isS?' <b style="color:#168a56">✓ Student ka answer (sahi)</b>':' <b style="color:#168a56">✓ Sahi answer</b>'}
+        else if(isS){st='border:2px solid #c0392b;background:#fdecea';tag=' <b style="color:#c0392b">✗ Student ka answer (galat)</b>'}
+        return `<div style="${st};border-radius:10px;padding:.45rem .6rem;margin:.3rem 0;color:#1b1f3a"><b>${LET[k]}.</b> ${esc(t)}${tag}</div>`}).join('');
+      ans=rows+`<div class="muted" style="margin-top:.2rem">${q.given==null?'<b style="color:#c98a00">Not answered</b> · ':''}${q.awarded} marks</div>`}
     return `<div class="card" ${bc?`style="border-left:5px solid ${bc}"`:''}><b>Q${i+1}. ${esc(q.question)}</b>${ans}</div>`}));
   const m=document.createElement('div');m.className='modal';m.id='grade-modal';
   m.innerHTML=`<div class="card">${photoModeOf(EXCUR.instructions)!=='off'?`<span id="sg-${a.id}" class="muted" style="float:right;font-size:.75rem">…</span>`:''}<h3 style="margin-top:0">${esc(a.student_name)} — ${a.score}/${EXCUR.total_marks}</h3><div class="muted" style="margin-bottom:.5rem">${cwu(a)}</div>${items.join('')}<div class="btns"><button class="btn" onclick="saveGrade('${aid}')">Save Marks</button><button class="btn alt" onclick="document.getElementById('grade-modal').remove()">Close</button></div></div>`;
