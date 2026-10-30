@@ -1929,10 +1929,11 @@ function photoPicked(mode){
 }
 function clearPhoto(){window._phExtra=[];if($('#ph-count'))$('#ph-count').textContent='';$('#ph-file').value='';OCRQ=[];$('#ph-result').innerHTML='';$('#ph-status').textContent='';photoPicked(window._phMode)}
 function exAuto(){
+  setTimeout(auDefaults,0);
   window._picked=new Set();OCRQ=[];window._phMode='exam';
   $('#ex-body').innerHTML=`<div class="card"><b>📷 Photo to Exam</b>
    <p class="muted">Just type the exam name and choose a photo of the question paper. Questions, time and marks are filled in automatically and the exam is published.</p>
-   <label class="muted">Exam name</label><input id="ce-title" placeholder="e.g. CCC Monthly Test">
+   <label class="muted">Exam name</label><input id="ce-title" placeholder="e.g. CCC Monthly Test"><div class="g3" style="margin:.5rem 0"><div><label class="muted">Start (IST)</label><input id="au-start" type="datetime-local"></div><div><label class="muted">End (IST)</label><input id="au-end" type="datetime-local"></div><div><label class="muted">Timer (minutes)</label><input id="au-dur" type="number" min="1" placeholder="e.g. 30"></div></div><p class="muted" style="font-size:.8rem">Default: start now, end after 24 hours. Change them if you want.</p>
    <label class="muted">Question paper (photo / Word .docx / text .txt)</label><input id="ph-file" type="file" accept="image/*,.docx,.txt" multiple><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,.docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
    <div class="btns" style="margin-top:.6rem"><button id="auto-btn" class="btn" style="background:#168a56;width:100%" onclick="autoExam()">⚡ Create &amp; Publish Exam</button></div>
    <div class="btns"><button type="button" class="btn sm alt" onclick="runBasic()">🔤 Photo reader without AI (basic)</button></div>
@@ -1956,12 +1957,22 @@ function exAuto(){
    </div>`;
   window._exAutoPage=true;
 }
+function auDefaults(){
+  const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');
+  const s=document.getElementById('au-start'),e=document.getElementById('au-end');
+  if(s&&!s.value)s.value=f(Date.now()-60000);
+  if(e&&!e.value)e.value=f(Date.now()+24*3600*1000);
+}
 async function autoExam(){
   if(window._autoBusy)return;
   if(!$('#ce-title').value.trim())return toast('Please type the exam name first.');
   if(!(phFiles()).length)return toast('Please choose the question paper photo.');
-  const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');
-  $('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000);
+  auDefaults();
+  const au=id=>document.getElementById(id);
+  if(!au('au-start').value||!au('au-end').value)return toast('Please set Start and End date & time.',6000);
+  if(new Date(au('au-end').value)<=new Date(au('au-start').value))return toast('End time must be after Start time.',6000);
+  $('#ce-start').value=au('au-start').value;$('#ce-end').value=au('au-end').value;
+  if(au('au-dur').value)$('#ce-dur').value=au('au-dur').value;
   const b=$('#auto-btn');if(b){b.disabled=true;b.textContent='Working… please wait'}
   try{await autoPublish()}finally{const b2=$('#auto-btn');if(b2){b2.disabled=false;b2.textContent='⚡ Create & Publish Exam'}}
 }
@@ -2180,7 +2191,7 @@ async function saveOcr(then){
 }
 // ---- Create exam ----
 const DEFAULT_RULES='1. Read every question carefully before answering.\n2. Do not open another tab or app during the exam.\n3. Copy, paste, right-click and screen switching are blocked.\n4. If you leave the exam screen too many times, the exam is submitted automatically.\n5. The exam is submitted automatically when the timer ends.\n6. Once submitted, you cannot take the exam again.';
-async function autoPublish(){return toast('Auto publish is turned off. Read the questions, check them, then publish.',6000);
+async function autoPublish(){
   if(window._autoBusy)return;
   const files=(phFiles());if(!files.length)return toast('First choose the question paper photo.');
   if(!$('#ce-start').value||!$('#ce-end').value)return toast('Set Start and End date & time (or tap "Start now") and the Timer, then press Auto Create.',6000);
