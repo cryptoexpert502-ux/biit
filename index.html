@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-31-7">
+<meta name="app-version" content="2026-10-31-12">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -906,9 +906,34 @@ body.dash-option-open #stu-nav{display:none!important}
 .cr-line{width:30px!important;margin-top:2px!important}
 </style>
 <style id="install-btn-fix">
-body #install#install.inst,body #install#install{background:linear-gradient(90deg,#e8b45c,#f6d28a)!important;color:#3a1f66!important;border:1.5px solid rgba(255,236,190,.95)!important;box-shadow:0 0 18px rgba(255,200,130,.55),0 6px 16px rgba(0,0,0,.25)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;text-shadow:none!important;font-weight:800!important;opacity:1!important}
+body #install.inst,body #install{background:linear-gradient(90deg,#e8b45c,#f6d28a)!important;color:#3a1f66!important;border:1.5px solid rgba(255,236,190,.95)!important;box-shadow:0 0 18px rgba(255,200,130,.55),0 6px 16px rgba(0,0,0,.25)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;text-shadow:none!important;font-weight:800!important;opacity:1!important}
 body #install svg{stroke:#3a1f66!important}
 body #install:hover,body #install:focus-visible{background:linear-gradient(90deg,#f6d28a,#ffe6a8)!important;color:#2a1450!important}
+</style>
+<style id="exam-submit-fix">
+#ex-confirm{position:fixed;inset:0;z-index:100010;background:rgba(5,10,30,.75);display:flex;align-items:center;justify-content:center;padding:1rem}
+#ex-confirm .exc-box{background:#fff;border-radius:16px;padding:1.2rem;max-width:380px;width:100%;text-align:center}
+#ex-confirm .exc-box,#ex-confirm .exc-box *{color:#1a1f3c!important;-webkit-text-fill-color:#1a1f3c!important}
+#ex-confirm .exc-row{display:flex;gap:.6rem;margin-top:1rem}
+#ex-confirm .exc-row .btn{flex:1}
+#ex-confirm #exc-yes{background:#2a5bd7!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+#ex-confirm #exc-no{background:#fff!important;border:1.5px solid #6d5dd3!important}
+#ex-submit-msg{position:fixed;left:12px;right:12px;bottom:14px;z-index:100020;background:#1a1f3c;color:#fff;padding:.8rem 1rem;border-radius:12px;font-weight:700;text-align:center;display:none}
+#ex-submit-msg.err{background:#c0392b}
+#msg{z-index:100030!important}
+</style>
+<style id="exam-readable">
+html body #exam-ui .ex-opt{display:flex!important;flex-direction:row!important;align-items:flex-start!important;gap:.6rem!important;background:#ffffff!important;border:2px solid #b9c3e8!important;box-shadow:none!important;opacity:1!important}
+html body #exam-ui .ex-opt,html body #exam-ui .ex-opt *{color:#1a1f3c!important;-webkit-text-fill-color:#1a1f3c!important;opacity:1!important;text-shadow:none!important}
+html body #exam-ui .ex-opt.sel{background:#e7efff!important;border-color:#2a5bd7!important}
+html body #exam-ui .ex-opt input[type=radio]{accent-color:#2a5bd7!important;opacity:1!important;width:auto!important;min-height:0!important;margin:.25rem 0 0!important;flex:none!important;background:transparent!important}
+html body #exam-ui .btn.alt,html body #exam-ui button.alt,html body #exam-ui button.btn.alt{background:#ffffff!important;color:#1a1f3c!important;-webkit-text-fill-color:#1a1f3c!important;border:1.5px solid #6d5dd3!important;box-shadow:none!important;opacity:1!important}
+html body #exam-ui .btn.alt:disabled{color:#8b93b5!important;-webkit-text-fill-color:#8b93b5!important;border-color:#c8cde0!important}
+html body #exam-ui .btn:not(.alt),html body #exam-ui button.btn:not(.alt){color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}
+html body #exam-ui textarea,html body #exam-ui input[type=file]{background:#ffffff!important;color:#1a1f3c!important;opacity:1!important}
+html body #exam-ui .ex-q{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important;scroll-margin-top:90px}
+html body #exam-ui .card .muted{color:#d6dcf5!important;opacity:1!important}
+#exam-ui{scroll-padding-top:90px}
 </style>
 </head>
 <body>
@@ -1722,14 +1747,55 @@ async function exPhoto(){
 function exClear(){const q=EX.d.questions[EX.idx];delete EX.answers[q.id];EX.dirty=true;renderExam()}
 function exMark(){const q=EX.d.questions[EX.idx];EX.marked[q.id]=!EX.marked[q.id];if(!EX.marked[q.id])delete EX.marked[q.id];EX.dirty=true;renderExam()}
 function exFinish(){
+  if(!EX||EX.done||EX.submitting)return;
   const d=EX.d;const ans=d.questions.filter(x=>{const a=EX.answers[x.id];return a!=null&&!(typeof a==='object'&&!a.text&&!a.photo)}).length,mk=Object.keys(EX.marked).length;
-  if(confirm(`You answered ${ans} of ${d.questions.length} questions${mk?` (${mk} marked for review)`:''}.\n\nSubmit the exam now? You cannot change answers afterwards.`))submitExam(false);
+  const old=document.getElementById('ex-confirm');if(old)old.remove();
+  const m=document.createElement('div');m.id='ex-confirm';
+  m.innerHTML=`<div class="exc-box"><h3>Submit exam?</h3><p>You answered <b>${ans}</b> of <b>${d.questions.length}</b> questions${mk?` (${mk} marked for review)`:''}.<br>You cannot change answers afterwards.</p><div class="exc-row"><button type="button" class="btn alt" id="exc-no">Cancel</button><button type="button" class="btn" id="exc-yes">Yes, Submit</button></div></div>`;
+  (document.getElementById('exam-ui')||document.body).appendChild(m);
+  document.getElementById('exc-no').onclick=()=>m.remove();
+  document.getElementById('exc-yes').onclick=()=>{const y=document.getElementById('exc-yes');y.disabled=true;y.textContent='Submitting...';submitExam(false)};
+}
+// Submit with retries: a weak network or an expired login session should not lose the exam.
+async function submitWithRetry(args){
+  let last=null;
+  for(let i=0;i<3;i++){
+    try{
+      if(i>0){
+        try{await sb.auth.refreshSession()}catch(_){}
+        await new Promise(res=>setTimeout(res,1500*i));
+      }
+      const r=await sb.rpc('exam_submit',args);
+      if(!r.error)return r;
+      last=r;
+      // Do not retry when the server has already decided (exam closed / not allowed)
+      if(/ended|closed|not allowed|expired the time|time is over/i.test(String(r.error.message||'')))return r;
+    }catch(e){last={error:{message:String(e&&e.message||e)}}}
+  }
+  return last;
+}
+function exSubmitMsg(t,err){
+  let b=document.getElementById('ex-submit-msg');
+  if(!b){b=document.createElement('div');b.id='ex-submit-msg';(document.getElementById('exam-ui')||document.body).appendChild(b)}
+  b.className=err?'err':'';b.textContent=t;b.style.display=t?'block':'none';
 }
 async function submitExam(auto,msg){
-  if(!EX||EX.done)return;EX.done=true;clearInterval(EX.tick);clearInterval(EX.save);detachGuards();
-  if(msg)alert(msg);
-  const r=await sb.rpc('exam_submit',{p_attempt:EX.d.attempt_id,p_answers:EX.answers,p_marked:EX.marked,p_violations:EX.violations,p_auto:!!auto});
-  if(r.error){EX.done=false;attachGuards();EX.tick=setInterval(examTick,500);return toast('Could not submit: '+r.error.message+'. Check your internet and try again.',8000)}
+  if(!EX||EX.done||EX.submitting)return;EX.submitting=true;
+  if(msg)try{alert(msg)}catch(_){}
+  EX.done=true;clearInterval(EX.tick);clearInterval(EX.save);detachGuards();
+  const cf=document.getElementById('ex-confirm');
+  exSubmitMsg('Submitting your exam... please wait',false);
+  let r;
+  try{r=await submitWithRetry({p_attempt:EX.d.attempt_id,p_answers:EX.answers,p_marked:EX.marked,p_violations:EX.violations,p_auto:!!auto})}
+  catch(e){r={error:{message:String(e&&e.message||e)}}}
+  if(!r||r.error){
+    EX.done=false;EX.submitting=false;attachGuards();EX.tick=setInterval(examTick,500);
+    if(cf)cf.remove();
+    const em=(r&&r.error&&r.error.message)||'unknown error';
+    exSubmitMsg('Could not submit: '+em+'. Check your internet and press Submit Exam again.',true);
+    setTimeout(()=>exSubmitMsg('',false),9000);return;
+  }
+  exSubmitMsg('',false);if(cf)cf.remove();
   const id=EX.d.attempt_id;EX=null;try{if(document.fullscreenElement)document.exitFullscreen()}catch(_){}
   examResult(id);
 }
@@ -1747,7 +1813,7 @@ async function examResult(attemptId){
 }
 // ---- anti-cheating ----
 function exViolation(why){
-  if(!EX||EX.done)return;const now=Date.now();if(now-EX.lastV<1500)return;EX.lastV=now;EX.violations++;EX.dirty=true;examSave();
+  if(!EX||EX.done)return;if(EX.dialog||Date.now()<(EX.ignoreUntil||0))return;const now=Date.now();if(now-EX.lastV<1500)return;EX.lastV=now;EX.violations++;EX.dirty=true;examSave();
   const lim=EX.d.tab_limit;
   if(EX.violations>=lim){submitExam(true,'You left the exam screen too many times. Your exam was submitted automatically.');return}
   alert(`⚠ Warning ${EX.violations} of ${lim}: ${why}\n\nIf this happens ${lim-EX.violations} more time(s), your exam will be submitted automatically.`);
@@ -2557,7 +2623,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-31-7';
+  var MY_VER='2026-10-31-12';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
