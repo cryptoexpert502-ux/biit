@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-31-3">
+<meta name="app-version" content="2026-10-31-4">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -895,6 +895,15 @@ body.dash-option-open #stu-nav{display:none!important}
 .dash-option-sheet{padding-bottom:48px!important}
 #exam-list>div{background:rgba(14,22,66,.75);color:#f1f4ff;border:1px solid rgba(120,130,255,.45)!important;border-radius:14px;padding:.8rem!important}
 #exam-list .muted{color:#b4c0ee!important}
+</style>
+<style id="credit-small">
+#creator{padding:14px 12px calc(92px + env(safe-area-inset-bottom))!important}
+.cr-badge{padding:7px 16px 8px!important;gap:1px!important;background:rgba(10,6,24,.88)!important;box-shadow:0 4px 14px rgba(0,0,0,.45)!important}
+.cr-badge::before{inset:-1.5px!important;padding:1.5px!important}
+.cr-badge i{width:4px!important;height:4px!important}
+.cr-k{font-size:.5rem!important;letter-spacing:.16em!important;color:#f3e3c2!important;opacity:1!important;text-transform:none!important}
+.cr-name{font-size:.92rem!important;letter-spacing:.02em!important;background:linear-gradient(90deg,#fff3c4,#ffd36e 35%,#ff9fd0 65%,#fff3c4)!important;background-size:250% 100%!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important;filter:none!important;text-shadow:none!important;padding:0 2px}
+.cr-line{width:30px!important;margin-top:2px!important}
 </style>
 </head>
 <body>
@@ -2539,7 +2548,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-31-3';
+  var MY_VER='2026-10-31-4';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
@@ -2561,6 +2570,6 @@ window.__siteReady=loadPublicSiteContent();
   setInterval(check,1800000);
 })();
 </script>
-<div id="creator"><div class="cr-badge" role="note" aria-label="Website created by Aryan Yadav"><i></i><i></i><i></i><span class="cr-k">✦ Crafted by ✦</span><b class="cr-name">Aryan Yadav</b><span class="cr-line"></span></div></div>
+<div id="creator"><div class="cr-badge" role="note" aria-label="Website created by Aryan Yadav"><i></i><i></i><i></i><span class="cr-k">This website created by</span><b class="cr-name">Aryan Yadav</b><span class="cr-line"></span></div></div>
 </body>
 </html>
