@@ -349,6 +349,7 @@ a{color:#93c5fd;}
     <section id="v-rep" class="hide"></section>
     <section id="v-exam" class="hide"></section>
     <section id="v-pw" class="hide"></section>
+    <section id="v-usage" class="hide"></section>
     <section id="v-intro" class="hide"></section>
   </main>
 </div>
@@ -517,7 +518,7 @@ const money = n => '₹' + Number(n||0).toLocaleString('en-IN');
 const fmt = d => toDate(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone: DATE_ONLY.test(String(d)) ? 'UTC' : TZ});
 const fmtTime = d => toDate(d).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:TZ});
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const tabs = [['home','Home'],['hub','Students'],['dash','Dashboard'],['stu','Students'],['crs','Courses'],['att','Attendance'],['fee','Fees'],['msg','Messages'],['lib','Library'],['teach','Teachers'],['prom','Promoters'],['media','Website Content'],['prof','Edit Profile'],['rep','PDF Reports'],['exam','Online Exams'],['pw','Reset Password'],['intro','Welcome Screen']];
+const tabs = [['home','Home'],['hub','Students'],['dash','Dashboard'],['stu','Students'],['crs','Courses'],['att','Attendance'],['fee','Fees'],['msg','Messages'],['lib','Library'],['teach','Teachers'],['prom','Promoters'],['media','Website Content'],['prof','Edit Profile'],['rep','PDF Reports'],['exam','Online Exams'],['pw','Reset Password'],['intro','Welcome Screen'],['usage','📊 Usage Monitor']];
 const DAY = 24*60*60*1000;
 const cutoff = () => new Date(Date.now()-DAY).toISOString();   // Messages older than 24 hours are hidden.
 let students = [], marks = {}, feeRows = [], courses = [], libraryRows=[], teacherRows=[], promoterRows=[];
@@ -596,7 +597,7 @@ async function go(v, fromPop=false){
   $('#n-home')?.classList.toggle('hide',v==='home');$('#n-hub')?.classList.toggle('hide',!stuSub.includes(v));
   try{students = await ok(sb.from('students_light').select('*').eq('status','active').order('class').order('name'))}catch(e){console.warn('students load failed',e)}
   try{courses = await ok(sb.from('courses').select('*').eq('is_active',true).order('name'))}catch(e){console.warn('courses load failed',e)}
-  const renderView=({home:viewHome,hub:viewHub,dash,stu:viewStudents,crs:viewCourses,att:viewAttendance,fee:viewFees,msg:viewMsg,lib:viewLibrary,teach:viewTeachers,prom:viewPromoters,media:viewMedia,prof:viewProf,about:viewAbout,rep:viewRep,exam:viewExam,pw:viewPw,intro:viewIntro})[v];
+  const renderView=({home:viewHome,hub:viewHub,dash,stu:viewStudents,crs:viewCourses,att:viewAttendance,fee:viewFees,msg:viewMsg,lib:viewLibrary,teach:viewTeachers,prom:viewPromoters,media:viewMedia,prof:viewProf,about:viewAbout,rep:viewRep,exam:viewExam,pw:viewPw,intro:viewIntro,usage:viewUsage})[v];
   const target=$('#v-'+v);
   if(renderView){try{await renderView()}catch(e){console.error(e);if(target){target.insertAdjacentHTML('afterbegin','<div class="card" style="border:2px solid #b91c1c"><b>Is page me error aaya:</b> '+String(e&&e.message?e.message:e).replace(/[<>&]/g,'')+'</div>')}}}
   if(target){
@@ -658,11 +659,36 @@ async function dash(){
 
 // ============= STUDENTS =============
 
+
+// ---- Excel (.xlsx) and CSV downloads ----
+const XLSX_SRC='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+async function saveXlsx(headers,rows,name){
+  if(!window.XLSX)await loadScript(XLSX_SRC);
+  const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Sheet1');
+  XLSX.writeFile(wb,name);
+  toast('Excel file downloaded.',4000);
+}
+async function exResultsXlsx(){
+  const head=exResultsHeaders().filter(h=>h!=='Mobile');
+  const rows=exResultRows().map(r=>r.filter((c,i)=>i!==2));
+  try{await saveXlsx(head,rows,'BIIT-Exam-Results-'+today()+'.xlsx')}
+  catch(e){toast('Excel could not start: '+errText(e)+' (CSV button use karo)',7000)}
+}
+async function exportStudentsXlsx(){
+  if(!students||!students.length)return toast('No students loaded yet. Open the Students page and wait a moment.');
+  const skip=new Set(['profile_photo','photo_url','aadhaar_url','documents','password','pin']);
+  const keys=[];
+  students.forEach(s=>Object.keys(s).forEach(k=>{if(!skip.has(k)&&!/phone|mobile|whatsapp/i.test(k)&&!keys.includes(k))keys.push(k)}));
+  const rows=students.map(s=>keys.map(k=>{const v=s[k];return v==null?'':(typeof v==='object'?JSON.stringify(v):v)}));
+  try{await saveXlsx(keys,rows,'BIIT-students-'+today()+'.xlsx')}
+  catch(e){toast('Excel could not start: '+errText(e)+' (CSV button use karo)',7000)}
+}
 function exportStudentsCSV(){
   if(!students||!students.length)return toast('No students loaded yet. Open the Students page and wait a moment.');
   const skip=new Set(['profile_photo','photo_url','aadhaar_url','documents','password','pin']);
   const keys=[];
-  students.forEach(s=>Object.keys(s).forEach(k=>{if(!skip.has(k)&&!keys.includes(k))keys.push(k)}));
+  students.forEach(s=>Object.keys(s).forEach(k=>{if(!skip.has(k)&&!/phone|mobile|whatsapp/i.test(k)&&!keys.includes(k))keys.push(k)}));
   const cell=v=>{if(v===null||v===undefined)return '';if(typeof v==='object')v=JSON.stringify(v);v=String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
   const lines=[keys.join(',')].concat(students.map(s=>keys.map(k=>cell(s[k])).join(',')));
   const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
@@ -672,7 +698,7 @@ function exportStudentsCSV(){
   toast('Downloaded '+students.length+' students. Open it in Excel.',5000);
 }
 function viewStudents(){
-  $('#v-stu').innerHTML = `<h2>Students (${students.length})</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('students')">📄 Download PDF</button> <button class=\"btn sm alt\" onclick=\"exportStudentsCSV()\">📥 Download all students (Excel/CSV)</button></div>
+  $('#v-stu').innerHTML = `<h2>Students (${students.length})</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('students')">📄 Download PDF</button> <button class=\"btn sm alt\" onclick=\"exportStudentsXlsx()\">📥 Students Excel (.xlsx)</button> <button class=\"btn sm alt\" onclick=\"exportStudentsCSV()\">🧾 Students CSV</button></div>
   <div class="card"><b>Student Portal Link</b>
   <div class="muted">Share this link with students. They can register themselves and view their own records.</div>
   <input id="rl" readonly value="${esc(location.origin+'/')}">
@@ -1566,6 +1592,44 @@ function viewRep(){
   [['students','🎓 All Students','Details, fees, discount, deposited and pending'],['library','📚 Library Students','Details and library fees'],['teachers','👨‍🏫 Teachers','Details, attendance, payments'],['promoters','📣 Promoters','Admissions and commission']].map(x=>`<div class="card row"><span><b>${x[1]}</b><br><span class="muted">${x[2]}</span></span><button class="btn sm" onclick="pdfReport('${x[0]}')">📄 Download PDF</button></div>`).join('')+`<div class="card row"><span><b>🎓 Separate PDF for each Computer Student</b><br><span class="muted">One page per student: details, fees and every deposit with date and time</span></span><span class="btns"><button class="btn sm" onclick="studentPdf('all')">📄 One file (page per student)</button></span></div>`;
 }
 
+
+// ============= USAGE MONITOR (admin) =============
+const USAGE_LIMITS={egress:{label:'Egress',unit:'GB',limit:5},cached:{label:'Cached Egress',unit:'GB',limit:5},db:{label:'Database size',unit:'MB',limit:500},storage:{label:'Storage size',unit:'GB',limit:1},logq:{label:'Log Query',unit:'GB',limit:100},mau:{label:'Monthly active users',unit:'users',limit:50000}};
+const USAGE_KEY='biit-usage-log';
+function usageLog(){try{return JSON.parse(localStorage.getItem(USAGE_KEY)||'[]')}catch(_){return[]}}
+function usageSeed(){
+  // Starting point from the usage screenshot (31 Oct 2026). Edit any value on the page.
+  if(localStorage.getItem(USAGE_KEY))return;
+  localStorage.setItem(USAGE_KEY,JSON.stringify([{date:'2026-10-31',egress:0.03,cached:0,db:29.15,storage:0,logq:9.21,mau:61}]));
+}
+async function viewUsage(){
+  usageSeed();
+  const log=usageLog(), last=log[log.length-1]||{};
+  const keys=Object.keys(USAGE_LIMITS);
+  const fields=keys.map(k=>{const u=USAGE_LIMITS[k];return `<div><label class="muted">${u.label} (${u.unit}) · limit ${u.limit.toLocaleString('en-IN')}</label><input id="us-${k}" type="number" step="any" min="0" value="${last[k]!==undefined?last[k]:''}"></div>`}).join('');
+  const bars=keys.map(k=>{const u=USAGE_LIMITS[k];const v=Number(last[k]||0);const pct=Math.min(100,v/u.limit*100);const col=pct>=85?'#b91c1c':pct>=60?'#d97706':'#168a56';return `<div style="margin:.45rem 0"><div style="display:flex;justify-content:space-between;font-size:.88rem"><b>${u.label}</b><span>${v} / ${u.limit.toLocaleString('en-IN')} ${u.unit}</span></div><div style="background:#e5e7eb;border-radius:8px;height:10px;overflow:hidden"><div style="width:${pct.toFixed(1)}%;height:10px;background:${col}"></div></div></div>`}).join('');
+  let proj='';
+  if(log.length>=2){
+    const a=log[log.length-2],b=log[log.length-1];
+    const days=Math.max(1,(new Date(b.date)-new Date(a.date))/86400000);
+    const perDay=(Number(b.egress||0)-Number(a.egress||0))/days;
+    const left=USAGE_LIMITS.egress.limit-Number(b.egress||0);
+    proj=perDay>0?`<p>Egress roz lagbhag <b>${perDay.toFixed(3)} GB</b> badh raha hai. 5 GB limit tak lagbhag <b>${Math.max(0,Math.floor(left/perDay))} din</b> bache hain.</p>`:'<p>Egress abhi kam ya same hai.</p>';
+  }
+  const hist=log.slice(-15).reverse().map(r=>`<tr><td>${esc(r.date)}</td><td>${r.egress??''}</td><td>${r.cached??''}</td><td>${r.db??''}</td><td>${r.logq??''}</td></tr>`).join('');
+  $('#v-usage').innerHTML=`<h2>Usage Monitor</h2>
+  <div class="card"><b>Usage ke numbers bharo</b><p class="muted">Database provider ke Usage page se numbers yahan likho, phir Save dabao. Ye sirf is device par save hota hai.</p><div class="g3">${fields}</div><div style="margin-top:.6rem"><button class="btn" onclick="saveUsage()">Save entry</button></div></div>
+  <div class="card"><b>Abhi ki status</b>${bars}${proj}<p class="muted" style="font-size:.8rem">Green: 60% se kam · Amber: 60% se 85% · Red: 85% se zyada. Egress ya Cached Egress 5 GB se upar jaye to restriction aata hai.</p></div>
+  <div class="card"><b>History</b><div style="overflow-x:auto"><table><tr><th>Date</th><th>Egress GB</th><th>Cached GB</th><th>DB MB</th><th>Log GB</th></tr>${hist||'<tr><td colspan="5" class="muted">No entries</td></tr>'}</table></div></div>`;
+}
+function saveUsage(){
+  const e={date:today()};let any=false;
+  for(const k of Object.keys(USAGE_LIMITS)){const v=document.getElementById('us-'+k).value;if(v!==''){e[k]=Number(v);any=true}}
+  if(!any)return toast('Pehle koi number bharo.');
+  const log=usageLog().filter(r=>r.date!==e.date);log.push(e);
+  localStorage.setItem(USAGE_KEY,JSON.stringify(log.slice(-180)));
+  toast('Saved.');viewUsage();
+}
 // ============= RESET PASSWORD (admin) =============
 const ROLE_NAMES={student:'Computer Student',library_student:'Library Student',teacher:'Teacher',promoter:'Promoter'};
 async function viewPw(){
@@ -2354,7 +2418,7 @@ async function exResults(id){
   const done=r.filter(a=>a.status!=='in_progress'),avg=done.length?done.reduce((t,a)=>t+Number(a.score||0),0)/done.length:0,passed=done.filter(a=>Number(a.score)>=Number(EXCUR.pass_marks)).length;
   $('#ex-body').innerHTML=`<button class="btn sm alt" onclick="exList()">← Back</button><h3>${esc(EXCUR.title)} — Results</h3>
   <div class="grid"><div>Attempts<b>${r.length}</b></div><div>Passed<b>${passed}</b></div><div>Average<b>${avg.toFixed(1)}</b></div></div>
-  <div class="btns" style="margin:.6rem 0"><button class="btn sm green" onclick="exResultsCsv()">📊 Excel / CSV</button></div>
+  <div class="btns" style="margin:.6rem 0"><button class="btn sm green" onclick="exResultsXlsx()">📊 Excel (.xlsx)</button> <button class="btn sm green" onclick="exResultsCsv()">🧾 CSV</button></div>
   ${r.map((a,i)=>`<div class="card">${photoModeOf(EXCUR.instructions)!=='off'?`<span id="sf-${a.id}" class="muted" style="float:right;margin-left:.5rem;font-size:.75rem">…</span>`:''}<div class="row"><b>${i+1}. ${esc(a.student_name||'-')}</b><b>${Number(a.score)}/${EXCUR.total_marks}</b></div><div class="muted">${esc(a.student_phone||'')} · ${a.role==='library_student'?'Library':'Computer'} student · ${a.status==='in_progress'?'In progress':(a.status==='auto_submitted'?'Auto-submitted':'Submitted')}<br>Started: ${a.started_at?fmtTime(a.started_at):'-'}${a.submitted_at?' · Finished: '+fmtTime(a.submitted_at):''}<br>${cwu(a)}<br>${a.status!=='in_progress'?(Number(a.score)>=Number(EXCUR.pass_marks)?'<b style="color:#168a56">PASS</b>':'<b style="color:#c0392b">FAIL</b>'):''} · Tab-switch warnings: ${a.violations}</div>
   ${a.status!=='in_progress'?`<div class="btns"><button class="btn sm" onclick="exGrade('${a.id}')">Check Answers${(a.detail||[]).some(d=>d.status==='pending')?' / Give Marks':''}</button></div>`:''}</div>`).join('')||'<p class="muted">No student has started this exam yet.</p>'}`;
   r.forEach(a=>showSelfie(a));
@@ -2385,7 +2449,7 @@ function exResultRows(){
 function exResultsHeaders(){return ['#','Name','Mobile','Type','Score','Out of','Correct','Wrong','Result','Warnings','Started (IST)','Submitted (IST)']}
 // Excel/CSV: uses only data already on this screen - no extra database or photo download
 function exResultsCsv(){
-  const e=EXCUR;const head=exResultsHeaders();const rows=exResultRows();
+  const e=EXCUR;const head=exResultsHeaders().filter((h)=>h!=='Mobile');const rows=exResultRows().map(r=>r.filter((c,i)=>i!==2));
   const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
   const txt='\uFEFF'+[head.map(q).join(','),...rows.map(r=>r.map(q).join(','))].join('\r\n');
   const blob=new Blob([txt],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);
