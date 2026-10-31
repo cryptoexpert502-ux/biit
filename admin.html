@@ -619,10 +619,12 @@ const classes = () => [...new Set(students.map(s=>s.class))];
 const nameOf  = id => (students.find(s=>s.id===id)?.name)||'—';
 
 // ============= DASHBOARD =============
+const __ac=new Map();
+function qcachedA(key,ttl,fn){const h=__ac.get(key);if(h&&h.p)return h.p;if(h&&Date.now()-h.t<ttl)return Promise.resolve(h.v);const p=Promise.resolve().then(fn).then(v=>{__ac.set(key,{t:Date.now(),v});return v},e=>{__ac.delete(key);throw e});__ac.set(key,{p});return p}
 async function dash(){
   const d = await ok(sb.rpc('dashboard_stats',{d:today()}));
-  const recentPay0 = await ok(sb.from('fee_payments').select('amount,paid_on,paid_at,paid_month,student_id').order('paid_at',{ascending:false}).limit(1000));
-  const recentAtt0 = await ok(sb.from('attendance').select('*').order('date',{ascending:false}).limit(1000));
+  const recentPay0 = await qcachedA('dash-pay',120000,()=>ok(sb.from('fee_payments').select('amount,paid_on,paid_at,paid_month,student_id').order('paid_at',{ascending:false}).limit(1000)));
+  const recentAtt0 = await qcachedA('dash-att',120000,()=>ok(sb.from('attendance').select('*').order('date',{ascending:false}).limit(1000)));
   const live = id => students.some(s=>s.id===id);          // Records for deleted students are hidden.
   const recentPay = recentPay0.filter(p=>live(p.student_id));
   const recentAtt = recentAtt0.filter(a=>live(a.student_id));
@@ -1138,7 +1140,7 @@ async function createLogin(phone,pw){
 async function saveLibPromoter(id){const v=$('#lp-'+id).value||null;const {error}=await sb.from('library_registrations').update({promoter_code:v}).eq('id',id);if(error)return toast(/promoter_code/i.test(error.message)?'First run promoter_library_column.sql in the Supabase SQL Editor.':'Save failed: '+error.message,7000);toast('Promoter saved.')}
 function shrinkDataUrl(file,max,q){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',q))};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('image not readable'))};img.src=u})}
 function shrinkBlob(file,max,q){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);b?res(b):rej(new Error('resize failed'))},'image/jpeg',q)};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('image not readable'))};img.src=u})}
-function toJpegBlob(file){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const k=Math.min(1,1000/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>b?res(b):rej(new Error('Photo could not be read')),'image/jpeg',.8)};img.onerror=()=>rej(new Error('Photo could not be read'));img.src=URL.createObjectURL(file)})}
+function toJpegBlob(file){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const k=Math.min(1,1000/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>b&&b.size<=400000?res(b):(b?rej(new Error('Photo is too large. Please use a smaller photo.')):rej(new Error('Photo could not be read'))),'image/jpeg',.75)};img.onerror=()=>rej(new Error('Photo could not be read'));img.src=URL.createObjectURL(file)})}
 async function addMember(kind){
   const g=id=>($('#'+id)?.value||'').trim();
   const p={teacher:'at',library:'al'}[kind];
@@ -2334,6 +2336,7 @@ async function exDelete(id){if(!confirm('Delete this exam and all student attemp
 let EXRES=[],EXCUR=null;
 const cwu=a=>{const d=a.detail||[];const c=k=>d.filter(x=>x.status===k).length;return a.status==='in_progress'?'':'Correct: <b>'+c('correct')+'</b> · Wrong: <b>'+c('wrong')+'</b> · Not answered: <b>'+c('unanswered')+'</b>'+(c('pending')?' · To check: <b>'+c('pending')+'</b>':'')};
 async function attemptSelfie(a){
+  return null; // exam photos are turned off to save Supabase Storage egress
   if(a.answers&&a.answers.__selfie)return a.answers.__selfie;
   if(a.user_id){const l=await sb.storage.from('exam-answers').list(a.user_id+'/'+a.id,{limit:50,search:'selfie'});if(!l.error&&l.data&&l.data.length){const n=l.data.map(x=>x.name).sort().pop();return a.user_id+'/'+a.id+'/'+n}}
   return null;
@@ -2351,7 +2354,7 @@ async function exResults(id){
   const done=r.filter(a=>a.status!=='in_progress'),avg=done.length?done.reduce((t,a)=>t+Number(a.score||0),0)/done.length:0,passed=done.filter(a=>Number(a.score)>=Number(EXCUR.pass_marks)).length;
   $('#ex-body').innerHTML=`<button class="btn sm alt" onclick="exList()">← Back</button><h3>${esc(EXCUR.title)} — Results</h3>
   <div class="grid"><div>Attempts<b>${r.length}</b></div><div>Passed<b>${passed}</b></div><div>Average<b>${avg.toFixed(1)}</b></div></div>
-  <div class="btns" style="margin:.6rem 0"><button class="btn sm" onclick="exResultsPdf(true)">📄 PDF with photos</button> <button class="btn sm alt" onclick="exResultsPdf(false)">📄 PDF without photos (light)</button> <button class="btn sm green" onclick="exResultsCsv()">📊 Excel / CSV</button></div>
+  <div class="btns" style="margin:.6rem 0"><button class="btn sm green" onclick="exResultsCsv()">📊 Excel / CSV</button></div>
   ${r.map((a,i)=>`<div class="card">${photoModeOf(EXCUR.instructions)!=='off'?`<span id="sf-${a.id}" class="muted" style="float:right;margin-left:.5rem;font-size:.75rem">…</span>`:''}<div class="row"><b>${i+1}. ${esc(a.student_name||'-')}</b><b>${Number(a.score)}/${EXCUR.total_marks}</b></div><div class="muted">${esc(a.student_phone||'')} · ${a.role==='library_student'?'Library':'Computer'} student · ${a.status==='in_progress'?'In progress':(a.status==='auto_submitted'?'Auto-submitted':'Submitted')}<br>Started: ${a.started_at?fmtTime(a.started_at):'-'}${a.submitted_at?' · Finished: '+fmtTime(a.submitted_at):''}<br>${cwu(a)}<br>${a.status!=='in_progress'?(Number(a.score)>=Number(EXCUR.pass_marks)?'<b style="color:#168a56">PASS</b>':'<b style="color:#c0392b">FAIL</b>'):''} · Tab-switch warnings: ${a.violations}</div>
   ${a.status!=='in_progress'?`<div class="btns"><button class="btn sm" onclick="exGrade('${a.id}')">Check Answers${(a.detail||[]).some(d=>d.status==='pending')?' / Give Marks':''}</button></div>`:''}</div>`).join('')||'<p class="muted">No student has started this exam yet.</p>'}`;
   r.forEach(a=>showSelfie(a));
@@ -2407,7 +2410,7 @@ async function exGrade(aid){
   const a=EXRES.find(x=>x.id===aid);const d=a.detail||[];
   const items=await Promise.all(d.map(async(q,i)=>{
     let ans='',bc='';
-    if(q.qtype==='subjective'){const g=q.given||{};let img='';if(g.photo){const s=/^https?:/.test(g.photo)?{data:{signedUrl:g.photo}}:await sb.storage.from('exam-answers').createSignedUrl(g.photo,600);if(s.data)img=`<br><a href="${s.data.signedUrl}" target="_blank"><img src="${s.data.signedUrl}" style="max-width:100%;border-radius:10px;margin-top:.4rem"></a>`}
+    if(q.qtype==='subjective'){const g=q.given||{};let img='';if(false&&g.photo){const s=/^https?:/.test(g.photo)?{data:{signedUrl:g.photo}}:await sb.storage.from('exam-answers').createSignedUrl(g.photo,600);if(s.data)img=`<br><a href="${s.data.signedUrl}" target="_blank"><img src="${s.data.signedUrl}" style="max-width:100%;border-radius:10px;margin-top:.4rem"></a>`}
       ans=`<div class="muted">Student's answer:</div><div style="white-space:pre-wrap">${esc(g.text||'(no text)')}</div>${img}<label class="muted">Marks (out of ${q.marks})</label><input id="gm-${i}" type="number" min="0" max="${q.marks}" step="0.5" value="${q.awarded??''}">`}
     else{const o=q.options||[];bc=q.status==='correct'?'#168a56':q.status==='wrong'?'#c0392b':'#c98a00';ans=`<div class="muted">Student: <b>${q.given==null?'Not answered':LET[q.given]+'. '+esc(o[q.given])}</b><br>Correct: <b style="color:#168a56">${LET[q.correct]}. ${esc(o[q.correct])}</b> · <b style="color:${bc}">${q.status==='correct'?'✓ Correct':q.status==='wrong'?'✗ Wrong':'Not answered'}</b> (${q.awarded} marks)</div>`}
     return `<div class="card" ${bc?`style="border-left:5px solid ${bc}"`:''}><b>Q${i+1}. ${esc(q.question)}</b>${ans}</div>`}));

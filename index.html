@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-31-4">
+<meta name="app-version" content="2026-10-31-7">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -905,6 +905,11 @@ body.dash-option-open #stu-nav{display:none!important}
 .cr-name{font-size:.92rem!important;letter-spacing:.02em!important;background:linear-gradient(90deg,#fff3c4,#ffd36e 35%,#ff9fd0 65%,#fff3c4)!important;background-size:250% 100%!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important;filter:none!important;text-shadow:none!important;padding:0 2px}
 .cr-line{width:30px!important;margin-top:2px!important}
 </style>
+<style id="install-btn-fix">
+body #install#install.inst,body #install#install{background:linear-gradient(90deg,#e8b45c,#f6d28a)!important;color:#3a1f66!important;border:1.5px solid rgba(255,236,190,.95)!important;box-shadow:0 0 18px rgba(255,200,130,.55),0 6px 16px rgba(0,0,0,.25)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;text-shadow:none!important;font-weight:800!important;opacity:1!important}
+body #install svg{stroke:#3a1f66!important}
+body #install:hover,body #install:focus-visible{background:linear-gradient(90deg,#f6d28a,#ffe6a8)!important;color:#2a1450!important}
+</style>
 </head>
 <body>
 <div id="dz-bg" aria-hidden="true"><svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -1353,7 +1358,7 @@ function aadhaarErrors(){
     if(!f)e.push(`Aadhaar ${L} photo is required.`);else if(!/^image\//.test(f.type))e.push(`Aadhaar ${L} file must be an image.`);});
   return e;
 }
-function fileToJpeg(file){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const m=1400,r=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);b?res(b):rej(new Error('Image could not be processed'))},'image/jpeg',.82)};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Image could not be read'))};img.src=u})}
+function fileToJpeg(file){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const m=1400,r=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);if(b&&b.size>400000)return rej(new Error('Photo is too large. Please use a smaller photo.'));b?res(b):rej(new Error('Image could not be processed'))},'image/jpeg',.82)};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Image could not be read'))};img.src=u})}
 async function doReg(){
   const v=id=>$('#'+id).value.trim();
   await refreshCfg();
@@ -1388,7 +1393,7 @@ async function doReg(){
     if(libAad){
       try{
         for(const k of ['front','back']){
-          const orig=$('#r-aadhaar-'+k).files[0];let blob,ctype='image/jpeg';try{blob=await fileToJpeg(orig)}catch(_){blob=orig;ctype=orig.type||'image/jpeg'}const path=session.user.id+'/'+k+'.jpg';
+          const orig=$('#r-aadhaar-'+k).files[0];let blob,ctype='image/jpeg';try{blob=await fileToJpeg(orig)}catch(e){throw new Error(e.message||'Photo could not be compressed. Please use a smaller photo.')}const path=session.user.id+'/'+k+'.jpg';
           const up=await sb.storage.from('aadhaar-docs').upload(path,blob,{contentType:ctype,upsert:true});
           if(up.error)throw up.error;
           if(k==='front')frontPath=path;else backPath=path;
@@ -1708,7 +1713,7 @@ function exPick(k){const q=EX.d.questions[EX.idx];EX.answers[q.id]=k;EX.dirty=tr
 function exSubj(){const q=EX.d.questions[EX.idx];const cur=EX.answers[q.id]||{};cur.text=document.getElementById('ex-text').value;EX.answers[q.id]=cur;EX.dirty=true}
 async function exPhoto(){
   const q=EX.d.questions[EX.idx],f=document.getElementById('ex-photo').files[0];if(!f)return;const st=document.getElementById('ex-up');st.textContent='Uploading…';
-  try{let blob;try{blob=await fileToJpeg(f)}catch(_){blob=f}
+  try{let blob;try{blob=await fileToJpeg(f)}catch(e){throw new Error(e.message||'Photo could not be compressed. Please use a smaller photo.')}
     let du=await shrinkDataUrl(f,1000,0.7);if(du.length>270000)du=await shrinkDataUrl(f,800,0.6);
     const pu=await uploadPhoto(du,'exam');if(!pu)throw new Error('photo could not be uploaded');
     const cur=EX.answers[q.id]||{};cur.photo=pu;if(document.getElementById('ex-text'))cur.text=document.getElementById('ex-text').value;EX.answers[q.id]=cur;EX.dirty=true;renderExam();toast('Photo uploaded.')}
@@ -1957,6 +1962,7 @@ async function markMyAttendance(role){
 }
 async function loadPastPapers(){
   document.getElementById('past-papers')?.remove();
+  if(window.__pastHtml&&Date.now()-window.__pastAt<600000&&window.__pastUser===(window.__stuMe||{}).id){const cb=document.createElement('div');cb.id='past-papers';cb.className='card';cb.innerHTML=window.__pastHtml;(document.getElementById('student-dashboard')||document.body).appendChild(cb);return}
   const r=await sb.rpc('my_past_attempts');
   const list=(!r.error&&Array.isArray(r.data))?r.data:[];
   const LET=i=>String.fromCharCode(65+i);
@@ -1970,6 +1976,7 @@ async function loadPastPapers(){
   }
   const box=document.createElement('div');box.id='past-papers';box.className='card';
   box.innerHTML='<h2>📚 Past exam results</h2><div class="muted" style="margin-bottom:.4rem">Your answers are marked green (correct) or red (wrong) after the admin has shown the result.</div>'+(parts.length?parts.join(''):'<p class="muted">No past exam results are shown yet.</p>');
+  window.__pastHtml=box.innerHTML;window.__pastAt=Date.now();window.__pastUser=(window.__stuMe||{}).id;
   (document.getElementById('student-dashboard')||document.body).appendChild(box);
 }
 // ---- student mockup look ----
@@ -2337,6 +2344,8 @@ function stuMockHeader(me){
   if(!document.getElementById('m-backdrop')){const d=document.createElement('div');d.id='m-backdrop';d.onclick=()=>document.body.classList.remove('stu-drawer');document.body.appendChild(d)}
 }
 
+const __qc=new Map();
+function qcached(key,ttl,fn){const h=__qc.get(key);if(h&&h.p)return h.p;if(h&&Date.now()-h.t<ttl)return Promise.resolve(h.v);const p=Promise.resolve().then(fn).then(v=>{__qc.set(key,{t:Date.now(),v});return v},e=>{__qc.delete(key);throw e});__qc.set(key,{p});return p}
 async function renderStudentPortal(me){
   only('portal');
   window.__stuMe=me;
@@ -2367,12 +2376,12 @@ async function renderStudentPortal(me){
     </div></div>`;
   stuNav();
 
-  const [fee, pay, att, msgs] = await Promise.all([
+  const [fee, pay, att, msgs] = await qcached('dash:'+me.id,60000,()=>Promise.all([
     sb.from('student_fee_summary').select('*').eq('id', me.id).maybeSingle(),
     sb.from('fee_payments').select('id,amount,paid_on,paid_at,paid_month,note').eq('student_id', me.id).order('paid_at', {ascending:false}).limit(200),
     sb.from('attendance').select('*').eq('student_id', me.id).order('date', {ascending:false}).limit(200),
     sb.from('push_log').select('message,sent_at,target_class').gte('sent_at', cutoff()).order('sent_at', {ascending:false}).limit(30)
-  ]);
+  ]));
 
   const f = fee.data || {total_fees:0, paid:0, pending:0};
   $('#c-fee').innerHTML = `<h2>My Fees</h2>
@@ -2548,7 +2557,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-31-4';
+  var MY_VER='2026-10-31-7';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
@@ -2571,5 +2580,6 @@ window.__siteReady=loadPublicSiteContent();
 })();
 </script>
 <div id="creator"><div class="cr-badge" role="note" aria-label="Website created by Aryan Yadav"><i></i><i></i><i></i><span class="cr-k">This website created by</span><b class="cr-name">Aryan Yadav</b><span class="cr-line"></span></div></div>
+<script>(function(){var P='https://bpsqafcfdjtvnvcvlotr.supabase.co/storage/v1/object/public/',W='https://biit-photos.computerinstitute1.workers.dev/m/';function fix(i){var s=i.getAttribute('src');if(s&&s.indexOf(P)===0)i.setAttribute('src',W+s.slice(P.length))}document.querySelectorAll('img').forEach(fix);new MutationObserver(function(ms){ms.forEach(function(m){if(m.type==='attributes'){if(m.target.tagName==='IMG')fix(m.target)}else m.addedNodes.forEach(function(n){if(n.nodeType===1){if(n.tagName==='IMG')fix(n);if(n.querySelectorAll)n.querySelectorAll('img').forEach(fix)}})})}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['src']})})();</script>
 </body>
 </html>
