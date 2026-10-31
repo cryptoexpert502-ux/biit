@@ -2439,6 +2439,15 @@ async function showSelfie(a,pre,size){
     el.outerHTML=`<a href="${u.data.signedUrl}" target="_blank" style="float:right;margin-left:.5rem"><img src="${u.data.signedUrl}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;background:#eee"></a>`}
   catch(_){el.textContent='No photo'}
 }
+
+// Admin: remove a submitted attempt so the same student can take the paper again.
+async function exRetake(aid,examId){
+  if(!confirm('Is student ka submitted paper hata kar dobara dene ki permission de? Purana result delete ho jayega.'))return;
+  const {error}=await sb.from('exam_attempts').delete().eq('id',aid);
+  if(error)return toast('Failed: '+error.message,7000);
+  toast('Done. Student ab dobara exam start kar sakta hai.',5000);
+  exResults(examId);
+}
 async function exResults(id){
   EXCUR=EXAMS.find(x=>x.id===id);const r=await ok(sb.from('exam_attempts').select('*').eq('exam_id',id).order('score',{ascending:false}));EXRES=r;
   const done=r.filter(a=>a.status!=='in_progress'),avg=done.length?done.reduce((t,a)=>t+Number(a.score||0),0)/done.length:0,passed=done.filter(a=>Number(a.score)>=Number(EXCUR.pass_marks)).length;
@@ -2446,7 +2455,7 @@ async function exResults(id){
   <div class="grid"><div>Attempts<b>${r.length}</b></div><div>Passed<b>${passed}</b></div><div>Average<b>${avg.toFixed(1)}</b></div></div>
   <div class="btns" style="margin:.6rem 0"><button class="btn sm green" onclick="exResultsXlsx()">📊 Excel (.xlsx)</button> <button class="btn sm green" onclick="exResultsCsv()">🧾 CSV</button></div>
   ${r.map((a,i)=>`<div class="card">${photoModeOf(EXCUR.instructions)!=='off'?`<span id="sf-${a.id}" class="muted" style="float:right;margin-left:.5rem;font-size:.75rem">…</span>`:''}<div class="row"><b>${i+1}. ${esc(a.student_name||'-')}</b><b>${Number(a.score)}/${EXCUR.total_marks}</b></div><div class="muted">${esc(a.student_phone||'')} · ${a.role==='library_student'?'Library':'Computer'} student · ${a.status==='in_progress'?'In progress':(a.status==='auto_submitted'?'Auto-submitted':'Submitted')}<br>Started: ${a.started_at?fmtTime(a.started_at):'-'}${a.submitted_at?' · Finished: '+fmtTime(a.submitted_at):''}<br>${cwu(a)}<br>${a.status!=='in_progress'?(Number(a.score)>=Number(EXCUR.pass_marks)?'<b style="color:#168a56">PASS</b>':'<b style="color:#c0392b">FAIL</b>'):''} · Tab-switch warnings: ${a.violations}</div>
-  ${a.status!=='in_progress'?`<div class="btns"><button class="btn sm" onclick="exGrade('${a.id}')">Check Answers${(a.detail||[]).some(d=>d.status==='pending')?' / Give Marks':''}</button></div>`:''}</div>`).join('')||'<p class="muted">No student has started this exam yet.</p>'}`;
+  ${a.status!=='in_progress'?`<div class="btns"><button class="btn sm" onclick="exGrade('${a.id}')">Check Answers${(a.detail||[]).some(d=>d.status==='pending')?' / Give Marks':''}</button><button class=\"btn sm alt\" onclick=\"exRetake(\'${a.id}\',\'${a.exam_id}\')\">🔄 Dobara dene do</button></div>`:''}</div>`).join('')||'<p class="muted">No student has started this exam yet.</p>'}`;
   r.forEach(a=>showSelfie(a));
 }
 async function blobToDataUrl(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('read'));r.readAsDataURL(b)})}

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-31-14">
+<meta name="app-version" content="2026-10-31-20">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -988,6 +988,24 @@ html body #exam-ui .ex-q{color:#ffffff!important;-webkit-text-fill-color:#ffffff
 html body #exam-ui .card .muted{color:#d6dcf5!important;opacity:1!important}
 #exam-ui{scroll-padding-top:90px}
 </style>
+<style id="exam-start-readable">
+#exam-ui#exam-ui{background:#fbf3f8!important;opacity:1!important}
+#exam-ui#exam-ui .ex-wrap,#exam-ui#exam-ui .ex-wrap *{opacity:1!important;text-shadow:none!important}
+#exam-ui#exam-ui .ex-wrap>h2{color:#1a1f3c!important;font-weight:800!important}
+#exam-ui#exam-ui .ex-meta div{color:#1a1f3c!important}
+#exam-ui#exam-ui .ex-meta b{color:#2a0f3d!important}
+#exam-ui#exam-ui .ex-wrap .card{background:#3f4566!important;border:1.5px solid #8f8fd6!important}
+#exam-ui#exam-ui .ex-wrap .card *{color:#f1f4ff!important}
+#exam-ui#exam-ui .ex-wrap .card .muted{color:#d3d9f5!important}
+#exam-ui#exam-ui .ex-wrap .card input[type=checkbox]{width:22px!important;height:22px!important;accent-color:#2a5bd7!important;opacity:1!important}
+#exam-ui#exam-ui .ex-wrap .btn.alt{background:#ffffff!important;color:#1a1f3c!important;border:2px solid #6d5dd3!important}
+</style>
+<style id="smooth-scroll">
+/* while the student is scrolling/swiping: pause heavy background animation and blur, resume when they stop */
+body.is-scrolling #dz-bg *,body.is-scrolling #paris-bg *{animation-play-state:paused!important}
+body.is-scrolling [class*="card"],body.is-scrolling [class*="tile"],body.is-scrolling .glass,body.is-scrolling [class*="mot"],body.is-scrolling [class*="notice"]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#student-dashboard [class*="card"]{contain:layout paint}
+</style>
 </head>
 <body>
 <div id="dz-bg" aria-hidden="true"><svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -1699,14 +1717,14 @@ async function openExam(id){
   window.__exPhoto=exPhotoMode(d.instructions);
   examUI(`<div class="ex-wrap"><h2>${esc(d.title)}</h2><div class="ex-meta"><div>Total marks<b>${d.total_marks}</b></div><div>Passing marks<b>${d.pass_marks}</b></div><div>Questions<b>${d.questions.length}</b></div></div>
    <div class="card"><h3 style="margin-top:0">Instructions</h3><div style="white-space:pre-wrap">${esc(exStrip(d.instructions))}</div></div>
-   <div class="card"><b>Important</b><div class="muted">The timer starts as soon as you press Start and keeps running even if you leave. Switching tabs or apps more than ${d.tab_limit-1} time(s) will submit your exam automatically. Copy, paste and right-click are disabled.</div>
+   <div class="card"><b>Important</b><div class="muted">The timer starts as soon as you press Start and keeps running even if you leave. Leaving the exam screen (switching apps, minimising, or locking the phone) will submit your exam immediately. Copy, paste and right-click are disabled.</div>
    <label style="display:flex;gap:.5rem;align-items:center;margin-top:.6rem"><input type="checkbox" id="ex-agree" style="width:auto;margin:0"> I have read and agree to the instructions</label></div>
    ${window.__exPhoto==='off'?'':`<div class="card"><b>📷 Your photo${window.__exPhoto==='required'?' (required)':''}</b><div class="muted">${window.__exPhoto==='required'?'A photo from your front camera is required for this exam. Allow the camera, look at it, then press Start.':'A photo from your front camera is taken when you press Start. If you do not allow the camera, you can still take the exam.'} It is shown on your exam screen and saved for the teacher, to confirm who gave the exam.</div><video id="ex-cam" autoplay playsinline muted style="width:100%;max-width:240px;border-radius:12px;margin-top:.5rem;background:#000;transform:scaleX(-1)"></video><div id="ex-cam-st" class="muted">Opening camera…</div></div>`}
    <div class="btns"><button class="btn" onclick="beginExam()">Start Exam</button><button class="btn alt" onclick="examClose()">Back</button></div></div>`);
   window.__exData=d;if(window.__exPhoto!=='off')exStartCam();
 }
 const PHOTO_RE=/\s*\[\[photo:(off|optional|required)\]\]\s*$/;
-function exPhotoMode(t){const m=String(t||'').match(PHOTO_RE);return m?m[1]:'off'}
+function exPhotoMode(t){return 'off'} // exam photo/camera turned off for all exams (old papers too)
 function exStrip(t){return String(t||'').replace(PHOTO_RE,'')}
 function exStopCam(){try{(window.__exStream?window.__exStream.getTracks():[]).forEach(t=>t.stop())}catch(_){}window.__exStream=null}
 async function exStartCam(){
@@ -1762,7 +1780,7 @@ async function beginExam(){
   }
   exStopCam();
   try{const el=document.documentElement;if(el.requestFullscreen){await el.requestFullscreen();EX.fs=true}}catch(_){}
-  attachGuards();renderExam();
+  attachGuards();exWatermark(true);renderExam();
   EX.tick=setInterval(examTick,500);EX.save=setInterval(()=>examSave(),15000);examTick();
 }
 function fmtClock(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+':':'')+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0')}
@@ -1885,7 +1903,7 @@ function exSubmitMsg(t,err){
 }
 async function submitExam(auto,msg){
   if(!EX||EX.done||EX.submitting)return;EX.submitting=true;
-  if(msg)try{alert(msg)}catch(_){}
+  if(msg)try{exSubmitMsg(msg,false)}catch(_){}
   EX.done=true;clearInterval(EX.tick);clearInterval(EX.save);detachGuards();
   const cf=document.getElementById('ex-confirm');
   exSubmitMsg('Submitting your exam... please wait',false);
@@ -1913,25 +1931,38 @@ async function examResult(attemptId){
   examUI(`<div class="ex-wrap"><div class="card" style="text-align:center"><h2 style="margin:.2rem 0">${esc(d.title)}</h2><div style="font-size:2.2rem;font-weight:800">${d.score} / ${d.total}</div>
    <div style="font-weight:800;color:${d.passed?'#168a56':'#c0392b'}">${d.subjective_pending?'Result pending (written answers not checked yet)':d.passed?'PASS 🎉':'FAIL'}</div><div class="muted">Passing marks: ${d.pass_marks}</div></div>
    <div class="ex-meta"><div>Correct<b style="color:#168a56">${d.correct}</b></div><div>Wrong<b style="color:#c0392b">${d.wrong}</b></div><div>Not answered<b>${d.unanswered}</b></div></div>
-   ${d.violations?`<p class="muted">Screen-switch warnings: ${d.violations}</p>`:''}<h3>Answer Report</h3>${rows}<button class="btn" onclick="examClose()">Back to Dashboard</button></div>`);
+   ${d.violations?`<p class="muted">Exam screen left: ${d.violations} time(s) (auto-submitted)</p>`:''}<h3>Answer Report</h3>${rows}<button class="btn" onclick="examClose()">Back to Dashboard</button></div>`);
 }
 // ---- anti-cheating ----
 function exViolation(why){
   if(!EX||EX.done)return;if(EX.dialog||Date.now()<(EX.ignoreUntil||0))return;const now=Date.now();if(now-EX.lastV<1500)return;EX.lastV=now;EX.violations++;EX.dirty=true;examSave();
-  const lim=EX.d.tab_limit;
-  if(EX.violations>=lim){submitExam(true,'You left the exam screen too many times. Your exam was submitted automatically.');return}
-  alert(`⚠ Warning ${EX.violations} of ${lim}: ${why}\n\nIf this happens ${lim-EX.violations} more time(s), your exam will be submitted automatically.`);
+  // Leaving the exam (minimise, lock screen, switch app, exit full-screen) submits it right away.
+  submitExam(true,'You left the exam screen. Your exam was submitted automatically.');
 }
 const _exH={
   vis:()=>{if(document.hidden)exViolation('You left the exam screen.')},
   blur:()=>{exViolation('The exam window lost focus.')},
   fs:()=>{if(EX&&EX.fs&&!document.fullscreenElement){exViolation('You exited full-screen mode.');try{document.documentElement.requestFullscreen().catch(()=>{})}catch(_){}}},
   stop:e=>{if(EX&&!EX.done){e.preventDefault();e.stopPropagation()}},
-  key:e=>{if(!EX||EX.done)return;const k=(e.key||'').toLowerCase();if(((e.ctrlKey||e.metaKey)&&['c','v','x','a','u','s','p'].includes(k))||k==='f12'||k==='printscreen'||(e.ctrlKey&&e.shiftKey&&['i','j','c'].includes(k))){e.preventDefault();e.stopPropagation()}}
+  key:e=>{if(!EX||EX.done)return;const k=(e.key||'').toLowerCase();if(k==='printscreen'){submitExam(true,'Screenshot is not allowed. Your exam was submitted automatically.');return}if(((e.ctrlKey||e.metaKey)&&['c','v','x','a','u','s','p'].includes(k))||k==='f12'||k==='printscreen'||(e.ctrlKey&&e.shiftKey&&['i','j','c'].includes(k))){e.preventDefault();e.stopPropagation()}}
 };
 function attachGuards(){
   document.addEventListener('visibilitychange',_exH.vis);window.addEventListener('blur',_exH.blur);document.addEventListener('fullscreenchange',_exH.fs);
   ['contextmenu','copy','cut','paste','dragstart','selectstart'].forEach(t=>document.addEventListener(t,_exH.stop,true));document.addEventListener('keydown',_exH.key,true);
+}
+function exWatermark(on){
+  let w=document.getElementById('ex-wm');
+  if(!on){if(w)w.remove();return}
+  if(w)return;
+  const me=window.__stuMe||{};
+  const who=((me.name||'Student')+' · '+(me.phone||'')).trim();
+  const src=exLogoSrc();
+  w=document.createElement('div');w.id='ex-wm';
+  w.style.cssText='position:fixed;inset:0;z-index:99990;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none';
+  // BIIT logo, large and faint, centred like the exam watermark on other exam sites
+  w.innerHTML=(src?'<img alt="" src="'+src+'" style="width:min(78vw,430px);height:auto;opacity:.13;border-radius:50%;filter:none">':'')
+    +'<div style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font:700 12px Arial,sans-serif;color:#000;opacity:.35">'+esc(who)+'</div>';
+  document.body.appendChild(w);
 }
 function detachGuards(){
   document.removeEventListener('visibilitychange',_exH.vis);window.removeEventListener('blur',_exH.blur);document.removeEventListener('fullscreenchange',_exH.fs);
@@ -2727,7 +2758,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-31-14';
+  var MY_VER='2026-10-31-20';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
@@ -2751,5 +2782,6 @@ window.__siteReady=loadPublicSiteContent();
 </script>
 <div id="creator"><div class="cr-badge" role="note" aria-label="Website created by Aryan Yadav"><i></i><i></i><i></i><span class="cr-k">This website created by</span><b class="cr-name">Aryan Yadav</b><span class="cr-line"></span></div></div>
 <script>(function(){var P='https://bpsqafcfdjtvnvcvlotr.supabase.co/storage/v1/object/public/',W='https://biit-photos.computerinstitute1.workers.dev/m/';function fix(i){var s=i.getAttribute('src');if(s&&s.indexOf(P)===0)i.setAttribute('src',W+s.slice(P.length))}document.querySelectorAll('img').forEach(fix);new MutationObserver(function(ms){ms.forEach(function(m){if(m.type==='attributes'){if(m.target.tagName==='IMG')fix(m.target)}else m.addedNodes.forEach(function(n){if(n.nodeType===1){if(n.tagName==='IMG')fix(n);if(n.querySelectorAll)n.querySelectorAll('img').forEach(fix)}})})}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['src']})})();</script>
+<script>(function(){var t=null,b=document.body;function on(){if(!b.classList.contains('is-scrolling'))b.classList.add('is-scrolling');clearTimeout(t);t=setTimeout(function(){b.classList.remove('is-scrolling')},180)}window.addEventListener('scroll',on,{passive:true,capture:true});window.addEventListener('touchmove',on,{passive:true});window.addEventListener('wheel',on,{passive:true})})();</script>
 </body>
 </html>
