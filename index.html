@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-31-1">
+<meta name="app-version" content="2026-10-31-3">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -885,6 +885,17 @@ body.stu-mode #student-dashboard [class*="mot"] *{color:#fff1d6!important;text-s
 body.stu-mode #student-dashboard [class*="mot"] [class*="title"],body.stu-mode #student-dashboard [class*="mot"] h3,body.stu-mode #student-dashboard [class*="mot"] h4{color:#ffd36e!important}
 body.stu-mode #student-dashboard [class*="mot"] button,body.stu-mode #student-dashboard [class*="mot"] [class*="dot"]{background:#ffd36e!important}
 </style>
+<style id="exam-colors">
+#student-dashboard .ex-wrap .card.ex-ok,body .ex-wrap .card.ex-ok{background:#e8f8ef!important;border:2px solid #168a56!important;box-shadow:0 0 14px rgba(22,138,86,.35)!important;color:#0d3b24!important}
+#student-dashboard .ex-wrap .card.ex-no,body .ex-wrap .card.ex-no{background:#fdecea!important;border:2px solid #c0392b!important;box-shadow:0 0 14px rgba(192,57,43,.35)!important;color:#4a1410!important}
+#student-dashboard .ex-wrap .card.ex-ok *,#student-dashboard .ex-wrap .card.ex-no *,body .ex-wrap .card.ex-ok *,body .ex-wrap .card.ex-no *{color:inherit}
+</style>
+<style id="exam-sheet-fix">
+body.dash-option-open #stu-nav{display:none!important}
+.dash-option-sheet{padding-bottom:48px!important}
+#exam-list>div{background:rgba(14,22,66,.75);color:#f1f4ff;border:1px solid rgba(120,130,255,.45)!important;border-radius:14px;padding:.8rem!important}
+#exam-list .muted{color:#b4c0ee!important}
+</style>
 </head>
 <body>
 <div id="dz-bg" aria-hidden="true"><svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -1714,7 +1725,7 @@ async function examResult(attemptId){
   if(d.state==='waiting'){examUI(`<div class="ex-wrap"><div class="card"><h2>Exam submitted ✓</h2><p>${esc(d.title)}</p><p class="muted">Your exam was submitted on ${fmtTime(d.submitted_at)}. Your result will be shown here after the teacher declares it.</p></div><button class="btn" onclick="examClose()">Back to Dashboard</button></div>`);return}
   const rows=(d.detail||[]).map((q,i)=>{
     if(q.qtype==='subjective'){const g=q.given||{};return `<div class="card"><b>Q${i+1}. ${esc(q.question)}</b><div class="muted">Your answer: ${esc(g.text||(g.photo?'(photo answer)':'Not answered'))}</div><div class="muted">${q.status==='graded'?'Marks: <b>'+q.awarded+'</b> / '+q.marks:'Waiting for teacher to check'}</div></div>`}
-    const o=q.options||[];return `<div class="card"><b>Q${i+1}. ${esc(q.question)}</b><div style="margin-top:.3rem">Your answer: <b>${q.given==null?'Not answered':_L[q.given]+'. '+esc(o[q.given])}</b></div></div>`}).join('');
+    const o=q.options||[];const st=q.status||((d.questions||[])[i]||{}).status;const ok=st==='correct',no=st==='wrong';const box=ok?'background:#e8f8ef;border:2px solid #168a56':no?'background:#fdecea;border:2px solid #c0392b':'';const tag=ok?'<b style=\"color:#168a56\">✓ Correct</b>':no?'<b style=\"color:#c0392b\">✗ Wrong</b>':'';return `<div class=\"card ${ok?'ex-ok':no?'ex-no':''}\"><b>Q${i+1}. ${esc(q.question)}</b><div style=\"margin-top:.3rem\">Your answer: <b>${q.given==null?'Not answered':_L[q.given]+'. '+esc(o[q.given])}</b></div>${tag?'<div style=\"margin-top:.3rem\">'+tag+'</div>':''}</div>`}).join('');
   examUI(`<div class="ex-wrap"><div class="card" style="text-align:center"><h2 style="margin:.2rem 0">${esc(d.title)}</h2><div style="font-size:2.2rem;font-weight:800">${d.score} / ${d.total}</div>
    <div style="font-weight:800;color:${d.passed?'#168a56':'#c0392b'}">${d.subjective_pending?'Result pending (written answers not checked yet)':d.passed?'PASS 🎉':'FAIL'}</div><div class="muted">Passing marks: ${d.pass_marks}</div></div>
    <div class="ex-meta"><div>Correct<b style="color:#168a56">${d.correct}</b></div><div>Wrong<b style="color:#c0392b">${d.wrong}</b></div><div>Not answered<b>${d.unanswered}</b></div></div>
@@ -1949,7 +1960,7 @@ async function loadPastPapers(){
     parts.push(`<div style="margin:.5rem 0"><b>${esc(a.title)}</b>${d.score!=null?' · Score '+d.score+(d.total_marks!=null?'/'+d.total_marks:''):''}</div>`);
   }
   const box=document.createElement('div');box.id='past-papers';box.className='card';
-  box.innerHTML='<h2>📚 Past exam results</h2><div class="muted" style="margin-bottom:.4rem">Your answers and the correct answers, after the admin has shown the result.</div>'+(parts.length?parts.join(''):'<p class="muted">No past exam results are shown yet.</p>');
+  box.innerHTML='<h2>📚 Past exam results</h2><div class="muted" style="margin-bottom:.4rem">Your answers are marked green (correct) or red (wrong) after the admin has shown the result.</div>'+(parts.length?parts.join(''):'<p class="muted">No past exam results are shown yet.</p>');
   (document.getElementById('student-dashboard')||document.body).appendChild(box);
 }
 // ---- student mockup look ----
@@ -2528,7 +2539,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-31-1';
+  var MY_VER='2026-10-31-3';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
