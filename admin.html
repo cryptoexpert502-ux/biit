@@ -2391,12 +2391,38 @@ async function exList(){
   $('#ex-body').innerHTML=(emptyN?`<div class="card"><b>${emptyN} exam(s) have no questions</b><p class="muted">These are failed attempts. Students cannot take them.</p><button class="btn sm red" onclick="exDeleteEmpty()">Delete empty exams</button></div>`:'')+r.map(e=>{const now=Date.now(),st=new Date(e.start_at),en=new Date(e.end_at);const state=!e.published?'Draft':now<st?'Upcoming':now>en?'Ended':'Running';
    return `<div class="card"><div class="row"><b>${esc(e.title)}</b><span class="muted">${state}</span></div><div class="muted">${fmtTime(e.start_at)} → ${fmtTime(e.end_at)}<br>${e.duration_min} min · ${e.total_marks} marks (pass ${e.pass_marks}) · ${(e.question_ids||[]).length} questions · ${({both:'All students',student:'Computer students',library_student:'Library students'})[e.audience]}<br>Results: ${e.result_mode==='instant'?'shown immediately':(e.results_declared?'declared':'not declared yet')}</div>
    
-   <div class="btns"><button class="btn sm" onclick="exResults('${e.id}')">Results</button><button class="btn sm alt" onclick="exAccess('${e.id}')">Student access</button><button class="btn sm alt" onclick="exToggle('${e.id}','published',${!e.published})">${e.published?'Unpublish':'Publish'}</button>${e.result_mode==='declared'?`<button class="btn sm alt" onclick="exToggle('${e.id}','results_declared',${!e.results_declared})">${e.results_declared?'Hide Results':'Declare Results'}</button>`:''}<button class="btn sm alt" onclick="exToggle('${e.id}','show_past',${!e.show_past})">${e.show_past?'Hide questions from website':'Show questions on website'}</button><button class="btn sm red" onclick="exDelete('${e.id}')">Delete</button></div></div>`}).join('')||'<p class="muted">No exams yet. Create one first.</p>';
+   <div class="btns"><button class="btn sm" onclick="exResults('${e.id}')">Results</button><button class="btn sm alt" onclick="exAccess('${e.id}')">Student access</button><button class="btn sm alt" onclick="exToggle('${e.id}','published',${!e.published})">${e.published?'Unpublish':'Publish'}</button>${e.result_mode==='declared'?`<button class="btn sm alt" onclick="exToggle('${e.id}','results_declared',${!e.results_declared})">${e.results_declared?'Hide Results':'Declare Results'}</button>`:''}<button class="btn sm alt" onclick="exToggle('${e.id}','show_past',${!e.show_past})">${e.show_past?'Hide questions from website':'Show questions on website'}</button><button class=\"btn sm alt\" onclick=\"exEditTime(\'${e.id}\')\">📅 Date / time badlo</button><button class="btn sm red" onclick="exDelete('${e.id}')">Delete</button></div></div>`}).join('')||'<p class="muted">No exams yet. Create one first.</p>';
 }
 async function exDeleteEmpty(){const ids=EXAMS.filter(e=>!(e.question_ids||[]).length).map(e=>e.id);if(!ids.length)return;if(!confirm('Delete '+ids.length+' exam(s) that have no questions?'))return;const {error}=await sb.from('exams').delete().in('id',ids);if(error)return toast(error.message);toast('Empty exams deleted.');exList()}
 async function exSetPhoto(id,m){const e=EXAMS.find(x=>x.id===id);if(!e)return;const {error}=await sb.from('exams').update({instructions:withPhoto(e.instructions,m)}).eq('id',id);if(error)return toast(error.message);toast('Photo setting saved.');exList()}
 async function exToggle(id,k,v){const {error}=await sb.from('exams').update({[k]:v}).eq('id',id);if(error)return toast(error.message);toast('Updated.');exList()}
 async function exDelete(id){if(!confirm('Delete this exam and all student attempts?'))return;const {error}=await sb.from('exams').delete().eq('id',id);if(error)return toast(error.message);toast('Exam deleted.');exList()}
+
+// ---- change exam start / end / timer (admin) ----
+function exEditTime(id){
+  const e=EXAMS.find(x=>x.id===id); if(!e)return;
+  const f=iso=>new Date(iso).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');
+  document.getElementById('ex-time-modal')?.remove();
+  const m=document.createElement('div');m.id='ex-time-modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+  m.innerHTML='<div class="card" style="max-width:420px;width:100%;margin:0"><h3>Date & time badlo</h3><p class="muted">'+esc(e.title)+'</p>'
+    +'<label class="muted">Start (IST)</label><input id="et-s" type="datetime-local" value="'+f(e.start_at)+'">'
+    +'<label class="muted">End (IST)</label><input id="et-e" type="datetime-local" value="'+f(e.end_at)+'">'
+    +'<label class="muted">Timer (minutes)</label><input id="et-d" type="number" min="1" value="'+Number(e.duration_min||0)+'">'
+    +'<div class="btns" style="margin-top:.6rem"><button class="btn" onclick="exSaveTime(\''+e.id+'\')">Save</button><button class="btn sm alt" onclick="document.getElementById(\'ex-time-modal\').remove()">Cancel</button></div></div>';
+  document.body.appendChild(m);
+}
+async function exSaveTime(id){
+  const sv=document.getElementById('et-s').value, ev=document.getElementById('et-e').value, dv=Number(document.getElementById('et-d').value);
+  if(!sv||!ev)return toast('Start aur End dono bharo.');
+  const st=new Date(sv), ed=new Date(ev);
+  if(!(ed>st))return toast('End time Start ke baad hona chahiye.');
+  if(!(dv>0))return toast('Timer minutes sahi likho.');
+  const {error}=await sb.from('exams').update({start_at:st.toISOString(),end_at:ed.toISOString(),duration_min:dv}).eq('id',id);
+  if(error)return toast('Save failed: '+error.message);
+  document.getElementById('ex-time-modal')?.remove();
+  toast('Date & time updated.');exList();
+}
 let EXRES=[],EXCUR=null;
 const cwu=a=>{const d=a.detail||[];const c=k=>d.filter(x=>x.status===k).length;return a.status==='in_progress'?'':'Correct: <b>'+c('correct')+'</b> · Wrong: <b>'+c('wrong')+'</b> · Not answered: <b>'+c('unanswered')+'</b>'+(c('pending')?' · To check: <b>'+c('pending')+'</b>':'')};
 async function attemptSelfie(a){
