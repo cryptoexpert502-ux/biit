@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-10-31-20">
+<meta name="app-version" content="2026-11-02-2">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -1006,6 +1006,29 @@ body.is-scrolling #dz-bg *,body.is-scrolling #paris-bg *{animation-play-state:pa
 body.is-scrolling [class*="card"],body.is-scrolling [class*="tile"],body.is-scrolling .glass,body.is-scrolling [class*="mot"],body.is-scrolling [class*="notice"]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 #student-dashboard [class*="card"]{contain:layout paint}
 </style>
+<style id="exam-size">
+#exam-ui#exam-ui .gx-cell,#exam-ui#exam-ui .gx-cell *,#exam-ui#exam-ui .gx-stats div,#exam-ui#exam-ui .gx-stats b{color:#000!important;-webkit-text-fill-color:#000!important;opacity:1!important}
+
+/* exam screen: normal, readable sizes (watermark stays as it is) */
+#exam-ui#exam-ui .gx-page{max-width:640px!important;padding:8px 10px 28px!important}
+#exam-ui#exam-ui .gx-head{font-size:14px}
+#exam-ui#exam-ui .gx-cell{font-size:14px!important;padding:7px 10px!important;line-height:1.45!important}
+#exam-ui#exam-ui .gx-stats div{font-size:13px!important;padding:6px 3px!important}
+#exam-ui#exam-ui .gx-q{font-size:17px!important;line-height:1.55!important;font-weight:700!important;margin:8px 2px 10px!important}
+#exam-ui#exam-ui .gx-optline{font-size:15px!important;line-height:1.5!important;padding:3px 0!important}
+#exam-ui#exam-ui .gx-radio{font-size:15px!important;padding:5px 0!important}
+#exam-ui#exam-ui .gx-radio b{font-size:15px!important}
+#exam-ui#exam-ui .gx-radio .gx-dot{width:18px!important;height:18px!important}
+#exam-ui#exam-ui .gx-radios{gap:8px!important}
+#exam-ui#exam-ui .btns .btn,#exam-ui#exam-ui button.btn{font-size:14px!important;padding:8px 14px!important;min-height:0!important;border-radius:10px!important;line-height:1.2!important}
+#exam-ui#exam-ui .btns .btn.sm,#exam-ui#exam-ui button.btn.sm{font-size:12.5px!important;padding:6px 10px!important}
+#exam-ui#exam-ui .pal-grid{gap:6px!important}
+#exam-ui#exam-ui .pal{width:32px!important;height:32px!important;font-size:12px!important;border-radius:8px!important}
+#exam-ui#exam-ui .pal-legend{font-size:12px!important}
+#exam-ui#exam-ui .pal-legend .pal{width:14px!important;height:14px!important}
+#exam-ui#exam-ui .ex-meta>div{font-size:12px!important;padding:.45rem!important}
+#exam-ui#exam-ui .ex-meta b{font-size:1.1rem!important}
+</style>
 </head>
 <body>
 <div id="dz-bg" aria-hidden="true"><svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -1203,7 +1226,7 @@ const nativeFetchRef=window.fetch.bind(window);
 const EGRESS_SOFT_CAP=4831838208;
 const meteredFetch=async(input,init)=>{let srvNow=0;try{srvNow=Number(localStorage.getItem('biit-server-usage-'+egressMonth())||0)}catch(_){}const isRead=String(input).includes('/rest/v1/')&&((init&&init.method)||'GET').toUpperCase()==='GET';if(srvNow>EGRESS_SOFT_CAP&&isRead){return new Response(JSON.stringify({message:'Is mahine ka data limit lagbhag poora ho gaya hai. Agle mahine tak kuch lists dikhai nahi denge.',code:'BIIT_LIMIT',details:'',hint:''}),{status:503,headers:{'content-type':'application/json'}})}const r=await nativeFetchRef(input,init);try{const b=await r.clone().arrayBuffer();const k='biit-egress-'+egressMonth();localStorage.setItem(k,String(Number(localStorage.getItem(k)||0)+b.byteLength))}catch(_){}return r};
 async function flushUsage(){try{const m=egressMonth();const total=Number(localStorage.getItem('biit-egress-'+m)||0);const sent=Number(localStorage.getItem('biit-egress-sent-'+m)||0);const delta=total-sent;if(delta<=0)return;const r=await sb.rpc('report_usage',{p_month:m,p_bytes:delta});if(!r.error){localStorage.setItem('biit-egress-sent-'+m,String(total));if(typeof r.data==='number')localStorage.setItem('biit-server-usage-'+m,String(r.data))}}catch(_){}}
-setInterval(flushUsage,300000);
+setInterval(flushUsage,900000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushUsage()});
 const sb = supabase.createClient('https://bpsqafcfdjtvnvcvlotr.supabase.co','sb_publishable_IgpQdxO7-coc0xkspK-GNg_Orh53a18',{global:{fetch:meteredFetch}});
 
@@ -1678,7 +1701,7 @@ setInterval(()=>{
   const els=document.querySelectorAll('.ex-cd');if(!els.length)return;
   const now=Date.now()+window.__exOff;let due=false;
   els.forEach(el=>{const left=Number(el.dataset.st)-now;if(left<=0)due=true;else el.textContent=fmtClock(left)});
-  if(due&&!EX)loadExamList();
+  if(due&&!EX&&Date.now()-(window.__exDueAt||0)>30000){window.__exDueAt=Date.now();loadExamList()}
 },1000);
 setInterval(()=>{if(!EX&&!document.hidden&&document.querySelector('#exam-list'))loadExamList()},300000);
 async function loadExamList(){
@@ -2577,12 +2600,25 @@ async function renderStudentPortal(me){
     </div></div>`;
   stuNav();
 
-  const [fee, pay, att, msgs] = await qcached('dash:'+me.id,60000,()=>Promise.all([
+  const [fee, pay, att, msgs, hol] = await qcached('dash:'+me.id,60000,()=>Promise.all([
     sb.from('student_fee_summary').select('*').eq('id', me.id).maybeSingle(),
     sb.from('fee_payments').select('id,amount,paid_on,paid_at,paid_month,note').eq('student_id', me.id).order('paid_at', {ascending:false}).limit(200),
     sb.from('attendance').select('*').eq('student_id', me.id).order('date', {ascending:false}).limit(200),
-    sb.from('push_log').select('message,sent_at,target_class').gte('sent_at', cutoff()).order('sent_at', {ascending:false}).limit(30)
+    sb.from('push_log').select('message,sent_at,target_class').gte('sent_at', cutoff()).order('sent_at', {ascending:false}).limit(30),
+    sb.from('site_settings').select('setting_value').eq('setting_key','holidays').maybeSingle()
   ]));
+
+  // Holiday notice for today (IST)
+  try{
+    const todayIst=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
+    const hl=JSON.parse((hol&&hol.data&&hol.data.setting_value)||'[]');
+    const hh=hl.find(x=>x.date===todayIst);
+    document.getElementById('hol-card')?.remove();
+    if(hh){
+      const host=document.getElementById('student-dashboard')||document.getElementById('role-dashboard');
+      if(host)host.insertAdjacentHTML('afterbegin','<div id="hol-card" class="card" style="border:2px solid #f59e0b;background:#fff8e6;color:#3a2a00;font-weight:700;text-align:center">🎉 Aaj chhutti hai: '+esc(hh.reason)+'</div>');
+    }
+  }catch(_){}
 
   const f = fee.data || {total_fees:0, paid:0, pending:0};
   $('#c-fee').innerHTML = `<h2>My Fees</h2>
@@ -2758,7 +2794,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-10-31-20';
+  var MY_VER='2026-11-02-2';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
@@ -2777,7 +2813,7 @@ window.__siteReady=loadPublicSiteContent();
     }).catch(function(){});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',check); else check();
-  setInterval(check,1800000);
+  setInterval(check,7200000);
 })();
 </script>
 <div id="creator"><div class="cr-badge" role="note" aria-label="Website created by Aryan Yadav"><i></i><i></i><i></i><span class="cr-k">This website created by</span><b class="cr-name">Aryan Yadav</b><span class="cr-line"></span></div></div>

@@ -711,9 +711,12 @@ function copyLink(){
   const i=$('#rl');i.select();
   (navigator.clipboard?navigator.clipboard.writeText(i.value):Promise.reject()).then(()=>toast('Link copied.'),()=>{document.execCommand('copy');toast('Link copied.')});
 }
+
+function normC(s){return String(s||'').toLowerCase().replace(/[\s\-\._\/()]+/g,'')}
 function listStudents(){
   const q=($('#q')?.value||'').toLowerCase();
-  const l=students.filter(s=>[s.name,s.class,s.phone].join(' ').toLowerCase().includes(q));
+  const nq=normC(q);
+  const l=students.filter(s=>[s.name,s.class,s.phone].join(' ').toLowerCase().includes(q)||(nq&&normC(s.class).includes(nq)));
   $('#slist').innerHTML = l.length ? l.map(s=>`
     <div class="card">
       <div class="row"><b>${esc(s.name)}</b><span class="muted">${esc(s.class)}</span></div>
@@ -741,6 +744,8 @@ async function removeStudent(id){
 }
 
 // ============= COURSES =============
+
+
 function viewCourses(){
   $('#v-crs').innerHTML = `<h2>Courses</h2>
   <div class="card">
@@ -768,11 +773,12 @@ async function addCourse(){
   if(f < 0) return toast('Enter a valid fee amount.');
   // A deleted course is only hidden (is_active=false), so its name is still taken. Bring it back instead of failing.
   const esc_=n.replace(/[\\%_]/g,m=>'\\'+m);
-  const ex = await sb.from('courses').select('id,name,is_active').ilike('name',esc_).limit(1);
+  const all=await sb.from('courses').select('id,name,is_active').limit(500);
+  const hit=(all.data||[]).find(c=>normC(c.name)===normC(n));
   let r;
-  if(!ex.error && ex.data && ex.data.length){
-    if(ex.data[0].is_active!==false) return toast('A course named "'+ex.data[0].name+'" already exists.');
-    r = await sb.from('courses').update({is_active:true,total_fees:f}).eq('id',ex.data[0].id).select('id');
+  if(hit){
+    if(hit.is_active!==false) return toast('A course named "'+hit.name+'" already exists.');
+    r = await sb.from('courses').update({is_active:true,total_fees:f}).eq('id',hit.id).select('id');
     if(!r.error && (!r.data||!r.data.length)) return toast('Could not restore the old course (database permission). Run the courses SQL in Supabase.',8000);
   } else {
     r = await sb.from('courses').insert({name:n, total_fees:f});
@@ -791,8 +797,40 @@ async function delCourse(id){
 }
 
 // ============= ATTENDANCE =============
+
+// ---- Holidays (stored as one row in site_settings: key "holidays") ----
+const HOL_KEY='holidays';
+async function holidayList(){
+  const r=await sb.from('site_settings').select('setting_value').eq('setting_key',HOL_KEY).maybeSingle();
+  if(r.error)return [];
+  try{return JSON.parse((r.data&&r.data.setting_value)||'[]')}catch(_){return []}
+}
+async function saveHolidayList(list){
+  const {error}=await sb.from('site_settings').upsert({setting_key:HOL_KEY,setting_value:JSON.stringify(list.slice(-120))},{onConflict:'setting_key'});
+  if(error)throw error;
+}
+async function renderHolidays(){
+  const el=document.getElementById('hol-list'); if(!el)return;
+  const list=await holidayList();
+  el.innerHTML=list.length?list.slice().sort((x,y)=>y.date.localeCompare(x.date)).slice(0,30).map(h=>'<div class="card" style="margin:.4rem 0"><b>'+esc(h.date)+'</b> — '+esc(h.reason||'Chhutti')+' <button class="btn sm alt" onclick="removeHoliday(\''+esc(h.date)+'\')">Hatao</button></div>').join(''):'<p class="muted">Abhi koi chhutti save nahi hai.</p>';
+}
+async function saveHoliday(){
+  const d=document.getElementById('hol-d').value, r=(document.getElementById('hol-r').value||'').trim();
+  if(!d)return toast('Date chuno.');
+  if(!r)return toast('Chhutti ka reason likho.');
+  const list=(await holidayList()).filter(h=>h.date!==d); list.push({date:d,reason:r});
+  try{await saveHolidayList(list)}catch(e){return toast('Save failed: '+e.message,7000)}
+  toast('Chhutti save ho gayi.'); document.getElementById('hol-r').value=''; renderHolidays();
+}
+async function removeHoliday(d){
+  const list=(await holidayList()).filter(h=>h.date!==d);
+  try{await saveHolidayList(list)}catch(e){return toast('Failed: '+e.message,7000)}
+  toast('Chhutti hata di.'); renderHolidays();
+}
 function viewAttendance(){
+  setTimeout(renderHolidays,0);
   $('#v-att').innerHTML = `<h2>Attendance</h2>
+  <div class=\"card\"><b>🏖 Holiday / chhutti</b><p class=\"muted\">Jis din chhutti ho, date aur reason likho. Students ko apni ID par wo din dikhega.</p><div class=\"g3\"><div><label class=\"muted\">Date</label><input id=\"hol-d\" type=\"date\" value=\"${today()}\"></div><div><label class=\"muted\">Reason (jaise: Diwali ki chhutti)</label><input id=\"hol-r\" placeholder=\"Chhutti ka karan\"></div></div><div class=\"btns\"><button class=\"btn\" onclick=\"saveHoliday()\">Chhutti save karo</button></div><div id=\"hol-list\"><p class=\"muted\">Loading…</p></div></div>
   <div class="card" id="self-att"><p class="muted">Loading self-attendance settings…</p></div>
   <div class="card">
     <input id="ad" type="date" value="${today()}" onchange="loadAtt()">
