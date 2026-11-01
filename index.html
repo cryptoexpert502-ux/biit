@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-11-02-4">
+<meta name="app-version" content="2026-11-02-7">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -1049,6 +1049,55 @@ body.is-scrolling [class*="card"],body.is-scrolling [class*="tile"],body.is-scro
 body.stu-mode #dz-bg,body.stu-mode #dz-bg *{animation:none!important;transition:none!important}
 body.stu-mode #dz-bg [filter]{filter:none!important}
 body.stu-mode #dz-bg{will-change:auto!important}
+</style>
+<style id="gx-size-final">
+/* exam screen: correct button/text sizes for the real exam layout (fits phone width, no side slide) */
+html body #exam-ui.gx{overflow-x:hidden!important;max-width:100vw!important}
+html body #exam-ui.gx .gx-page{max-width:100%!important;width:100%!important;padding:6px 8px 20px!important;box-sizing:border-box!important;overflow-x:hidden!important}
+html body #exam-ui.gx .gx-head,html body #exam-ui.gx .gx-stats{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+html body #exam-ui.gx .gx-cell{font-size:13px!important;padding:6px 8px!important;line-height:1.4!important}
+html body #exam-ui.gx .gx-stats div{font-size:11px!important;padding:5px 2px!important}
+html body #exam-ui.gx .gx-stats b{font-size:12px!important}
+html body #exam-ui.gx .gx-q{font-size:16px!important;line-height:1.45!important;margin:6px 2px 8px!important}
+html body #exam-ui.gx .gx-optline{font-size:14px!important;padding:2px 0!important}
+html body #exam-ui.gx .gx-radio{font-size:14px!important;padding:4px 0!important;gap:6px!important}
+html body #exam-ui.gx .gx-radio b{font-size:14px!important}
+html body #exam-ui.gx .gx-dot{width:18px!important;height:18px!important}
+html body #exam-ui.gx .gx-radios{gap:6px 10px!important;flex-wrap:wrap!important}
+html body #exam-ui.gx .gx-act{gap:8px!important;margin:8px 0!important;flex-wrap:wrap!important}
+html body #exam-ui.gx .gx-act button{font-size:13px!important;padding:8px 14px!important;min-width:0!important;width:auto!important;max-width:46%!important;line-height:1.2!important}
+html body #exam-ui.gx .gx-nav{gap:6px!important;margin:4px 0 10px!important}
+html body #exam-ui.gx .gx-nav button{font-size:12px!important;padding:6px 9px!important;border-width:1.5px!important;border-radius:8px!important;min-width:0!important}
+html body #exam-ui.gx .gx-fin{padding:8px!important}
+html body #exam-ui.gx .gx-fin button{font-size:14px!important;padding:9px 18px!important;border-width:2px!important;border-radius:10px!important;width:auto!important;max-width:70%!important}
+html body #exam-ui.gx .pal-grid{display:flex!important;flex-wrap:wrap!important;gap:5px!important}
+html body #exam-ui.gx .pal{width:30px!important;height:30px!important;font-size:11px!important;border-radius:6px!important}
+html body #exam-ui.gx .pal-legend{font-size:11px!important}
+html body #exam-ui.gx .pal-legend .pal{width:12px!important;height:12px!important}
+</style>
+<style id="exam-start-dark">
+/* exam START page (instructions + Start Exam): dark navy + gold, same look as the dashboard. Question screen (.gx) is not changed. */
+#exam-ui#exam-ui:not(.gx){background:#0b0a26!important;opacity:1!important}
+#exam-ui#exam-ui:not(.gx) .ex-wrap{background:transparent!important;color:#fff1d6!important}
+#exam-ui#exam-ui:not(.gx) .ex-wrap>h2,#exam-ui#exam-ui:not(.gx) h2{color:#ffd36e!important;text-shadow:0 0 12px rgba(255,190,70,.35)!important;font-weight:800!important}
+#exam-ui#exam-ui:not(.gx) .ex-meta>div{background:rgba(12,8,28,.82)!important;border:1.5px solid rgba(255,205,110,.75)!important;color:#fff1d6!important;box-shadow:0 0 14px rgba(255,190,70,.2)!important;border-radius:14px!important}
+#exam-ui#exam-ui:not(.gx) .ex-meta b{color:#ffd36e!important}
+#exam-ui#exam-ui:not(.gx) .ex-meta>div{color:#ffe6b3!important}
+#exam-ui#exam-ui:not(.gx) .card{background:rgba(12,8,28,.8)!important;border:1.5px solid rgba(255,205,110,.8)!important;box-shadow:0 0 20px rgba(255,190,70,.25)!important;color:#fff1d6!important}
+#exam-ui#exam-ui:not(.gx) .card *{color:#fff1d6!important;-webkit-text-fill-color:#fff1d6!important;opacity:1!important;text-shadow:none!important}
+#exam-ui#exam-ui:not(.gx) .card b,#exam-ui#exam-ui:not(.gx) .card strong{color:#ffd36e!important;-webkit-text-fill-color:#ffd36e!important}
+#exam-ui#exam-ui:not(.gx) .card .muted{color:#ffe6b3!important;-webkit-text-fill-color:#ffe6b3!important}
+#exam-ui#exam-ui:not(.gx) .card input[type=checkbox]{width:20px!important;height:20px!important;accent-color:#ffd36e!important;opacity:1!important}
+#exam-ui#exam-ui:not(.gx) .btn{background:linear-gradient(90deg,#f6c453,#ff9d2e)!important;color:#3a1400!important;-webkit-text-fill-color:#3a1400!important;border:0!important;box-shadow:0 0 16px rgba(255,190,70,.45)!important;font-weight:800!important}
+#exam-ui#exam-ui:not(.gx) .btn.alt{background:rgba(255,205,110,.12)!important;color:#ffd36e!important;-webkit-text-fill-color:#ffd36e!important;border:1.5px solid rgba(255,205,110,.75)!important;box-shadow:none!important}
+#exam-ui#exam-ui:not(.gx) .btn:disabled{opacity:.5!important}
+</style>
+<style id="dash-smooth-final">
+/* student dashboard: smooth scrolling (no blur on scroll, background on its own layer) */
+body.stu-mode #dz-bg{transform:translateZ(0);will-change:transform;contain:strict;backface-visibility:hidden}
+body.stu-mode #student-dashboard [class*="card"],body.stu-mode #student-dashboard [class*="box"],body.stu-mode #student-dashboard [class*="tile"],body.stu-mode #student-dashboard [class*="mot"],body.stu-mode #student-dashboard [class*="notice"],body.stu-mode #student-dashboard [class*="stat"],body.stu-mode #student-dashboard [class*="progress"],body.stu-mode #student-dashboard .glass,body.stu-mode #stu-nav,body.stu-mode .top,body.stu-mode .hero{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background-color:rgba(10,6,24,.9)!important;box-shadow:0 2px 8px rgba(0,0,0,.28)!important}
+body.stu-mode #stu-nav{background-color:rgba(10,6,24,.96)!important}
+body.stu-mode #student-dashboard{contain:layout style}
 </style>
 </head>
 <body>
@@ -2815,7 +2864,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-11-02-4';
+  var MY_VER='2026-11-02-7';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
