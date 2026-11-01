@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-11-02-2">
+<meta name="app-version" content="2026-11-02-4">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -1028,6 +1028,27 @@ body.is-scrolling [class*="card"],body.is-scrolling [class*="tile"],body.is-scro
 #exam-ui#exam-ui .pal-legend .pal{width:14px!important;height:14px!important}
 #exam-ui#exam-ui .ex-meta>div{font-size:12px!important;padding:.45rem!important}
 #exam-ui#exam-ui .ex-meta b{font-size:1.1rem!important}
+</style>
+<style id="exam-fit">
+/* exam screen: fit the phone width (no side-scroll), smaller buttons */
+#exam-ui#exam-ui{overflow-x:hidden!important;max-width:100vw!important}
+#exam-ui#exam-ui .gx-page{width:100%!important;max-width:100%!important;overflow-x:hidden!important;padding:6px 8px 24px!important}
+#exam-ui#exam-ui .gx-page *{max-width:100%;box-sizing:border-box}
+#exam-ui#exam-ui .gx-head,#exam-ui#exam-ui .gx-stats{width:100%!important;table-layout:fixed}
+#exam-ui#exam-ui .gx-stats div{font-size:12px!important;padding:5px 2px!important;word-break:break-word}
+#exam-ui#exam-ui .gx-stats b{font-size:12px!important}
+#exam-ui#exam-ui button.btn,#exam-ui#exam-ui .btn{width:auto!important;max-width:100%!important;font-size:13px!important;padding:7px 12px!important;min-height:0!important;line-height:1.2!important;border-radius:10px!important;white-space:normal!important;border-width:1.5px!important}
+#exam-ui#exam-ui .btns{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin:6px 0!important}
+#exam-ui#exam-ui .btns .btn{flex:0 1 auto!important}
+#exam-ui#exam-ui button.btn[style*="width:100%"]{width:auto!important;min-width:0!important}
+#exam-ui#exam-ui .gx-radios{display:flex!important;flex-wrap:wrap!important;gap:6px 10px!important;justify-content:flex-start!important}
+#exam-ui#exam-ui .pal-grid{display:flex!important;flex-wrap:wrap!important}
+</style>
+<style id="dash-static">
+/* student dashboard: no moving animations (static background, smooth scrolling) */
+body.stu-mode #dz-bg,body.stu-mode #dz-bg *{animation:none!important;transition:none!important}
+body.stu-mode #dz-bg [filter]{filter:none!important}
+body.stu-mode #dz-bg{will-change:auto!important}
 </style>
 </head>
 <body>
@@ -2794,7 +2815,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-11-02-2';
+  var MY_VER='2026-11-02-4';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
