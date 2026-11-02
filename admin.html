@@ -2467,7 +2467,7 @@ async function showSelfie(a,pre,size){
 
 // Admin: remove a submitted attempt so the same student can take the paper again.
 async function exRetake(aid,examId){
-  if(!confirm('Allow this student to retake the exam? Their submitted paper and current result will be deleted.'))return;
+  if(!confirm('Allow this student to give the exam again (Re-Exam)? Their submitted paper and current result will be deleted.'))return;
   const {error}=await sb.from('exam_attempts').delete().eq('id',aid);
   if(error)return toast('Failed: '+error.message,7000);
   toast('Done. The student can now start the exam again.',5000);
@@ -2480,7 +2480,7 @@ async function exResults(id){
   <div class="grid"><div>Attempts<b>${r.length}</b></div><div>Passed<b>${passed}</b></div><div>Average<b>${avg.toFixed(1)}</b></div></div>
   <div class="btns" style="margin:.6rem 0"><button class="btn sm green" onclick="exResultsXlsx()">📊 Excel (.xlsx)</button> <button class="btn sm green" onclick="exResultsCsv()">🧾 CSV</button></div>
   ${r.map((a,i)=>`<div class="card">${photoModeOf(EXCUR.instructions)!=='off'?`<span id="sf-${a.id}" class="muted" style="float:right;margin-left:.5rem;font-size:.75rem">…</span>`:''}<div class="row"><b>${i+1}. ${esc(a.student_name||'-')}</b><b>${Number(a.score)}/${EXCUR.total_marks}</b></div><div class="muted">${esc(a.student_phone||'')} · ${a.role==='library_student'?'Library':'Computer'} student · ${a.status==='in_progress'?'In progress':(a.status==='auto_submitted'?'Auto-submitted':'Submitted')}<br>Started: ${a.started_at?fmtTime(a.started_at):'-'}${a.submitted_at?' · Finished: '+fmtTime(a.submitted_at):''}<br>${cwu(a)}<br>${a.status!=='in_progress'?(Number(a.score)>=Number(EXCUR.pass_marks)?'<b style="color:#168a56">PASS</b>':'<b style="color:#c0392b">FAIL</b>'):''} · Tab-switch warnings: ${a.violations}</div>
-  ${a.status!=='in_progress'?`<div class="btns"><button class="btn sm" onclick="exGrade('${a.id}')">Check Answers${(a.detail||[]).some(d=>d.status==='pending')?' / Give Marks':''}</button><button class=\"btn sm alt\" onclick=\"exRetake(\'${a.id}\',\'${a.exam_id}\')\">🔄 Allow retake</button></div>`:''}</div>`).join('')||'<p class="muted">No student has started this exam yet.</p>'}`;
+  ${a.status!=='in_progress'?`<div class="btns"><button class="btn sm" onclick="exGrade('${a.id}')">Check Answers${(a.detail||[]).some(d=>d.status==='pending')?' / Give Marks':''}</button><button class=\"btn sm alt\" onclick=\"exRetake(\'${a.id}\',\'${a.exam_id}\')\">🔄 Allow Re-Exam</button></div>`:''}</div>`).join('')||'<p class="muted">No student has started this exam yet.</p>'}`;
   r.forEach(a=>showSelfie(a));
 }
 async function blobToDataUrl(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('read'));r.readAsDataURL(b)})}
@@ -2674,7 +2674,7 @@ function biitCompactSidebar(){if(window.matchMedia('(max-width:760px)').matches)
     'This website created by':'यह वेबसाइट बनाई गई है','BIIT / ADMIN WORKSPACE':'BIIT / एडमिन वर्कस्पेस',
     'Start Exam':'परीक्षा शुरू करें','Resume Exam':'परीक्षा फिर से शुरू करें','View Result':'परिणाम देखें','Exam ended':'परीक्षा समाप्त',
     'Open':'खोलें','Starts in':'शुरू होगी','Present':'उपस्थित','Absent':'अनुपस्थित','Leave':'छुट्टी','Save holiday':'छुट्टी सहेजें',
-    'Holiday saved.':'छुट्टी सहेजी गई।','Holiday removed.':'छुट्टी हटाई गई।','Allow retake':'दोबारा देने की अनुमति','Publish':'प्रकाशित करें',
+    'Holiday saved.':'छुट्टी सहेजी गई।','Holiday removed.':'छुट्टी हटाई गई।','Allow Re-Exam':'दोबारा परीक्षा की अनुमति','Publish':'प्रकाशित करें',
     'Unpublish':'प्रकाशन हटाएं','Student access':'छात्र एक्सेस','Save access':'एक्सेस सहेजें','Select all':'सभी चुनें','Unselect all':'सभी हटाएं',
     'Download Excel':'एक्सेल डाउनलोड करें','Excel':'एक्सेल','CSV':'सीएसवी','Download':'डाउनलोड','Print':'प्रिंट करें',
     'Save Fee Details':'फीस विवरण सहेजें','Holiday':'छुट्टी',
@@ -2732,5 +2732,6 @@ function biitCompactSidebar(){if(window.matchMedia('(max-width:760px)').matches)
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 </script>
+<style id="biit-lang-menu-fix">html body #biit-lang-menu{background:#fff!important;color:#111!important;border:1px solid #e5e7eb!important}html body #biit-lang-menu button,html body header #biit-lang-menu button,html body header.portal #biit-lang-menu button{background:#fff!important;color:#111!important;border-radius:0!important;border-left:0!important;border-right:0!important;border-bottom:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-text-fill-color:#111!important;text-shadow:none!important;font-weight:600!important}html body #biit-lang-menu button *{color:#111!important;-webkit-text-fill-color:#111!important;opacity:1!important}html body #biit-lang-menu button:active,html body #biit-lang-menu button:hover{background:#f1ecff!important}html body #biit-lang-menu button.on,html body header #biit-lang-menu button.on,html body header.portal #biit-lang-menu button.on{background:#5b2bd6!important;color:#fff!important;-webkit-text-fill-color:#fff!important}html body #biit-lang-menu button.on *{color:#fff!important;-webkit-text-fill-color:#fff!important}</style>
 </body>
 </html>
