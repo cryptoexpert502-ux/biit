@@ -1114,6 +1114,7 @@ html body #exam-ui.gx .gx-tbl td:nth-child(2) i,html body #exam-ui.gx .gx-tbl td
 .dash-option-overlay .dash-option-body{padding-bottom:12px}
 </style>
 <style id="biit-lang-clean">#biit-lang-btn{background:rgba(255,255,255,.12)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:6px 12px!important;font-size:14px!important;font-weight:600!important;gap:6px!important;line-height:1.2!important;color:#fff!important;border:1.5px solid rgba(255,255,255,.7)!important;box-shadow:none!important;text-shadow:none!important;animation:none!important;transition:none!important}#biit-lang-btn::before,#biit-lang-btn::after{content:none!important;display:none!important}#biit-lang-btn:hover{background:rgba(255,255,255,.2)!important}#biit-lang-btn svg{width:16px!important;height:16px!important}#biit-lang-menu{background:#fff!important}</style>
+<style id="biit-sheet-fix">.dash-option-overlay{display:block!important;padding:0!important;align-items:initial!important;justify-content:initial!important}.dash-option-overlay .dash-option-sheet{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;width:min(760px,calc(100% - 16px))!important;max-width:calc(100% - 16px)!important;height:auto!important;max-height:86dvh!important;max-height:86vh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;margin:0!important;animation:none!important}.dash-option-overlay .dash-option-body{display:grid!important;min-height:0;gap:12px}.dash-option-overlay .dash-option-head{position:sticky;top:0}</style>
 </head>
 <body>
 <div id="dz-bg" aria-hidden="true"><svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs>
@@ -2996,10 +2997,12 @@ window.__siteReady=loadPublicSiteContent();
     var lo=hd&&hd.querySelector('button[onclick="logout()"]');
     var inHeader=!!(hd&&lo&&hd.offsetParent!==null);
     if(inHeader){
-      if(w.parentNode!==lo.parentNode||w.nextSibling!==lo)lo.parentNode.insertBefore(w,lo);
-      w.style.position='relative';w.style.top='auto';w.style.right='auto';w.style.zIndex='1000';w.style.display='inline-block';w.style.margin='0 6px 0 0';
+      if(w.parentNode!==lo.parentNode||w.previousSibling!==lo)lo.parentNode.insertBefore(w,lo.nextSibling);
+      lo.style.order='2';w.style.order='1';
+      w.style.position='relative';w.style.top='auto';w.style.right='auto';w.style.zIndex='1000';w.style.display='inline-block';w.style.margin='0 0 0 0';
     }else{
       if(w.parentNode!==document.body)document.body.appendChild(w);
+      if(lo){lo.style.order=''}
       w.style.position='fixed';w.style.top='12px';w.style.right='12px';w.style.zIndex='100000';w.style.display='';w.style.margin='';
     }
   }
