@@ -311,7 +311,7 @@ a{color:#93c5fd;}
       <button class="bs-link" data-view="media" onclick="go('media')"><span>▣</span><b>Website Content</b></button>
       <button class="bs-link" data-view="prof" onclick="go('prof')"><span>✏️</span><b>Edit Profile</b></button>
       <button class="bs-link" data-view="about" onclick="go('about')"><span>🏫</span><b>Coaching Details</b></button>
-      <button class="bs-link" data-view="rep" onclick="go('rep')"><span>📄</span><b>PDF Reports</b></button>
+      <button class="bs-link" data-view="rep" onclick="go('rep')"><span>📊</span><b>Excel Reports</b></button>
       <button class="bs-link" data-view="exam" onclick="go('exam')"><span>📝</span><b>Online Exams</b></button>
       <button class="bs-link" data-view="pw" onclick="go('pw')"><span>🔑</span><b>Reset Password</b></button>
       <button class="bs-link" data-view="intro" onclick="go('intro')"><span>🎬</span><b>Welcome Screen</b></button>
@@ -518,7 +518,7 @@ const money = n => '₹' + Number(n||0).toLocaleString('en-IN');
 const fmt = d => toDate(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone: DATE_ONLY.test(String(d)) ? 'UTC' : TZ});
 const fmtTime = d => toDate(d).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:TZ});
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const tabs = [['home','Home'],['hub','Students'],['dash','Dashboard'],['stu','Students'],['crs','Courses'],['att','Attendance'],['fee','Fees'],['msg','Messages'],['lib','Library'],['teach','Teachers'],['prom','Promoters'],['media','Website Content'],['prof','Edit Profile'],['rep','PDF Reports'],['exam','Online Exams'],['pw','Reset Password'],['intro','Welcome Screen'],['usage','📊 Usage Monitor']];
+const tabs = [['home','Home'],['hub','Students'],['dash','Dashboard'],['stu','Students'],['crs','Courses'],['att','Attendance'],['fee','Fees'],['msg','Messages'],['lib','Library'],['teach','Teachers'],['prom','Promoters'],['media','Website Content'],['prof','Edit Profile'],['rep','Excel Reports'],['exam','Online Exams'],['pw','Reset Password'],['intro','Welcome Screen'],['usage','📊 Usage Monitor']];
 const DAY = 24*60*60*1000;
 const cutoff = () => new Date(Date.now()-DAY).toISOString();   // Messages older than 24 hours are hidden.
 let students = [], marks = {}, feeRows = [], courses = [], libraryRows=[], teacherRows=[], promoterRows=[];
@@ -564,7 +564,7 @@ async function viewHome(){
     {v:'media',i:'🖼️',t:'Website Content',c:'linear-gradient(135deg,#ff1680,#ff365d)'},
     {v:'prof',i:'✏️',t:'Edit Profile',n:'',c:'linear-gradient(135deg,#f20b56,#c90067)'},
     {v:'about',i:'🏫',t:'Coaching Details',c:'linear-gradient(135deg,#ffb000,#ff6900)'},
-    {v:'rep',i:'📄',t:'PDF Reports',c:'linear-gradient(135deg,#9c00ff,#e000bd)'},
+    {v:'rep',i:'📊',t:'Excel Reports',c:'linear-gradient(135deg,#9c00ff,#e000bd)'},
     {v:'exam',i:'📝',t:'Online Exams',c:'linear-gradient(135deg,#ff167e,#ff3650)'},
     {v:'pw',i:'🔑',t:'Reset Password',c:'linear-gradient(135deg,#008fff,#0758dc)'},
     {v:'intro',i:'🎬',t:'Welcome Screen',c:'linear-gradient(135deg,#00b99b,#008c9b)'},
@@ -698,7 +698,7 @@ function exportStudentsCSV(){
   toast('Downloaded '+students.length+' students. Open it in Excel.',5000);
 }
 function viewStudents(){
-  $('#v-stu').innerHTML = `<h2>Students (${students.length})</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('students')">📄 Download PDF</button> <button class=\"btn sm alt\" onclick=\"exportStudentsXlsx()\">📥 Students Excel (.xlsx)</button> <button class=\"btn sm alt\" onclick=\"exportStudentsCSV()\">🧾 Students CSV</button></div>
+  $('#v-stu').innerHTML = `<h2>Students (${students.length})</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('students')">📊 Download Excel</button> <button class=\"btn sm alt\" onclick=\"exportStudentsCSV()\">🧾 Students CSV</button></div>
   <div class="card"><b>Student Portal Link</b>
   <div class="muted">Share this link with students. They can register themselves and view their own records.</div>
   <input id="rl" readonly value="${esc(location.origin+'/')}">
@@ -724,7 +724,7 @@ function listStudents(){
       <div class="btns">
         <button class="btn sm" onclick="editStudent('${s.id}')">✏️ Edit Profile</button>
         <button class="btn sm" onclick="openDiscount('student','${s.id}')">🏷️ Discount</button>
-        <button class="btn sm alt" onclick="studentPdf('${s.id}')">📄 PDF</button>
+        <button class="btn sm alt" onclick="studentPdf('${s.id}')">📊 Excel</button>
         <button class="btn sm red" onclick="removeStudent('${s.id}')">Delete</button>
         ${s.phone?`<button class="btn sm wa" onclick="waMsg('${s.id}')">WhatsApp</button>`:''}
       </div>
@@ -983,7 +983,7 @@ function listFees(){
         <button class="btn sm" onclick="payFee('${r.id}')">+ Deposit Fees</button>
         <button class="btn sm alt" onclick="setTotal('${r.id}')">Edit Course Fees</button>
         <button class="btn sm" onclick="openDiscount('student','${r.id}')">🏷️ Discount</button>
-        <button class="btn sm alt" onclick="studentPdf('${r.id}')">📄 PDF</button>
+        <button class="btn sm alt" onclick="studentPdf('${r.id}')">📊 Excel</button>
         ${r.phone?`<button class="btn sm wa" onclick="waStudent('${r.id}')">WhatsApp</button>`:''}
       </div>
       <div id="hist-${r.id}" style="margin-top:.5rem"></div>
@@ -1188,8 +1188,8 @@ async function viewLibrary(){
     <label class="muted">Library course name</label><input id="lc-name" placeholder="e.g. Reading Room, Monthly Library">
     <button class="btn" onclick="addLibraryCourse()">Add Library Course</button>
     <div style="margin-top:.6rem">${libCourses.map(c=>`<div class="hist-row"><span><b>${esc(c.name)}</b></span><button class="btn sm red" onclick="deleteLibraryCourse('${c.id}')">Delete</button></div>`).join('')||'<p class="muted">No library courses yet.</p>'}</div></div>
-    <div class="card"><h3>Add Library Member</h3><input id="al-name" placeholder="Member full name"><input id="al-phone" type="tel" maxlength="10" placeholder="10-digit mobile number"><input id="al-pw" type="text" placeholder="Password (min 8 characters)"><select id="al-course"><option value="">-- Select library course --</option>${libCourses.map(c=>`<option value="${c.id}" data-n="${esc(c.name)}" data-f="${Number(c.fee_amount||0)}">${esc(c.name)} </option>`).join('')}</select><input id="al-seat" placeholder="Seat number (optional)"><select id="al-gender"><option>Male</option><option>Female</option><option>Other</option></select><input id="al-addr" placeholder="Address (optional)"><label class="muted">Aadhaar number (12 digits, optional)</label><input id="al-aad" inputmode="numeric" maxlength="14" placeholder="Aadhaar number"><input id="al-aadname" placeholder="Name as on Aadhaar (optional)"><label class="muted">Aadhaar DOB (optional)</label><input id="al-aaddob" type="date"><label class="muted">Aadhaar card photo - front</label><input id="al-aadf" type="file" accept="image/*"><label class="muted">Aadhaar card photo - back</label><input id="al-aadb" type="file" accept="image/*"><label class="muted">Admission Through</label><select id="al-prom">${promOpts}</select><button class="btn" onclick="addMember('library')">Add Library Member</button></div><h2>Library Members (${libraryRows.length})</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('library')">📄 Download PDF</button></div>`+
-    (libraryRows.length?libraryRows.map(r=>`<div class="card"><div class="row"><b>${esc(r.aadhaar_name||r.full_name)}</b></div><div class="muted">Mobile: ${esc(r.phone)}<br>Address: ${esc(r.address||'-')}<br>${(r.aadhaar_number||r.aadhaar_last4||r.aadhaar_dob)?`Aadhaar Name: ${esc(r.aadhaar_name||r.full_name)}<br>Aadhaar DOB: ${esc(r.aadhaar_dob||'-')}<br>Aadhaar Gender: ${esc(r.aadhaar_gender||'-')}<br>Aadhaar Address: ${esc(r.aadhaar_address||'-')}<br>`:''}Gender: ${esc(r.gender||'-')}<br>Aadhaar: ${r.aadhaar_number?'XXXX-XXXX-'+esc(String(r.aadhaar_number).slice(-4)):r.aadhaar_last4?'XXXX-XXXX-'+esc(r.aadhaar_last4):'Not provided'}<br>Seat Number: <b>${esc(r.seat_number||'-')}</b><br>Library Course: ${esc(r.course_name||'-')}<br>Membership: ${esc(r.membership_type||'-')}<br>Submitted: ${r.created_at?fmtTime(r.created_at):'-'}</div><div class="grid"><div>Total Fee<b>${money(r.fee_amount)}</b></div><div>Deposit Fee<b>${money(r.fee_paid)}</b></div><div>Pending Fee<b>${money(Math.max(0,Number(r.fee_amount||0)-Number(r.fee_paid||0)))}</b></div></div>${(r.aadhaar_front_path||r.aadhaar_back_path)?`<div class="btns">${r.aadhaar_front_path?`<button class="btn sm alt" onclick="viewAadhaarDoc('${r.aadhaar_front_path}')">View Aadhaar Front</button>`:''}${r.aadhaar_back_path?`<button class="btn sm alt" onclick="viewAadhaarDoc('${r.aadhaar_back_path}')">View Aadhaar Back</button>`:''}</div>`:''}<label class="muted">Update Total Fee (₹)</label><input id="lf-total-${r.id}" type="number" min="0" value="${Number(r.fee_amount||0)}"><label class="muted">Update Deposit Fee (₹)</label><input id="lf-paid-${r.id}" type="number" min="0" value="${Number(r.fee_paid||0)}"><button class="btn sm" onclick="saveLibraryFees('${r.id}')">Save Fee Details</button><label class="muted">Admission Through</label><select id="lp-${r.id}">${promSel(r.promoter_code)}</select><button class="btn sm" onclick="saveLibPromoter('${r.id}')">Save Promoter</button><label class="muted">Seat Number</label><input id="ls-${r.id}" value="${esc(r.seat_number||'')}" maxlength="20" placeholder="e.g. A-12"><button class="btn sm" onclick="saveSeat('${r.id}')">Save Seat Number</button><button class="btn sm alt" onclick="showLibPayments('${r.id}')">Fee Report</button><div id="lp-${r.id}"></div><div class="btns"><button class="btn sm" onclick="openDiscount('library','${r.id}')">🏷️ Discount</button><button class="btn sm red" onclick="deleteMember('library','${r.id}')">Delete ID</button></div><h3>Library Attendance</h3><label class="muted">Attendance Date</label><input id="la-date-${r.id}" type="date" value="${today()}"><select id="la-status-${r.id}"><option value="present">Present</option><option value="absent">Absent</option><option value="leave">Leave</option></select><button class="btn sm" onclick="saveLibraryAttendance('${r.id}')">Save Attendance</button><button class="btn sm alt" onclick="showLibraryAttendance('${r.id}')">View Attendance History</button><div id="la-history-${r.id}"></div></div>`).join(''):'<p class="muted">No library registration requests yet.</p>');
+    <div class="card"><h3>Add Library Member</h3><input id="al-name" placeholder="Member full name"><input id="al-phone" type="tel" maxlength="10" placeholder="10-digit mobile number"><input id="al-pw" type="text" placeholder="Password (min 8 characters)"><select id="al-course"><option value="">-- Select library course --</option>${libCourses.map(c=>`<option value="${c.id}" data-n="${esc(c.name)}" data-f="${Number(c.fee_amount||0)}">${esc(c.name)} </option>`).join('')}</select><input id="al-seat" placeholder="Seat number (optional)"><select id="al-gender"><option>Male</option><option>Female</option><option>Other</option></select><input id="al-addr" placeholder="Address (optional)"><label class="muted">Aadhaar number (12 digits, optional)</label><input id="al-aad" inputmode="numeric" maxlength="14" placeholder="Aadhaar number"><input id="al-aadname" placeholder="Name as on Aadhaar (optional)"><label class="muted">Aadhaar DOB (optional)</label><input id="al-aaddob" type="date"><label class="muted">Aadhaar card photo - front</label><label class="muted">Aadhaar card photo - back</label><label class="muted">Admission Through</label><select id="al-prom">${promOpts}</select><button class="btn" onclick="addMember('library')">Add Library Member</button></div><h2>Library Members (${libraryRows.length})</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('library')">📊 Download Excel</button></div>`+
+    (libraryRows.length?libraryRows.map(r=>`<div class="card"><div class="row"><b>${esc(r.aadhaar_name||r.full_name)}</b></div><div class="muted">Mobile: ${esc(r.phone)}<br>Address: ${esc(r.address||'-')}<br>${(r.aadhaar_number||r.aadhaar_last4||r.aadhaar_dob)?`Aadhaar Name: ${esc(r.aadhaar_name||r.full_name)}<br>Aadhaar DOB: ${esc(r.aadhaar_dob||'-')}<br>Aadhaar Gender: ${esc(r.aadhaar_gender||'-')}<br>Aadhaar Address: ${esc(r.aadhaar_address||'-')}<br>`:''}Gender: ${esc(r.gender||'-')}<br>Aadhaar: ${r.aadhaar_number?'XXXX-XXXX-'+esc(String(r.aadhaar_number).slice(-4)):r.aadhaar_last4?'XXXX-XXXX-'+esc(r.aadhaar_last4):'Not provided'}<br>Seat Number: <b>${esc(r.seat_number||'-')}</b><br>Library Course: ${esc(r.course_name||'-')}<br>Membership: ${esc(r.membership_type||'-')}<br>Submitted: ${r.created_at?fmtTime(r.created_at):'-'}</div><div class="grid"><div>Total Fee<b>${money(r.fee_amount)}</b></div><div>Deposit Fee<b>${money(r.fee_paid)}</b></div><div>Pending Fee<b>${money(Math.max(0,Number(r.fee_amount||0)-Number(r.fee_paid||0)))}</b></div></div><label class="muted">Update Total Fee (₹)</label><input id="lf-total-${r.id}" type="number" min="0" value="${Number(r.fee_amount||0)}"><label class="muted">Update Deposit Fee (₹)</label><input id="lf-paid-${r.id}" type="number" min="0" value="${Number(r.fee_paid||0)}"><button class="btn sm" onclick="saveLibraryFees('${r.id}')">Save Fee Details</button><label class="muted">Admission Through</label><select id="lp-${r.id}">${promSel(r.promoter_code)}</select><button class="btn sm" onclick="saveLibPromoter('${r.id}')">Save Promoter</button><label class="muted">Seat Number</label><input id="ls-${r.id}" value="${esc(r.seat_number||'')}" maxlength="20" placeholder="e.g. A-12"><button class="btn sm" onclick="saveSeat('${r.id}')">Save Seat Number</button><button class="btn sm alt" onclick="showLibPayments('${r.id}')">Fee Report</button><div id="lp-${r.id}"></div><div class="btns"><button class="btn sm" onclick="openDiscount('library','${r.id}')">🏷️ Discount</button><button class="btn sm red" onclick="deleteMember('library','${r.id}')">Delete ID</button></div><h3>Library Attendance</h3><label class="muted">Attendance Date</label><input id="la-date-${r.id}" type="date" value="${today()}"><select id="la-status-${r.id}"><option value="present">Present</option><option value="absent">Absent</option><option value="leave">Leave</option></select><button class="btn sm" onclick="saveLibraryAttendance('${r.id}')">Save Attendance</button><button class="btn sm alt" onclick="showLibraryAttendance('${r.id}')">View Attendance History</button><div id="la-history-${r.id}"></div></div>`).join(''):'<p class="muted">No library registration requests yet.</p>');
 }
 
 const SB_URL='https://bpsqafcfdjtvnvcvlotr.supabase.co',SB_KEY='sb_publishable_IgpQdxO7-coc0xkspK-GNg_Orh53a18';
@@ -1213,16 +1213,12 @@ async function addMember(kind){
   let aad={};
   if(kind==='library'){
     const an=g('al-aad').replace(/\D/g,'');if(an&&an.length!==12)return toast('Aadhaar number must be 12 digits.');
-    aad={n:an,name:g('al-aadname'),dob:g('al-aaddob'),f:(($('#al-aadf')||{}).files||[])[0],b:(($('#al-aadb')||{}).files||[])[0]};
-    try{
-      if(aad.f){const up=await sb.storage.from('aadhaar-docs').upload('new-'+phone+'/front.jpg',await toJpegBlob(aad.f),{contentType:'image/jpeg',upsert:true});if(up.error)return toast('Aadhaar front photo could not be uploaded: '+up.error.message,8000);aad.fp='new-'+phone+'/front.jpg'}
-      if(aad.b){const up=await sb.storage.from('aadhaar-docs').upload('new-'+phone+'/back.jpg',await toJpegBlob(aad.b),{contentType:'image/jpeg',upsert:true});if(up.error)return toast('Aadhaar back photo could not be uploaded: '+up.error.message,8000);aad.bp='new-'+phone+'/back.jpg'}
-    }catch(e){return toast('Aadhaar photo error: '+(e.message||e),8000)}
+    aad={n:an,name:g('al-aadname'),dob:g('al-aaddob')};
   }
   try{
     const uid=await createLogin(phone,pw);let r;
     if(kind==='teacher')r=await sb.from('teacher_registration_requests').insert({user_id:uid,full_name:name,phone,address:g('at-addr')||null,gender:g('at-gender'),expertise:g('at-exp')||null,status:'approved'});
-    else{const o=$('#al-course').selectedOptions[0];if(!o||!o.value)return toast('Select a library course.');const lr={user_id:uid,full_name:name,aadhaar_name:aad.name||name,...(aad.n?{aadhaar_number:aad.n}:{}),aadhaar_dob:aad.dob||null,aadhaar_front_path:aad.fp||null,aadhaar_back_path:aad.bp||null,phone,address:g('al-addr')||null,gender:g('al-gender'),library_course_id:o.value,course_name:o.dataset.n,membership_type:o.dataset.n,fee_amount:Number(o.dataset.f||0),fee_paid:0,status:'approved'};const seat=g('al-seat');if(seat)lr.seat_number=seat;const pc=g('al-prom');if(pc)lr.promoter_code=pc;r=await sb.from('library_registrations').insert(lr);if(r.error&&pc&&/promoter_code/i.test(r.error.message)){delete lr.promoter_code;r=await sb.from('library_registrations').insert(lr);if(!r.error)toast('Added, but Promoter could not be saved: run the SQL to add promoter_code to library_registrations.',9000)}if(r.error&&seat&&/seat_number/i.test(r.error.message)){delete lr.seat_number;r=await sb.from('library_registrations').insert(lr)}}
+    else{const o=$('#al-course').selectedOptions[0];if(!o||!o.value)return toast('Select a library course.');const lr={user_id:uid,full_name:name,aadhaar_name:aad.name||name,...(aad.n?{aadhaar_number:aad.n}:{}),aadhaar_dob:aad.dob||null,phone,address:g('al-addr')||null,gender:g('al-gender'),library_course_id:o.value,course_name:o.dataset.n,membership_type:o.dataset.n,fee_amount:Number(o.dataset.f||0),fee_paid:0,status:'approved'};const seat=g('al-seat');if(seat)lr.seat_number=seat;const pc=g('al-prom');if(pc)lr.promoter_code=pc;r=await sb.from('library_registrations').insert(lr);if(r.error&&pc&&/promoter_code/i.test(r.error.message)){delete lr.promoter_code;r=await sb.from('library_registrations').insert(lr);if(!r.error)toast('Added, but Promoter could not be saved: run the SQL to add promoter_code to library_registrations.',9000)}if(r.error&&seat&&/seat_number/i.test(r.error.message)){delete lr.seat_number;r=await sb.from('library_registrations').insert(lr)}}
     if(r.error)return toast('Save failed: '+r.error.message,7000);
     toast((kind==='teacher'?'Teacher':'Library member')+' added.');kind==='teacher'?viewTeachers():viewLibrary();
   }catch(e){toast('Failed: '+(e.message||e),7000)}
@@ -1271,7 +1267,7 @@ async function deleteLibraryCourse(id){
 // ============= TEACHER MANAGEMENT =============
 async function viewTeachers(){
   teacherRows=await ok(sb.from('teacher_registration_requests').select('*').order('created_at',{ascending:false}));
-  $('#v-teach').innerHTML=`<h2>Teacher Management</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('teachers')">📄 Download PDF</button></div><div class="card"><h3>Add Teacher</h3><input id="at-name" placeholder="Teacher full name"><input id="at-phone" type="tel" maxlength="10" placeholder="10-digit mobile number"><input id="at-pw" type="text" placeholder="Password (min 8 characters)"><input id="at-exp" placeholder="Subject / Qualification"><select id="at-gender"><option>Male</option><option>Female</option><option>Other</option></select><input id="at-addr" placeholder="Address (optional)"><button class="btn" onclick="addMember('teacher')">Add Teacher</button></div>`+
+  $('#v-teach').innerHTML=`<h2>Teacher Management</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('teachers')">📊 Download Excel</button></div><div class="card"><h3>Add Teacher</h3><input id="at-name" placeholder="Teacher full name"><input id="at-phone" type="tel" maxlength="10" placeholder="10-digit mobile number"><input id="at-pw" type="text" placeholder="Password (min 8 characters)"><input id="at-exp" placeholder="Subject / Qualification"><select id="at-gender"><option>Male</option><option>Female</option><option>Other</option></select><input id="at-addr" placeholder="Address (optional)"><button class="btn" onclick="addMember('teacher')">Add Teacher</button></div>`+
   (teacherRows.length?teacherRows.map(t=>`<div class="card"><div class="row"><b>${esc(t.full_name)}</b></div><div class="muted">Mobile: ${esc(t.phone)}<br>Gender: ${esc(t.gender||'-')}<br>Subject / Qualification: ${esc(t.expertise||'-')}<br>Address: ${esc(t.address||'-')}<br>Submitted: ${t.created_at?fmtTime(t.created_at):'-'}</div><a class="btn sm alt" href="sms:${esc(t.phone||'')}?body=${encodeURIComponent('Hello '+t.full_name+', from BIIT Computer Institute.')}">Send SMS</a><div class="btns"><button class="btn sm" onclick="openDiscount('teacher','${t.id}')">🏷️ Discount / Deduction</button><button class="btn sm red" onclick="deleteMember('teacher','${t.id}')">Delete ID</button></div>${true?`<div style="margin-top:.6rem"><label class="muted">Attendance date</label><input id="td-${t.id}" type="date" value="${today()}"><select id="ts-${t.id}"><option value="present">Present</option><option value="absent">Absent</option><option value="leave">Leave</option></select><button class="btn sm" onclick="saveTeacherAttendance('${t.id}')">Save Attendance</button><label class="muted">Teacher Fee / Payment Amount (₹)</label><input id="tf-${t.id}" type="number" min="1" placeholder="Amount paid"><input id="tn-${t.id}" placeholder="Payment note (optional)"><button class="btn sm" onclick="saveTeacherFee('${t.id}')">Record Teacher Fee</button><button class="btn sm alt" onclick="showTeacherHistory('${t.id}')">View Records</button><div id="th-${t.id}"></div></div>`:''}</div>`).join(''):'<p class="muted">No teacher applications yet.</p>');
 }
 async function setTeacherStatus(id,status){const {error}=await sb.from('teacher_registration_requests').update({status,reviewed_at:new Date().toISOString()}).eq('id',id);if(error)return toast('Update failed: '+error.message);toast('Teacher status updated.');viewTeachers()}
@@ -1283,7 +1279,7 @@ async function showTeacherHistory(id){const [a,f]=await Promise.all([ok(sb.from(
 async function viewPromoters(){
   promoterRows=await ok(sb.from('promoters').select('*').order('created_at',{ascending:false}));
   const monthDefault=today().slice(0,7);
-  $('#v-prom').innerHTML=`<h2>Promoter Management</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('promoters')">📄 Download PDF</button></div><div class="card"><label class="muted">Promoter Name</label><input id="pn" placeholder="Promoter full name"><label class="muted">Promoter Code (optional, auto if empty)</label><input id="pc" placeholder="BIIT01"><label class="muted">Mobile number (login ID)</label><input id="pp" type="tel" maxlength="10" placeholder="10-digit mobile number"><label class="muted">Password (min 8 characters)</label><input id="ppw" type="text" placeholder="Password"><button class="btn" onclick="addPromoter()">Add Promoter</button></div><div class="card"><label class="muted">Report Month</label><input id="pm" type="month" value="${monthDefault}" onchange="renderPromoterReport()"></div><div id="prom-report"></div>`;
+  $('#v-prom').innerHTML=`<h2>Promoter Management</h2><div class="btns" style="margin-bottom:.6rem"><button class="btn sm alt" onclick="pdfReport('promoters')">📊 Download Excel</button></div><div class="card"><label class="muted">Promoter Name</label><input id="pn" placeholder="Promoter full name"><label class="muted">Promoter Code (optional, auto if empty)</label><input id="pc" placeholder="BIIT01"><label class="muted">Mobile number (login ID)</label><input id="pp" type="tel" maxlength="10" placeholder="10-digit mobile number"><label class="muted">Password (min 8 characters)</label><input id="ppw" type="text" placeholder="Password"><button class="btn" onclick="addPromoter()">Add Promoter</button></div><div class="card"><label class="muted">Report Month</label><input id="pm" type="month" value="${monthDefault}" onchange="renderPromoterReport()"></div><div id="prom-report"></div>`;
   renderPromoterReport();
 }
 async function renderPromoterReport(){const month=$('#pm')?.value;if(!month)return;const start=month+'-01',end=(()=>{let y=Number(month.slice(0,4)),m=Number(month.slice(5,7))+1;if(m>12){m=1;y++}return y+'-'+String(m).padStart(2,'0')+'-01'})(),tsA=start+'T00:00:00+05:30',tsB=end+'T00:00:00+05:30';{const _r=await sb.from('promoter_commissions').select('*').order('paid_at',{ascending:false});window._pc=_r.data||[];window._pcErr=_r.error}const [pr,st,pay]=await Promise.all([ok(sb.from('promoters').select('*').order('name')),ok(sb.from('students').select('id,name,class,phone,promoter_code,created_at').gte('created_at',tsA).lt('created_at',tsB)),ok(sb.from('fee_payments').select('student_id,amount,paid_at,paid_on').gte('paid_on',start).lt('paid_on',end)),ok(sb.from('students').select('id,name,class,phone,promoter_code,created_at').not('promoter_code','is',null)),ok(sb.from('fee_payments').select('student_id,amount,paid_at'))]).then(x=>{window._allSt=x[3];window._allPay=x[4];return x});const html=pr.map(p=>{const admitted=st.filter(s=>s.promoter_code===p.code);const ids=admitted.map(s=>s.id);const amount=pay.filter(x=>ids.includes(x.student_id)).reduce((sum,x)=>sum+Number(x.amount||0),0);return `<div class="card"><div class="row"><b>${esc(p.name)} (${esc(p.code)})</b></div><div class="muted">Admission count for ${esc(month)}: <b>${admitted.length}</b><br>Payment received from those admissions during selected month: <b>${money(amount)}</b><br>Registration link: <code>${esc(location.origin+'/?promoter='+encodeURIComponent(p.code))}</code></div><div class="btns"><button class="btn sm alt" onclick="copyText('${esc(location.origin+'/?promoter='+p.code)}')">Copy Link</button><button class="btn sm" onclick="openDiscount('promoter','${p.id}')">🏷️ Discount / Deduction</button><button class="btn sm red" onclick="deleteMember('promoter','${p.id}')">Delete ID</button></div>${commBlock(p,month)}${admitted.map(s=>{const sp=pay.filter(x=>x.student_id===s.id);return `<div class="card"><b>${esc(s.name)}</b><div class="muted">Course: ${esc(s.class)} · Admission: ${s.created_at?fmtTime(s.created_at):'Date unavailable'}</div><div class="hist-row"><span>Total payment in ${esc(month)}</span><b>${money(sp.reduce((z,x)=>z+Number(x.amount||0),0))}</b></div>${sp.map(x=>`<div class="hist-row"><span>${x.paid_at?fmtTime(x.paid_at):fmt(x.paid_on)}</span><b>${money(x.amount)}</b></div>`).join('')}</div>`}).join('')}</div>`}).join('');$('#prom-report').innerHTML=html||'<p class="muted">No promoters have been added yet.</p>'}
@@ -1486,76 +1482,53 @@ async function loadPdfLibs(){
 }
 const rs=n=>'Rs. '+Number(n||0).toLocaleString('en-IN');
 const pt=v=>String(v==null||v===''?'-':v).replace(/[^\x20-\x7E -ÿ]/g,'?');
-async function buildPdf(title,head0,rows0,foot0,filename,extras,photos){
-  // mobile numbers are never printed in PDFs
+async function buildPdf(title,head0,rows0,foot0,filename,extras){
+  // Report download (Excel). Kept under the old name so every report button keeps working. Mobile numbers are never written.
   const _mi=head0.indexOf('Mobile');const _k=head0.map((h,i)=>i).filter(i=>i!==_mi);
   const head=_k.map(i=>head0[i]);const rows=rows0.map(r=>_k.map(i=>r[i]));
-  const foot=(foot0&&foot0.length===head0.length)?_k.map(i=>foot0[i]):foot0;
-  const hasPh=Array.isArray(photos)&&photos.length>0;
-  if(hasPh){head.unshift('Photo');rows.forEach((r,ix)=>r.unshift(''));if(foot)foot.unshift('')}
-  try{await loadPdfLibs()}catch(e){return toast('PDF tool could not load. Check your internet connection and try again.',7000)}
-  const cs=await sb.from('site_settings').select('setting_key,setting_value').in('setting_key',['center_name','center_address','center_phone']);
-  const c={};(cs.data||[]).forEach(r=>c[r.setting_key]=r.setting_value);
-  const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
-  const W=doc.internal.pageSize.getWidth();
-  doc.setFontSize(18);doc.setFont('helvetica','bold');doc.text(pt(c.center_name||'BIIT Computer Institute'),40,40);
-  doc.setFontSize(10);doc.setFont('helvetica','normal');
-  const sub=[c.center_address,c.center_phone].filter(Boolean).map(pt).join('  |  ');if(sub)doc.text(sub,40,55);
-  doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text(title,40,78);
-  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text('Generated: '+fmtTime(new Date())+' (IST)',W-40,78,{align:'right'});
-  doc.autoTable({head:[head],body:rows,foot:foot?[foot]:undefined,startY:88,theme:'grid',styles:{fontSize:8,cellPadding:3,overflow:'linebreak'},
-    didParseCell:(d)=>{if(hasPh&&d.section==='body'&&d.column.index===0){d.cell.styles.minCellHeight=46;d.cell.styles.cellPadding=2}},
-    didDrawCell:(d)=>{if(hasPh&&d.section==='body'&&d.column.index===0){const src=photos[d.row.index];if(src){try{const pr=doc.getImageProperties(src);const k=Math.min(40/pr.width,40/pr.height);const w=pr.width*k,h=pr.height*k;const fmt=/^data:image\/png/.test(src)?'PNG':'JPEG';doc.addImage(src,fmt,d.cell.x+(d.cell.width-w)/2,d.cell.y+(d.cell.height-h)/2,w,h)}catch(_){doc.setFontSize(6);doc.text('No photo',d.cell.x+3,d.cell.y+d.cell.height/2+2)}}else{doc.setFontSize(6);doc.text('No photo',d.cell.x+3,d.cell.y+d.cell.height/2+2)}}},headStyles:{fillColor:[15,61,46],textColor:255},footStyles:{fillColor:[230,236,232],textColor:20,fontStyle:'bold'},margin:{left:30,right:30},
-    didDrawPage:()=>{doc.setFontSize(8);doc.text('Page '+doc.internal.getNumberOfPages(),W/2,doc.internal.pageSize.getHeight()-16,{align:'center'})}});
+  const foot=(foot0&&foot0.length===head0.length)?_k.map(i=>foot0[i]):null;
+  try{if(!window.XLSX)await loadScript(XLSX_SRC)}catch(e){return toast('Excel tool could not load. Check your internet connection and try again.',7000)}
+  const cell=v=>v==null?'':(typeof v==='number'?v:String(v));
+  const wb=XLSX.utils.book_new();
+  const aoa=[[cell(title)],[],head.map(cell),...rows.map(r=>r.map(cell))];
+  if(foot)aoa.push(foot.map(cell));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),'Report');
   for(const ex of (extras||[])){
-    if(!ex.rows.length) continue;
-    let y=(doc.lastAutoTable?doc.lastAutoTable.finalY:88)+28;
-    if(y>doc.internal.pageSize.getHeight()-110){doc.addPage();y=40}
-    doc.setFontSize(12);doc.setFont('helvetica','bold');doc.text(ex.title,30,y);
-    doc.autoTable({head:[ex.head],body:ex.rows,startY:y+8,theme:'grid',styles:{fontSize:8,cellPadding:3},headStyles:{fillColor:[15,61,46],textColor:255},margin:{left:30,right:30},
-      didParseCell:d=>{if(d.section==='body'&&ex.boldIf&&ex.boldIf(d.row.raw)){d.cell.styles.fontStyle='bold';d.cell.styles.fillColor=[230,236,232]}}});
+    if(!ex.rows||!ex.rows.length)continue;
+    const nm=String(ex.title||'Sheet').replace(/[\\\/?*\[\]:]/g,'').slice(0,31)||'Sheet';
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([ex.head.map(cell),...ex.rows.map(r=>r.map(cell))]),nm);
   }
-  doc.save(filename);toast('PDF downloaded.');
+  XLSX.writeFile(wb,String(filename||'BIIT-report.xlsx').replace(/\.pdf$/i,'.xlsx'));
+  toast('Excel downloaded.',4000);
 }
 
-// ---- PDF for one computer student (or every student, one page each) ----
+// ---- Excel for one computer student (or all students: one row each, payments on a second sheet) ----
 async function studentPdf(which){
-  toast('Preparing PDF…');
+  toast('Preparing Excel…');
   try{
-    await loadPdfLibs();
+    if(!window.XLSX)await loadScript(XLSX_SRC);
     let st=await ok(sb.from('students_light').select('*').eq('status','active').order('class').order('name'));
     if(which!=='all')st=st.filter(s=>String(s.id)===String(which));
     if(!st.length)return toast('No student found.');
     const payRows=await ok(sb.from('fee_payments').select('id,student_id,amount,paid_at,paid_on,paid_month,note').order('paid_at',{ascending:true}));
     const dr=await sb.from('discounts').select('entity_id,amount,reason,created_at').eq('entity_type','student');
-    const c=await centerInfo();
-    const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4'});const W=doc.internal.pageSize.getWidth();
+    const head=['#','Name','Course','Father','Mother','Address','Date of Birth','Admission','Admission Through','Course Fee','Discount','Net Fee','Paid','Pending'];
+    const rows=[];const pays=[['Student','Amount','Paid on','Month','Note']];
     st.forEach((s,i)=>{
-      if(i>0)doc.addPage();
       const mine=payRows.filter(p=>String(p.student_id)===String(s.id));
       const disc=(dr.data||[]).filter(d=>String(d.entity_id)===String(s.id));
       const dsum=disc.reduce((t,d)=>t+Number(d.amount||0),0),net=Number(s.total_fees||0),orig=net+dsum;
       const paid=mine.reduce((t,p)=>t+Number(p.amount||0),0),pend=Math.max(0,net-paid);
-      doc.setFont('helvetica','bold');doc.setFontSize(17);doc.text(pt(c.name||'BIIT Computer Institute'),W/2,40,{align:'center'});
-      doc.setFont('helvetica','normal');doc.setFontSize(9);
-      const sub=[c.address,c.phone].filter(Boolean).map(pt).join('  |  ');if(sub)doc.text(sub,W/2,54,{align:'center'});
-      doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text('STUDENT DETAILS & FEE REPORT',W/2,76,{align:'center'});
-      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('Generated: '+fmtTime(new Date())+' (IST)',W-36,90,{align:'right'});
-      doc.autoTable({startY:98,theme:'grid',styles:{fontSize:9,cellPadding:4},columnStyles:{0:{fontStyle:'bold',fillColor:[236,241,238],cellWidth:120}},margin:{left:36,right:36},
-        body:[['Name',pt(s.name)],['Course',pt(s.class)],['Father',pt(s.father_name)],['Mother',pt(s.mother_name)],['Address',pt(s.address)],['Date of Birth',pt(s.dob)],['Admission',pt(s.created_at?fmtTime(s.created_at):'-')],['Admission Through',pt(s.promoter_code?'Promoter ID: '+s.promoter_code:'Direct')]]});
-      doc.autoTable({startY:doc.lastAutoTable.finalY+14,theme:'grid',styles:{fontSize:10,cellPadding:5},headStyles:{fillColor:[15,61,46],textColor:255},margin:{left:36,right:36},
-        head:[['Course Fee','Discount','Net Fee','Deposited','Pending']],body:[[rs(orig),rs(dsum),rs(net),rs(paid),rs(pend)]]});
-      const rows=mine.map((p,k)=>[k+1,when(p.paid_at,p.paid_on),pt(p.paid_month),rs(p.amount),pt(p.note),INV.no(p.id,p.paid_at||p.paid_on)]);
-      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('Fee deposits (date and time in IST)',36,doc.lastAutoTable.finalY+28);
-      doc.autoTable({startY:doc.lastAutoTable.finalY+34,theme:'grid',styles:{fontSize:8.5,cellPadding:3.5},headStyles:{fillColor:[15,61,46],textColor:255},margin:{left:36,right:36},
-        head:[['#','Date & Time','For Month','Amount','Note','Invoice No']],body:rows.length?rows:[['','No deposits yet','','','','']],
-        foot:[['','','TOTAL',rs(paid),'','']],footStyles:{fillColor:[230,236,232],textColor:20,fontStyle:'bold'}});
-      if(disc.length){doc.autoTable({startY:doc.lastAutoTable.finalY+14,theme:'grid',styles:{fontSize:8.5,cellPadding:3.5},headStyles:{fillColor:[120,80,10],textColor:255},margin:{left:36,right:36},
-        head:[['Discount Date & Time','Amount','Reason']],body:disc.map(d=>[when(d.created_at),rs(d.amount),pt(d.reason)])})}
+      rows.push([i+1,s.name||'',s.class||'',s.father_name||'',s.mother_name||'',s.address||'',s.dob||'',s.created_at?fmtTime(s.created_at):'',s.promoter_code?'Promoter ID: '+s.promoter_code:'Direct',orig,dsum,net,paid,pend]);
+      mine.forEach(p=>pays.push([s.name||'',Number(p.amount||0),p.paid_at?fmtTime(p.paid_at):(p.paid_on||''),p.paid_month||'',p.note||'']));
     });
-    const nm=which==='all'?'All-Students':pt(st[0].name).replace(/[^A-Za-z0-9]+/g,'-');
-    doc.save('BIIT-'+nm+'-'+today()+'.pdf');toast('PDF downloaded.');
-  }catch(e){toast('PDF could not be made: '+(e.message||e),7000)}
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([head,...rows]),'Students');
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(pays),'Payments');
+    const nm=which==='all'?'all-students':String(st[0].name||'student').replace(/[^a-zA-Z0-9]+/g,'-');
+    XLSX.writeFile(wb,'BIIT-'+nm+'-'+today()+'.xlsx');
+    toast('Excel downloaded.',4000);
+  }catch(e){toast('Excel could not be made: '+(e.message||e),7000)}
 }
 const when=(ts,d)=>pt(ts?fmtTime(ts):(d?fmt(d):'-'));
 async function discSums(type){
@@ -1626,8 +1599,8 @@ async function pdfReport(kind){
   }catch(e){console.error(e);toast('Could not create PDF: '+(e.message||e),7000)}
 }
 function viewRep(){
-  $('#v-rep').innerHTML=`<h2>PDF Reports</h2><div class="card"><div class="muted">Download a complete PDF with every detail plus Fee, Discount, Deposited and Pending totals.</div></div>`+
-  [['students','🎓 All Students','Details, fees, discount, deposited and pending'],['library','📚 Library Students','Details and library fees'],['teachers','👨‍🏫 Teachers','Details, attendance, payments'],['promoters','📣 Promoters','Admissions and commission']].map(x=>`<div class="card row"><span><b>${x[1]}</b><br><span class="muted">${x[2]}</span></span><button class="btn sm" onclick="pdfReport('${x[0]}')">📄 Download PDF</button></div>`).join('')+`<div class="card row"><span><b>🎓 Separate PDF for each Computer Student</b><br><span class="muted">One page per student: details, fees and every deposit with date and time</span></span><span class="btns"><button class="btn sm" onclick="studentPdf('all')">📄 One file (page per student)</button></span></div>`;
+  $('#v-rep').innerHTML=`<h2>Excel Reports</h2><div class="card"><div class="muted">Download a complete Excel file with every detail plus Fee, Discount, Deposited and Pending totals.</div></div>`+
+  [['students','🎓 All Students','Details, fees, discount, deposited and pending'],['library','📚 Library Students','Details and library fees'],['teachers','👨‍🏫 Teachers','Details, attendance, payments'],['promoters','📣 Promoters','Admissions and commission']].map(x=>`<div class="card row"><span><b>${x[1]}</b><br><span class="muted">${x[2]}</span></span><button class="btn sm" onclick="pdfReport('${x[0]}')">📊 Download Excel</button></div>`).join('')+`<div class="card row"><span><b>🎓 Separate PDF for each Computer Student</b><br><span class="muted">One page per student: details, fees and every deposit with date and time</span></span><span class="btns"><button class="btn sm" onclick="studentPdf('all')">📊 One file (all students)</button></span></div>`;
 }
 
 
@@ -1698,17 +1671,14 @@ function promoterDetails(id){
   m.innerHTML=`<div class="card" style="max-width:480px;width:100%;max-height:90vh;overflow:auto">
     <h2 style="margin-top:0">${esc(p.name)} · ${esc(p.code)}</h2>
     <div class="muted">Aadhaar: <b>${ad}</b></div>
-    ${p.aadhaar_photo?`<img src="${p.aadhaar_photo}" style="width:100%;border-radius:10px;margin:.5rem 0">`:'<div class="muted">No Aadhaar photo</div>'}
-    <label class="muted">Aadhaar number (12 digits) - leave empty to keep</label><input id="pd-ad" inputmode="numeric" maxlength="14">
-    <label class="muted">Replace Aadhaar photo</label><input id="pd-ph" type="file" accept="image/*">
+        <label class="muted">Aadhaar number (12 digits) - leave empty to keep</label><input id="pd-ad" inputmode="numeric" maxlength="14">
+    
     <div class="btns"><button class="btn" onclick="promoterDetailsSave('${p.id}')">Save</button><button class="btn alt" onclick="document.getElementById('pd-modal').remove()">Close</button></div></div>`;
   document.body.appendChild(m);
 }
 async function promoterDetailsSave(id){
   const upd={};const ad=($('#pd-ad').value||'').replace(/\D/g,'');
   if(ad){if(ad.length!==12)return toast('Aadhaar number must be 12 digits.');upd.aadhaar_no=ad}
-  const ph=await smallPhoto($('#pd-ph'));if(ph===false)return toast('Aadhaar photo is too large. Please choose a smaller photo.',7000);
-  if(ph)upd.aadhaar_photo=ph;
   const {error}=await sb.from('promoters').update(upd).eq('id',id);
   if(error)return toast('Could not save: '+error.message,7000);
   toast('Saved.');document.getElementById('pd-modal')?.remove();viewPromoters();
@@ -1903,8 +1873,13 @@ function parseBlockQuestions(raw){
     const firstIdx=ms[0].index,pre=line.slice(0,firstIdx).trim(),res={pre,items:[]};
     for(let i=0;i<ms.length;i++){const s=ms[i].index+ms[i][0].length,e=i+1<ms.length?ms[i+1].index:line.length;res.items.push([optIdx(ms[i][1]),line.slice(s,e).trim()])}
     return res.items.every(x=>x[1])?res:null};
-  for(const line of lines){
-    if(!line){if(opts.filter(Boolean).length>=2)flush();continue}
+  for(let li=0;li<lines.length;li++){
+    const line=lines[li];
+    if(!line){
+      // a blank line ends the question, unless the answer line comes right after it ("Correct answer: (b)")
+      const nx=lines.slice(li+1).find(l=>l)||'';
+      if(opts.filter(Boolean).length>=2&&!ansRe.test(nx))flush();
+      continue}
     let m;
     if((m=line.match(ansRe))&&opts.filter(Boolean).length>=2){ans=optIdx(m[1]);done=true;continue}
     const inl=splitInline(line);
@@ -2005,6 +1980,7 @@ async function filesToTextAndImages(files,st){
   let text='';const images=[];
   for(const f of files){
     if(isOldDoc(f))throw new Error(OLD_DOC_MSG);
+    if(/^image\//.test(f.type||'')||/\.(png|jpe?g|webp|gif|heic)$/i.test(f.name))throw new Error('Photo upload is turned off. Please paste the question text, or upload a Word (.docx) file.');
     if(isWordFile(f)){if(st)st.textContent='Reading the Word file…';text+='\n'+await docxToText(f);continue}
     if(isTextFile(f)){text+='\n'+await f.text();continue}
     if(isPdfFile(f))throw new Error('PDF files are turned off. Please upload a photo, a Word (.docx) file, or paste the text.');
@@ -2013,15 +1989,15 @@ async function filesToTextAndImages(files,st){
 }
 function photoCard(mode){
   const always=mode==='tab';
-  return `<div class="card"><b>📷 ${always?'Make questions from a paper photo':'Add all questions from a photo'}</b>
-  <p class="muted">${always?'':'Instead of typing one question at a time, upload a photo of the question paper. '}The questions and options are read from the photo and shown as <b>text</b> (not as a picture). Check them, choose the correct answers, then save.</p>
-  <input id="ph-file" type="file" accept="image/*,.docx,.txt" multiple onchange="photoPicked('${mode}')"><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,.docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
+  return `<div class="card"><b>📷 ${always?'Make questions from text':'Add all questions from text'}</b>
+  <p class="muted">${always?'':'Instead of typing one question at a time, paste the question paper text. '}Check the questions, choose the correct answers, then save.</p>
+  <input id="ph-file" type="file" accept=".docx,.txt" multiple onchange="photoPicked('${mode}')"><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept=".docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one file</button><span id="ph-count" class="muted"></span></div>
   <div id="ph-panel" class="${always?'':'hide'}" data-mode="${mode}">
    <label class="muted">Subject</label>${optSel('ph-subject',subjectsList(),'-- Select subject --','Add new subject')}
    <label class="muted">Topic (optional)</label>${optSel('ph-topic',topicsList(),'-- No topic / select --','Add new topic')}
    <label class="muted">Who can take it?</label><select id="ph-aud"><option value="both">Computer Students + Library Students</option><option value="student">Computer Students only</option><option value="library_student">Library Students only</option></select><button type="button" class="btn sm alt" style="margin-top:.4rem" onclick="exAccess(null)">🔒 Student access (who can take it)</button>
-   <label class="muted">Language in the photo</label><select id="ph-lang"><option value="hin+eng" selected>Hindi + English (best for most papers)</option><option value="eng">English only</option><option value="hin">Hindi only</option></select>
-   <div class="btns"><button class="btn" onclick="runOcr()">Read Questions from Photo</button>${always?'':'<button class="btn alt" onclick="clearPhoto()">✕ Remove photo, type questions instead</button>'}</div><div class="btns" style="margin-top:.4rem"><button type="button" class="btn sm alt" onclick="runBasic()">🔤 Photo reader without AI (basic)</button></div><p id="ph-status" class="muted"></p><details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="ph-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('ph-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('ph-paste').value=''">Clear</button></div></details><div id="ph-result"></div></div></div>`;
+   
+   <div class="btns">${always?'':'<button class="btn alt" onclick="clearPhoto()">✕ Clear and start over</button>'}</div><div class="btns" style="margin-top:.4rem"></div><div class=\"btns\" style=\"margin:.4rem 0\"><button type=\"button\" class=\"btn\" onclick=\"runOcr()\">📄 Read questions from file</button></div><p id="ph-status" class="muted"></p><details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="ph-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('ph-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('ph-paste').value=''">Clear</button></div></details><div id="ph-result"></div></div></div>`;
 }
 window._phExtra=window._phExtra||[];
 function phFiles(){return [...((($('#ph-file')||{}).files)||[]),...(window._phExtra||[])]}
@@ -2038,10 +2014,10 @@ function exAuto(){
   $('#ex-body').innerHTML=`<div class="card"><b>📷 Photo to Exam</b>
    <p class="muted">Just type the exam name and choose a photo of the question paper. Questions, time and marks are filled in automatically and the exam is published.</p>
    <label class="muted">Exam name</label><input id="ce-title" placeholder="e.g. CCC Monthly Test"><div class="g3" style="margin:.5rem 0"><div><label class="muted">Start (IST)</label><input id="au-start" type="datetime-local"></div><div><label class="muted">End (IST)</label><input id="au-end" type="datetime-local"></div><div><label class="muted">Timer (minutes)</label><input id="au-dur" type="number" min="1" placeholder="e.g. 30"></div></div><p class="muted" style="font-size:.8rem">Default: start now, end after 24 hours. Change them if you want.</p>
-   <label class="muted">Question paper (photo / Word .docx / text .txt)</label><input id="ph-file" type="file" accept="image/*,.docx,.txt" multiple><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept="image/*,.docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one photo</button><span id="ph-count" class="muted"></span></div>
+   <label class="muted">Question paper (photo / Word .docx / text .txt)</label><input id="ph-file" type="file" accept=".docx,.txt" multiple><div class="btns" style="margin:.4rem 0"><input id="ph-add" type="file" accept=".docx,.txt" style="display:none" onchange="phAddOne(this)"><button type="button" class="btn sm alt" onclick="document.getElementById('ph-add').click()">➕ Add one file</button><span id="ph-count" class="muted"></span></div>
    <div class="btns" style="margin-top:.6rem"><button id="auto-btn" class="btn" style="background:#168a56;width:100%" onclick="autoExam()">⚡ Create &amp; Publish Exam</button></div>
-   <div class="btns"><button type="button" class="btn sm alt" onclick="runBasic()">🔤 Photo reader without AI (basic)</button></div>
-   <p id="ph-status" class="muted"></p>
+   <div class="btns"></div>
+   <div class=\"btns\" style=\"margin:.4rem 0\"><button type=\"button\" class=\"btn\" onclick=\"runOcr()\">📄 Read questions from file</button></div><p id="ph-status" class="muted"></p>
    <details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="px-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('px-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('px-paste').value=''">Clear</button></div></details>
    <div id="ph-result"></div>
    <details style="margin-top:.4rem"><summary class="muted">More options (optional)</summary>
@@ -2529,19 +2505,10 @@ function exResultsCsv(){
   const l=document.createElement('a');l.href=url;l.download='BIIT-Exam-Results-'+today()+'.csv';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
   toast('CSV downloaded (opens in Excel).',4000);
 }
-async function exResultsPdf(withPhotos){
-  if(withPhotos===undefined)withPhotos=true;
-  const e=EXCUR;let photos=null;let found=0;
-  if(withPhotos){
-    toast('Preparing PDF with student photos…',3000);
-    const pr=await sb.from('exam_photos').select('attempt_id,photo').in('attempt_id',EXRES.map(a=>a.id));
-    if(pr.error)console.warn('exam_photos read failed',pr.error);
-    const PM={};(pr.data||[]).forEach(x=>PM[String(x.attempt_id)]=x.photo);
-    photos=[];for(const a of EXRES){const v=PM[String(a.id)];photos.push(v&&/^https?:/.test(v)?await urlToDataUrl(v):(v||await examPhotoSrc(a)))}
-    found=photos.filter(Boolean).length;toast('Photos found: '+found+' of '+EXRES.length+(pr.error?' (photo table error: '+pr.error.message+')':'')+(found<EXRES.length?' - others show \"No photo\"':''),9000);
-  } else toast('Preparing PDF (without photos)…',3000);
-  const rows=exResultRows();
-  buildPdf('Exam Results - '+pt(e.title)+' (Total marks '+e.total_marks+', Pass '+e.pass_marks+')',exResultsHeaders(),rows,null,'BIIT-Exam-'+today()+'.pdf',null,photos);
+async function exResultsPdf(){
+  const e=EXCUR;
+  toast('Preparing PDF…',3000);
+  buildPdf('Exam Results - '+pt(e.title)+' (Total marks '+e.total_marks+', Pass '+e.pass_marks+')',exResultsHeaders(),exResultRows(),null,'BIIT-Exam-'+today()+'.pdf',null,null);
 }
 async function exGrade(aid){
   const a=EXRES.find(x=>x.id===aid);const d=a.detail||[];
@@ -2666,7 +2633,7 @@ function biitCompactSidebar(){if(window.matchMedia('(max-width:760px)').matches)
     }).catch(function(){});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',check); else check();
-  setInterval(check,1800000);
+  setInterval(check,7200000);
 })();
 </script>
 </body>

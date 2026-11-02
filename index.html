@@ -1250,14 +1250,14 @@ var BIITIntro=(function(){
   <div id="admission-fields"><label class="muted">Admission Through *</label><select id="r-via" onchange="viaChanged()"><option value="direct">Direct</option><option value="promoter">Promoter</option></select><div id="r-pid-wrap" class="hide"><label class="muted">Promoter ID *</label><input id="r-pid" placeholder="Enter Promoter ID" autocapitalize="characters" autocomplete="off" maxlength="30"></div></div>
   <div id="aadhaar-fields" class="hide">
     <h3>Aadhaar Card Details</h3>
-    <p class="muted">Aadhaar card details and photos are required for library registration. Your information is kept private.</p>
+    <p class="muted">Aadhaar card details are required for library registration. Your information is kept private.</p>
     <label class="muted">Name on Aadhaar Card *</label><input id="r-aadhaar-name" placeholder="Name exactly as printed on Aadhaar">
     <label class="muted">Date of Birth on Aadhaar *</label><input id="r-aadhaar-dob" type="date"><label class="muted">Address on Aadhaar Card *</label><input id="r-aadhaar-address" placeholder="Address exactly as printed on Aadhaar">
     <label class="muted">Gender on Aadhaar *</label><select id="r-aadhaar-gender"><option value="">Select gender</option><option value="Female">Female</option><option value="Male">Male</option><option value="Transgender">Transgender</option><option value="Not specified">Not specified</option></select>
     <label class="muted">12-digit Aadhaar Number *</label><input id="r-aadhaar" inputmode="numeric" maxlength="12" pattern="[0-9]{12}" placeholder="Enter all 12 digits">
-    <label class="muted">Aadhaar Card Photo — Front *</label><input id="r-aadhaar-front" type="file" accept="image/*">
-    <label class="muted">Aadhaar Card Photo — Back *</label><input id="r-aadhaar-back" type="file" accept="image/*">
-    <p class="muted">Upload clear photos with all four corners visible. Any photo size is accepted.</p>
+    
+    
+    
   </div>
   <div id="family-fields"><label class="muted">Father’s Name</label><input id="r-father" placeholder="Father"><label class="muted">Mother’s Name</label><input id="r-mother" placeholder="Mother"></div>
   <label class="muted">Address</label><input id="r-addr" placeholder="Address">
@@ -1552,8 +1552,6 @@ function aadhaarErrors(){
   else{const d=new Date(dob),now=new Date();const age=(now-d)/31557600000;if(isNaN(d)||d>now)e.push('Date of birth cannot be in the future.');else if(age<5||age>110)e.push('Date of birth looks wrong (age must be between 5 and 110 years).')}
   if(!gen)e.push('Select gender as printed on Aadhaar.');
   if(addr.length<8)e.push('Address on Aadhaar is missing or too short.');
-  ['front','back'].forEach(k=>{const f=$('#r-aadhaar-'+k).files[0];const L=k==='front'?'Front':'Back';
-    if(!f)e.push(`Aadhaar ${L} photo is required.`);else if(!/^image\//.test(f.type))e.push(`Aadhaar ${L} file must be an image.`);});
   return e;
 }
 function fileToJpeg(file){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const m=1400,r=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);if(b&&b.size>400000)return rej(new Error('Photo is too large. Please use a smaller photo.'));b?res(b):rej(new Error('Image could not be processed'))},'image/jpeg',.82)};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Image could not be read'))};img.src=u})}
@@ -1588,16 +1586,6 @@ async function doReg(){
     if(r.error)return toast('Teacher registration failed: '+r.error.message,6000);
   } else if(role==='library_student'){
     let frontPath=null,backPath=null;
-    if(libAad){
-      try{
-        for(const k of ['front','back']){
-          const orig=$('#r-aadhaar-'+k).files[0];let blob,ctype='image/jpeg';try{blob=await fileToJpeg(orig)}catch(e){throw new Error(e.message||'Photo could not be compressed. Please use a smaller photo.')}const path=session.user.id+'/'+k+'.jpg';
-          const up=await sb.storage.from('aadhaar-docs').upload(path,blob,{contentType:ctype,upsert:true});
-          if(up.error)throw up.error;
-          if(k==='front')frontPath=path;else backPath=path;
-        }
-      }catch(err){return toast('Aadhaar photo upload failed: '+(err.message||err)+'. Registration not completed.',9000)}
-    }
     const libName=libAad?v('r-aadhaar-name'):v('r-name');
     const libRow={user_id:session.user.id,aadhaar_front_path:frontPath,aadhaar_back_path:backPath,full_name:libName,phone,address:v('r-addr')||null,gender:v('r-gender'),aadhaar_number:v('r-aadhaar')||null,aadhaar_last4:v('r-aadhaar').slice(-4)||null,aadhaar_name:v('r-aadhaar-name')||null,aadhaar_dob:v('r-aadhaar-dob')||null,aadhaar_gender:v('r-aadhaar-gender')||null,aadhaar_address:v('r-aadhaar-address')||null,library_course_id:courseId,course_name:courseName,membership_type:(courseName||$('#lib-type').value),fee_amount:Number(courseOpt?.dataset?.fees||0),fee_paid:0,status:'pending'};
     const seat=v('lib-seat');if(seat)libRow.seat_number=seat;
@@ -1883,7 +1871,7 @@ async function beginExam(){
   exStopCam();
   try{const el=document.documentElement;if(el.requestFullscreen){await el.requestFullscreen();EX.fs=true}}catch(_){}
   attachGuards();exWatermark(true);renderExam();
-  EX.tick=setInterval(examTick,500);EX.save=setInterval(()=>examSave(),15000);examTick();
+  EX.tick=setInterval(examTick,500);EX.save=setInterval(()=>examSave(),30000);examTick();
 }
 function fmtClock(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+':':'')+String(m).padStart(2,'0')+':'+String(x).padStart(2,'0')}
 function examTick(){
@@ -1910,7 +1898,7 @@ function renderExam(){
   const totalMarks=d.questions.reduce((n,x)=>n+(Number(x.marks)||0),0);
   const isHas=x=>{const v=EX.answers[x.id];return v!=null&&!(typeof v==='object'&&!v.text&&!v.photo)};
   let body='';
-  if(q.qtype==='subjective'){const g=a||{};body=`<textarea id="ex-text" rows="8" placeholder="Type your answer here" oninput="exSubj()" style="width:100%">${esc(g.text||'')}</textarea><div class="gx-sub">Or upload a photo of your written answer:</div><input type="file" id="ex-photo" accept="image/*" onchange="exPhoto()">${g.photo?'<div class="gx-ok">✓ Photo uploaded</div>':''}<div id="ex-up" class="gx-sub"></div>`}
+  if(q.qtype==='subjective'){const g=a||{};body=`<textarea id="ex-text" rows="8" placeholder="Type your answer here" oninput="exSubj()" style="width:100%">${esc(g.text||'')}</textarea><div id="ex-up" class="gx-sub"></div>`}
   else{
     const list=q.options.map((o,k)=>`<div class="gx-optline"><span>(${_L[k]})</span> <span>${esc(o)}</span></div>`).join('');
     const radios=q.options.map((o,k)=>`<label class="gx-radio"><input type="radio" name="exopt" ${a===k?'checked':''} onchange="exPick(${k})"><span class="gx-dot"></span><b>(${_L[k]})</b></label>`).join('');
@@ -1950,14 +1938,6 @@ function renderExam(){
 function exGo(k){if(k<0||k>=EX.d.questions.length)return;EX.idx=k;renderExam()}
 function exPick(k){const q=EX.d.questions[EX.idx];EX.answers[q.id]=k;EX.dirty=true;renderExam()}
 function exSubj(){const q=EX.d.questions[EX.idx];const cur=EX.answers[q.id]||{};cur.text=document.getElementById('ex-text').value;EX.answers[q.id]=cur;EX.dirty=true}
-async function exPhoto(){
-  const q=EX.d.questions[EX.idx],f=document.getElementById('ex-photo').files[0];if(!f)return;const st=document.getElementById('ex-up');st.textContent='Uploading…';
-  try{let blob;try{blob=await fileToJpeg(f)}catch(e){throw new Error(e.message||'Photo could not be compressed. Please use a smaller photo.')}
-    let du=await shrinkDataUrl(f,1000,0.7);if(du.length>270000)du=await shrinkDataUrl(f,800,0.6);
-    const pu=await uploadPhoto(du,'exam');if(!pu)throw new Error('photo could not be uploaded');
-    const cur=EX.answers[q.id]||{};cur.photo=pu;if(document.getElementById('ex-text'))cur.text=document.getElementById('ex-text').value;EX.answers[q.id]=cur;EX.dirty=true;renderExam();toast('Photo uploaded.')}
-  catch(e){st.textContent='';toast('Photo upload failed: '+(e.message||e),6000)}
-}
 function exClear(){const q=EX.d.questions[EX.idx];delete EX.answers[q.id];EX.dirty=true;renderExam()}
 function exMark(){const q=EX.d.questions[EX.idx];EX.marked[q.id]=!EX.marked[q.id];if(!EX.marked[q.id])delete EX.marked[q.id];EX.dirty=true;renderExam()}
 function exClean(t){
@@ -1998,6 +1978,25 @@ async function submitWithRetry(args){
   }
   return last;
 }
+
+// Correct answer for the student's result card (only shown when the server sends the answer, i.e. after results are declared)
+function exCorrectIdx(q){
+  const raw=q.correct!=null?q.correct:q.answer;
+  if(raw==null||raw==='')return null;
+  const s=String(raw).trim().toLowerCase();
+  if(s==='true')return 0;
+  if(s==='false')return 1;
+  const n=Number(s);
+  if(!isNaN(n)&&n>=0&&n<=3)return n;
+  const m=s.match(/^[a-d]$/);return m?'abcd'.indexOf(m[0]):null;
+}
+function exSahiHtml(q,o){
+  if(q.qtype==='subjective')return '';
+  const k=exCorrectIdx(q);
+  if(k==null||!o[k])return '';
+  return '<div style="margin-top:.3rem;color:#168a56"><b>Sahi jawab: ('+_L[k]+') '+esc(o[k])+'</b></div>';
+}
+
 function exSubmitMsg(t,err){
   let b=document.getElementById('ex-submit-msg');
   if(!b){b=document.createElement('div');b.id='ex-submit-msg';(document.getElementById('exam-ui')||document.body).appendChild(b)}
@@ -2029,7 +2028,7 @@ async function examResult(attemptId){
   if(d.state==='waiting'){examUI(`<div class="ex-wrap"><div class="card"><h2>Exam submitted ✓</h2><p>${esc(d.title)}</p><p class="muted">Your exam was submitted on ${fmtTime(d.submitted_at)}. Your result will be shown here after the teacher declares it.</p></div><button class="btn" onclick="examClose()">Back to Dashboard</button></div>`);return}
   const rows=(d.detail||[]).map((q,i)=>{
     if(q.qtype==='subjective'){const g=q.given||{};return `<div class="card"><b>Q${i+1}. ${esc(q.question)}</b><div class="muted">Your answer: ${esc(g.text||(g.photo?'(photo answer)':'Not answered'))}</div><div class="muted">${q.status==='graded'?'Marks: <b>'+q.awarded+'</b> / '+q.marks:'Waiting for teacher to check'}</div></div>`}
-    const o=q.options||[];const st=q.status||((d.questions||[])[i]||{}).status;const ok=st==='correct',no=st==='wrong';const box=ok?'background:#e8f8ef;border:2px solid #168a56':no?'background:#fdecea;border:2px solid #c0392b':'';const tag=ok?'<b style=\"color:#168a56\">✓ Correct</b>':no?'<b style=\"color:#c0392b\">✗ Wrong</b>':'';return `<div class=\"card ${ok?'ex-ok':no?'ex-no':''}\"><b>Q${i+1}. ${esc(q.question)}</b><div style=\"margin-top:.3rem\">Your answer: <b>${q.given==null?'Not answered':_L[q.given]+'. '+esc(o[q.given])}</b></div>${tag?'<div style=\"margin-top:.3rem\">'+tag+'</div>':''}</div>`}).join('');
+    const o=q.options||[];const st=q.status||((d.questions||[])[i]||{}).status;const ok=st==='correct',no=st==='wrong';const box=ok?'background:#e8f8ef;border:2px solid #168a56':no?'background:#fdecea;border:2px solid #c0392b':'';const tag=ok?'<b style=\"color:#168a56\">✓ Correct</b>':no?'<b style=\"color:#c0392b\">✗ Wrong</b>':'';return `<div class=\"card ${ok?'ex-ok':no?'ex-no':''}\"><b>Q${i+1}. ${esc(q.question)}</b><div style=\"margin-top:.3rem\">Your answer: <b>${q.given==null?'Not answered':_L[q.given]+'. '+esc(o[q.given])}</b></div>${tag?'<div style=\"margin-top:.3rem\">'+tag+'</div>':''}${exSahiHtml(q,o)}</div>`}).join('');
   examUI(`<div class="ex-wrap"><div class="card" style="text-align:center"><h2 style="margin:.2rem 0">${esc(d.title)}</h2><div style="font-size:2.2rem;font-weight:800">${d.score} / ${d.total}</div>
    <div style="font-weight:800;color:${d.passed?'#168a56':'#c0392b'}">${d.subjective_pending?'Result pending (written answers not checked yet)':d.passed?'PASS 🎉':'FAIL'}</div><div class="muted">Passing marks: ${d.pass_marks}</div></div>
    <div class="ex-meta"><div>Correct<b style="color:#168a56">${d.correct}</b></div><div>Wrong<b style="color:#c0392b">${d.wrong}</b></div><div>Not answered<b>${d.unanswered}</b></div></div>
@@ -2358,14 +2357,6 @@ function stuEditProfile(){
     <label class="muted">Mother's name</label><input id="ep-m" value="${esc(me.mother_name||'')}">
     <label class="muted">Address</label><input id="ep-a" value="${esc(me.address||'')}">
     <label class="muted">Date of birth</label><input id="ep-d" type="date" value="${esc(me.dob||'')}">
-    <label class="muted">My photo (optional)</label><input id="ep-p" type="file" accept="image/*" onchange="stuCropLoad(this)">
-    <div id="cr-box" class="hide" style="margin:.5rem 0">
-      <div class="muted" style="margin-bottom:.3rem">Crop: use the sliders so your face fits inside the square.</div>
-      <canvas id="cr-cv" width="200" height="200" style="width:200px;height:200px;border-radius:12px;border:1px solid #ccc;background:#eee;display:block"></canvas>
-      <label class="muted">Zoom</label><input id="cr-z" type="range" min="100" max="300" value="100" oninput="stuCropDraw()">
-      <label class="muted">Move left / right</label><input id="cr-x" type="range" min="0" max="100" value="50" oninput="stuCropDraw()">
-      <label class="muted">Move up / down</label><input id="cr-y" type="range" min="0" max="100" value="50" oninput="stuCropDraw()">
-    </div>
     <div class="btns" style="margin-top:.6rem"><button class="btn" onclick="stuSaveProfile()">Save</button><button class="btn alt" onclick="renderStudentPortal(window.__stuMe)">Cancel</button></div>`;
 }
 function stuCropDraw(){
@@ -2403,9 +2394,7 @@ async function uploadPhoto(dataUrl,kind){
   }catch(_){return null}
 }
 async function stuSaveProfile(){
-  let ph=null;
-  if(window.__cropImg&&!document.getElementById('cr-box').classList.contains('hide')){ph=stuCroppedDataUrl();if(!ph)return toast('Photo is too large. Zoom in a little or choose a smaller photo.',6000)}
-  if(ph)ph=(await uploadPhoto(ph,'profile'))||ph;
+  const ph=null;
   const r=await sb.rpc('update_my_profile',{p_father:$('#ep-f').value,p_mother:$('#ep-m').value,p_address:$('#ep-a').value,p_dob:$('#ep-d').value||null,p_photo:ph});
   if(r.error)return toast('Could not save: '+r.error.message,7000);
   toast('Details saved',3000);
@@ -2663,7 +2652,7 @@ async function renderStudentPortal(me){
     <div class="stu-md-head"><span class="stu-md-ico">👤</span><b>My Details</b></div>
     <div class="stu-md-body">
       <div class="stu-md-left">
-        <div class="stu-ring">${me.profile_photo?`<img src="${me.profile_photo}" alt="">`:`<span>${esc((me.name||'?').trim().charAt(0).toUpperCase())}</span>`}<button class="stu-cam" onclick="stuEditProfile()" aria-label="Change photo">📷</button></div>
+        <div class="stu-ring">${me.profile_photo?`<img src="${me.profile_photo}" alt="">`:`<span>${esc((me.name||'?').trim().charAt(0).toUpperCase())}</span>`}</div>
         <div class="stu-slogan">Small Steps<br>Big Dreams</div>
         <button class="stu-edit" onclick="stuEditProfile()">✏️ Edit my details ›</button>
       </div>
