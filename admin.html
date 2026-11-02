@@ -374,7 +374,7 @@ const egressKey=()=>'biit-egress-'+new Date().toISOString().slice(0,7);
 const nativeFetch=window.fetch.bind(window);
 function egressMonth(){return new Date().toISOString().slice(0,7)}
 var EGRESS_SOFT_CAP=4831838208;
-const meteredFetch=async(input,init)=>{let srvNow=0;try{srvNow=Number(localStorage.getItem('biit-server-usage-'+egressMonth())||0)}catch(_){}const isRead=String(input).includes('/rest/v1/')&&((init&&init.method)||'GET').toUpperCase()==='GET';if(srvNow>EGRESS_SOFT_CAP&&isRead){return new Response(JSON.stringify({message:'Is mahine ka data limit lagbhag poora ho gaya hai. Agle mahine tak kuch lists dikhai nahi denge.',code:'BIIT_LIMIT',details:'',hint:''}),{status:503,headers:{'content-type':'application/json'}})}const r=await nativeFetch(input,init);try{const b=await r.clone().arrayBuffer();const k=egressKey();localStorage.setItem(k,String(Number(localStorage.getItem(k)||0)+b.byteLength))}catch(_){}return r};
+const meteredFetch=async(input,init)=>{let srvNow=0;try{srvNow=Number(localStorage.getItem('biit-server-usage-'+egressMonth())||0)}catch(_){}const isRead=String(input).includes('/rest/v1/')&&((init&&init.method)||'GET').toUpperCase()==='GET';if(srvNow>EGRESS_SOFT_CAP&&isRead){return new Response(JSON.stringify({message:'The data limit for this month is almost used up. Some lists will not show until next month.',code:'BIIT_LIMIT',details:'',hint:''}),{status:503,headers:{'content-type':'application/json'}})}const r=await nativeFetch(input,init);try{const b=await r.clone().arrayBuffer();const k=egressKey();localStorage.setItem(k,String(Number(localStorage.getItem(k)||0)+b.byteLength))}catch(_){}return r};
 function showEgress(){
   let el=document.getElementById('egress-meter');
   if(!el){
@@ -812,25 +812,25 @@ async function saveHolidayList(list){
 async function renderHolidays(){
   const el=document.getElementById('hol-list'); if(!el)return;
   const list=await holidayList();
-  el.innerHTML=list.length?list.slice().sort((x,y)=>y.date.localeCompare(x.date)).slice(0,30).map(h=>'<div class="card" style="margin:.4rem 0"><b>'+esc(h.date)+'</b> — '+esc(h.reason||'Chhutti')+' <button class="btn sm alt" onclick="removeHoliday(\''+esc(h.date)+'\')">Hatao</button></div>').join(''):'<p class="muted">Abhi koi chhutti save nahi hai.</p>';
+  el.innerHTML=list.length?list.slice().sort((x,y)=>y.date.localeCompare(x.date)).slice(0,30).map(h=>'<div class="card" style="margin:.4rem 0"><b>'+esc(h.date)+'</b> — '+esc(h.reason||'Holiday')+' <button class="btn sm alt" onclick="removeHoliday(\''+esc(h.date)+'\')">Remove</button></div>').join(''):'<p class="muted">No holidays saved yet.</p>';
 }
 async function saveHoliday(){
   const d=document.getElementById('hol-d').value, r=(document.getElementById('hol-r').value||'').trim();
   if(!d)return toast('Date chuno.');
-  if(!r)return toast('Chhutti ka reason likho.');
+  if(!r)return toast('Please enter a holiday reason.');
   const list=(await holidayList()).filter(h=>h.date!==d); list.push({date:d,reason:r});
   try{await saveHolidayList(list)}catch(e){return toast('Save failed: '+e.message,7000)}
-  toast('Chhutti save ho gayi.'); document.getElementById('hol-r').value=''; renderHolidays();
+  toast('Holiday saved.'); document.getElementById('hol-r').value=''; renderHolidays();
 }
 async function removeHoliday(d){
   const list=(await holidayList()).filter(h=>h.date!==d);
   try{await saveHolidayList(list)}catch(e){return toast('Failed: '+e.message,7000)}
-  toast('Chhutti hata di.'); renderHolidays();
+  toast('Holiday removed.'); renderHolidays();
 }
 function viewAttendance(){
   setTimeout(renderHolidays,0);
   $('#v-att').innerHTML = `<h2>Attendance</h2>
-  <div class=\"card\"><b>🏖 Holiday / chhutti</b><p class=\"muted\">Jis din chhutti ho, date aur reason likho. Students ko apni ID par wo din dikhega.</p><div class=\"g3\"><div><label class=\"muted\">Date</label><input id=\"hol-d\" type=\"date\" value=\"${today()}\"></div><div><label class=\"muted\">Reason (jaise: Diwali ki chhutti)</label><input id=\"hol-r\" placeholder=\"Chhutti ka karan\"></div></div><div class=\"btns\"><button class=\"btn\" onclick=\"saveHoliday()\">Chhutti save karo</button></div><div id=\"hol-list\"><p class=\"muted\">Loading…</p></div></div>
+  <div class=\"card\"><b>🏖 Holiday</b><p class=\"muted\">Enter the date and reason for a holiday. Students will see that day on their ID.</p><div class=\"g3\"><div><label class=\"muted\">Date</label><input id=\"hol-d\" type=\"date\" value=\"${today()}\"></div><div><label class=\"muted\">Reason (e.g. Diwali holiday)</label><input id=\"hol-r\" placeholder=\"Holiday reason\"></div></div><div class=\"btns\"><button class=\"btn\" onclick=\"saveHoliday()\">Save holiday</button></div><div id=\"hol-list\"><p class=\"muted\">Loading…</p></div></div>
   <div class="card" id="self-att"><p class="muted">Loading self-attendance settings…</p></div>
   <div class="card">
     <input id="ad" type="date" value="${today()}" onchange="loadAtt()">
@@ -1397,7 +1397,7 @@ const FONTS=[
  ['Caveat (handwriting)',"'Caveat'",'Caveat:wght@400;600;700'],['Kalam (handwriting)',"'Kalam'",'Kalam:wght@400;700'],['Patrick Hand (handwriting)',"'Patrick Hand'",'Patrick+Hand'],['Indie Flower (handwriting)',"'Indie Flower'",'Indie+Flower'],['Shadows Into Light (handwriting)',"'Shadows Into Light'",'Shadows+Into+Light'],['Dancing Script (cursive)',"'Dancing Script'",'Dancing+Script:wght@400;600;700'],['Pacifico (cursive)',"'Pacifico'",'Pacifico'],['Satisfy (cursive)',"'Satisfy'",'Satisfy'],
  ['Hind (Hindi + English)',"'Hind'",'Hind:wght@400;500;700'],['Mukta (Hindi + English)',"'Mukta'",'Mukta:wght@400;600;700']];
 const FONT_SIZES={small:'14px',normal:'16px',large:'18px',xlarge:'20px'};
-function prevFont(){const f=FONTS[Number($('#f-name').value)];$('#f-prev').style.fontFamily=f[1]+",sans-serif";$('#f-prev').style.fontSize=FONT_SIZES[$('#f-size').value];$('#f-prev').innerHTML='<b>BIIT Computer Institute</b><br>Welcome! Fees, attendance and messages — बीआईआईटी कंप्यूटर इंस्टीट्यूट'}
+function prevFont(){const f=FONTS[Number($('#f-name').value)];$('#f-prev').style.fontFamily=f[1]+",sans-serif";$('#f-prev').style.fontSize=FONT_SIZES[$('#f-size').value];$('#f-prev').innerHTML='<b>BIIT Computer Institute</b><br>Welcome! Fees, attendance and messages — BIIT Computer Institute'}
 async function saveFont(){const f=FONTS[Number($('#f-name').value)];
   for(const [k,v] of [['site_font',Number($('#f-name').value)===0?'':f[0]],['site_font_size',$('#f-size').value]]){const {error}=await sb.from('site_settings').upsert({setting_key:k,setting_value:v},{onConflict:'setting_key'});if(error)return toast('Could not save: '+error.message,7000)}
   toast('Font saved. It now shows on the student website.')}
@@ -1625,18 +1625,18 @@ async function viewUsage(){
     const days=Math.max(1,(new Date(b.date)-new Date(a.date))/86400000);
     const perDay=(Number(b.egress||0)-Number(a.egress||0))/days;
     const left=USAGE_LIMITS.egress.limit-Number(b.egress||0);
-    proj=perDay>0?`<p>Egress roz lagbhag <b>${perDay.toFixed(3)} GB</b> badh raha hai. 5 GB limit tak lagbhag <b>${Math.max(0,Math.floor(left/perDay))} din</b> bache hain.</p>`:'<p>Egress abhi kam ya same hai.</p>';
+    proj=perDay>0?`<p>Egress is growing by about <b>${perDay.toFixed(3)} GB</b> per day. Up to the 5 GB limit, about <b>${Math.max(0,Math.floor(left/perDay))} days</b> left.</p>`:'<p>Egress is low or steady right now.</p>';
   }
   const hist=log.slice(-15).reverse().map(r=>`<tr><td>${esc(r.date)}</td><td>${r.egress??''}</td><td>${r.cached??''}</td><td>${r.db??''}</td><td>${r.logq??''}</td></tr>`).join('');
   $('#v-usage').innerHTML=`<h2>Usage Monitor</h2>
-  <div class="card"><b>Usage ke numbers bharo</b><p class="muted">Database provider ke Usage page se numbers yahan likho, phir Save dabao. Ye sirf is device par save hota hai.</p><div class="g3">${fields}</div><div style="margin-top:.6rem"><button class="btn" onclick="saveUsage()">Save entry</button></div></div>
+  <div class="card"><b>Enter usage numbers</b><p class="muted">Enter the numbers from your database provider's Usage page here, then tap Save. This is saved on this device only.</p><div class="g3">${fields}</div><div style="margin-top:.6rem"><button class="btn" onclick="saveUsage()">Save entry</button></div></div>
   <div class="card"><b>Abhi ki status</b>${bars}${proj}<p class="muted" style="font-size:.8rem">Green: 60% se kam · Amber: 60% se 85% · Red: 85% se zyada. Egress ya Cached Egress 5 GB se upar jaye to restriction aata hai.</p></div>
   <div class="card"><b>History</b><div style="overflow-x:auto"><table><tr><th>Date</th><th>Egress GB</th><th>Cached GB</th><th>DB MB</th><th>Log GB</th></tr>${hist||'<tr><td colspan="5" class="muted">No entries</td></tr>'}</table></div></div>`;
 }
 function saveUsage(){
   const e={date:today()};let any=false;
   for(const k of Object.keys(USAGE_LIMITS)){const v=document.getElementById('us-'+k).value;if(v!==''){e[k]=Number(v);any=true}}
-  if(!any)return toast('Pehle koi number bharo.');
+  if(!any)return toast('Enter a number first.');
   const log=usageLog().filter(r=>r.date!==e.date);log.push(e);
   localStorage.setItem(USAGE_KEY,JSON.stringify(log.slice(-180)));
   toast('Saved.');viewUsage();
@@ -1997,7 +1997,7 @@ function photoCard(mode){
    <label class="muted">Topic (optional)</label>${optSel('ph-topic',topicsList(),'-- No topic / select --','Add new topic')}
    <label class="muted">Who can take it?</label><select id="ph-aud"><option value="both">Computer Students + Library Students</option><option value="student">Computer Students only</option><option value="library_student">Library Students only</option></select><button type="button" class="btn sm alt" style="margin-top:.4rem" onclick="exAccess(null)">🔒 Student access (who can take it)</button>
    
-   <div class="btns">${always?'':'<button class="btn alt" onclick="clearPhoto()">✕ Clear and start over</button>'}</div><div class="btns" style="margin-top:.4rem"></div><div class=\"btns\" style=\"margin:.4rem 0\"><button type=\"button\" class=\"btn\" onclick=\"runOcr()\">📄 Read questions from file</button></div><p id="ph-status" class="muted"></p><details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="ph-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('ph-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('ph-paste').value=''">Clear</button></div></details><div id="ph-result"></div></div></div>`;
+   <div class="btns">${always?'':'<button class="btn alt" onclick="clearPhoto()">✕ Clear and start over</button>'}</div><div class="btns" style="margin-top:.4rem"></div><div class=\"btns\" style=\"margin:.4rem 0\"><button type=\"button\" class=\"btn\" onclick=\"runOcr()\">📄 Read questions from file</button></div><p id="ph-status" class="muted"></p><details style="margin-top:.6rem" open><summary><b>📋 Or paste questions as text</b></summary><p class="muted" style="font-size:.82rem">Paste the question paper text here (copied from WhatsApp / Word / PDF / ChatGPT). Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, and optionally <b>Ans: B</b>.</p><textarea id="ph-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('ph-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('ph-paste').value=''">Clear</button></div></details><div id="ph-result"></div></div></div>`;
 }
 window._phExtra=window._phExtra||[];
 function phFiles(){return [...((($('#ph-file')||{}).files)||[]),...(window._phExtra||[])]}
@@ -2018,7 +2018,7 @@ function exAuto(){
    <div class="btns" style="margin-top:.6rem"><button id="auto-btn" class="btn" style="background:#168a56;width:100%" onclick="autoExam()">⚡ Create &amp; Publish Exam</button></div>
    <div class="btns"></div>
    <div class=\"btns\" style=\"margin:.4rem 0\"><button type=\"button\" class=\"btn\" onclick=\"runOcr()\">📄 Read questions from file</button></div><p id="ph-status" class="muted"></p>
-   <details style="margin-top:.6rem" open><summary><b>📋 Ya questions copy-paste karein</b></summary><p class="muted" style="font-size:.82rem">Question paper ka text (WhatsApp / Word / PDF / ChatGPT se copy kiya hua) yahan paste karein. Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, aur chahein to <b>Ans: B</b>.</p><textarea id="px-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('px-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('px-paste').value=''">Clear</button></div></details>
+   <details style="margin-top:.6rem" open><summary><b>📋 Or paste questions as text</b></summary><p class="muted" style="font-size:.82rem">Paste the question paper text here (copied from WhatsApp / Word / PDF / ChatGPT). Format: <b>1. Question</b>, phir <b>(A) .. (B) .. (C) .. (D) ..</b>, and optionally <b>Ans: B</b>.</p><textarea id="px-paste" rows="8" placeholder="1. India ki rajdhani kya hai?&#10;(A) Mumbai&#10;(B) Delhi&#10;(C) Pune&#10;(D) Agra&#10;Ans: B"></textarea><div class="btns"><button type="button" class="btn" onclick="pasteParse('px-paste')">📋 Pasted questions padhein</button><button type="button" class="btn sm alt" onclick="document.getElementById('px-paste').value=''">Clear</button></div></details>
    <div id="ph-result"></div>
    <details style="margin-top:.4rem"><summary class="muted">More options (optional)</summary>
     <label class="muted">Who can take this exam?</label><select id="ce-aud"><option value="both">Computer + Library Students</option><option value="student">Computer Students only</option><option value="library_student">Library Students only</option></select><button type="button" class="btn sm alt" style="margin-top:.4rem" onclick="exAccess(null)">🔒 Student access (who can take it)</button>
@@ -2164,7 +2164,7 @@ async function runOcr(){
   const files=[...(phFiles())];if(!files.length)return toast('Choose a photo first.');
   const st=$('#ph-status');
   const ai=null; /* AI reader removed: basic reader only */
-  if(ai&&ai.failed){OCRQ=[];st.textContent='AI reader abhi kaam nahi kar raha. Neeche "Photo reader without AI (basic)" dabayein, ya questions ka text copy-paste karein.';return}
+  if(ai&&ai.failed){OCRQ=[];st.textContent='AI reader is not working right now. Paste the questions text instead.';return}
   if(ai){OCRQ=ai.qs;st.textContent=OCRQ.length?`Found ${OCRQ.length} question(s). Please check them below.`:'No questions were found in the photo.';renderOcr(ai.text);return}
   let pre={text:'',images:[]};
   try{pre=await filesToTextAndImages(files,st)}catch(e){st.textContent='';return toast('Could not open the file: '+errText(e),9000)}
@@ -2228,17 +2228,17 @@ function runBasic(){
 }
 function pasteParse(id){
   const t=(($('#'+id)||{}).value||'');
-  if(t.trim().length<10)return toast('Pehle questions ka text paste karein.');
+  if(t.trim().length<10)return toast('Paste the questions text first.');
   const st=$('#ph-status');
   if(window._exAutoPage){
-    if(!$('#ce-title').value.trim())return toast('Pehle upar Exam name likhein.');
+    if(!$('#ce-title').value.trim())return toast('Enter the exam name above first.');
     const f=ms=>new Date(ms).toLocaleString('sv-SE',{timeZone:TZ}).slice(0,16).replace(' ','T');
     $('#ce-start').value=f(Date.now()-60000);$('#ce-end').value=f(Date.now()+24*3600*1000);
   }
   OCRQ=parseOcrQuestions(t);
-  if(!OCRQ.length){if(st)st.textContent='Koi question nahi mila. Format: 1. Question  (A) .. (B) .. (C) .. (D) ..';return toast('Koi question nahi mila. "1. Question" ke baad (A) (B) (C) (D) options alag lines me rakhein.',7000)}
+  if(!OCRQ.length){if(st)st.textContent='No question found. Format: 1. Question  (A) .. (B) .. (C) .. (D) ..';return toast('No question found. "1. Question" after 1. Question, put the (A) (B) (C) (D) options on separate lines.',7000)}
   if(window._exAutoPage&&!($('#ce-dur').value||'').trim())$('#ce-dur').value=Math.max(10,OCRQ.length);
-  if(st)st.textContent='Found '+OCRQ.length+' question(s). Neeche check karein, phir Save kijiye.';
+  if(st)st.textContent='Found '+OCRQ.length+' question(s). Check below, then tap Save.';
   renderOcr(t);
   setTimeout(()=>{const r=$('#ph-result');if(r&&r.scrollIntoView)r.scrollIntoView({behavior:'smooth',block:'start'})},100);
 }
@@ -2361,7 +2361,7 @@ async function exAccess(id){
   m.style.cssText='position:fixed;inset:0;z-index:200;background:#0008;display:flex;align-items:center;justify-content:center;padding:1rem';
   m.innerHTML=`<div class="card" style="max-width:560px;width:100%;max-height:90vh;display:flex;flex-direction:column">
     <h2 style="margin-top:0">Student access - ${esc(e.title)}</h2>
-    <div class="muted">Tick "Can take" for students who may take this exam. Untick to block a student, then write the message they will see. A blocked student can still open their account and see this exam, but the question paper stays hidden until you allow them again here. Everyone is allowed by default.</div>
+    <div class="muted">Tick "Can take" for students who may take this exam. Untick to block a student. A blocked student will not see this exam at all on their account. Tick them again to give access. Everyone is allowed by default; to allow only some students, click "Unselect all" first and then tick the students who may take it.</div>
     <label class="muted">🔍 Search student (name or mobile)</label><input id="exa-q" placeholder="Type name or mobile number" oninput="exAccDraw()" style="width:100%">
     <div class="btns" style="margin:.3rem 0"><button type="button" class="btn sm" onclick="exAccAll(true)">✅ Select all (shown)</button><button type="button" class="btn sm alt" onclick="exAccAll(false)">⬜ Unselect all (shown)</button></div><div class="muted" id="exa-count" style="margin:.3rem 0"></div>
     <div id="exa-list" style="overflow:auto;flex:1"></div>
@@ -2428,10 +2428,10 @@ function exEditTime(id){
 }
 async function exSaveTime(id){
   const sv=document.getElementById('et-s').value, ev=document.getElementById('et-e').value, dv=Number(document.getElementById('et-d').value);
-  if(!sv||!ev)return toast('Start aur End dono bharo.');
+  if(!sv||!ev)return toast('Please fill in both Start and End.');
   const st=new Date(sv), ed=new Date(ev);
   if(!(ed>st))return toast('End time Start ke baad hona chahiye.');
-  if(!(dv>0))return toast('Timer minutes sahi likho.');
+  if(!(dv>0))return toast('Enter the timer in minutes.');
   const {error}=await sb.from('exams').update({start_at:st.toISOString(),end_at:ed.toISOString(),duration_min:dv}).eq('id',id);
   if(error)return toast('Save failed: '+error.message);
   document.getElementById('ex-time-modal')?.remove();
@@ -2456,10 +2456,10 @@ async function showSelfie(a,pre,size){
 
 // Admin: remove a submitted attempt so the same student can take the paper again.
 async function exRetake(aid,examId){
-  if(!confirm('Is student ka submitted paper hata kar dobara dene ki permission de? Purana result delete ho jayega.'))return;
+  if(!confirm('Allow this student to retake the exam? Their submitted paper and current result will be deleted.'))return;
   const {error}=await sb.from('exam_attempts').delete().eq('id',aid);
   if(error)return toast('Failed: '+error.message,7000);
-  toast('Done. Student ab dobara exam start kar sakta hai.',5000);
+  toast('Done. The student can now start the exam again.',5000);
   exResults(examId);
 }
 async function exResults(id){
@@ -2469,7 +2469,7 @@ async function exResults(id){
   <div class="grid"><div>Attempts<b>${r.length}</b></div><div>Passed<b>${passed}</b></div><div>Average<b>${avg.toFixed(1)}</b></div></div>
   <div class="btns" style="margin:.6rem 0"><button class="btn sm green" onclick="exResultsXlsx()">📊 Excel (.xlsx)</button> <button class="btn sm green" onclick="exResultsCsv()">🧾 CSV</button></div>
   ${r.map((a,i)=>`<div class="card">${photoModeOf(EXCUR.instructions)!=='off'?`<span id="sf-${a.id}" class="muted" style="float:right;margin-left:.5rem;font-size:.75rem">…</span>`:''}<div class="row"><b>${i+1}. ${esc(a.student_name||'-')}</b><b>${Number(a.score)}/${EXCUR.total_marks}</b></div><div class="muted">${esc(a.student_phone||'')} · ${a.role==='library_student'?'Library':'Computer'} student · ${a.status==='in_progress'?'In progress':(a.status==='auto_submitted'?'Auto-submitted':'Submitted')}<br>Started: ${a.started_at?fmtTime(a.started_at):'-'}${a.submitted_at?' · Finished: '+fmtTime(a.submitted_at):''}<br>${cwu(a)}<br>${a.status!=='in_progress'?(Number(a.score)>=Number(EXCUR.pass_marks)?'<b style="color:#168a56">PASS</b>':'<b style="color:#c0392b">FAIL</b>'):''} · Tab-switch warnings: ${a.violations}</div>
-  ${a.status!=='in_progress'?`<div class="btns"><button class="btn sm" onclick="exGrade('${a.id}')">Check Answers${(a.detail||[]).some(d=>d.status==='pending')?' / Give Marks':''}</button><button class=\"btn sm alt\" onclick=\"exRetake(\'${a.id}\',\'${a.exam_id}\')\">🔄 Dobara dene do</button></div>`:''}</div>`).join('')||'<p class="muted">No student has started this exam yet.</p>'}`;
+  ${a.status!=='in_progress'?`<div class="btns"><button class="btn sm" onclick="exGrade('${a.id}')">Check Answers${(a.detail||[]).some(d=>d.status==='pending')?' / Give Marks':''}</button><button class=\"btn sm alt\" onclick=\"exRetake(\'${a.id}\',\'${a.exam_id}\')\">🔄 Allow retake</button></div>`:''}</div>`).join('')||'<p class="muted">No student has started this exam yet.</p>'}`;
   r.forEach(a=>showSelfie(a));
 }
 async function blobToDataUrl(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('read'));r.readAsDataURL(b)})}
@@ -2619,7 +2619,7 @@ function biitCompactSidebar(){if(window.matchMedia('(max-width:760px)').matches)
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
     b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:999999;background:#4338ca;color:#fff;padding:10px 14px;font:14px/1.4 system-ui,sans-serif;display:flex;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 4px 14px rgba(0,0,0,.3)';
-    b.innerHTML='<span>Naya update aaya hai. Sahi chalne ke liye update karein.</span><button style="background:#fff;color:#4338ca;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer">Update</button>';
+    b.innerHTML='<span>A new update is available. Update to keep it working properly.</span><button style="background:#fff;color:#4338ca;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer">Update</button>';
     b.querySelector('button').onclick=function(){
       if('caches' in window){caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}).finally(function(){location.reload()})}
       else location.reload();
@@ -2636,5 +2636,71 @@ function biitCompactSidebar(){if(window.matchMedia('(max-width:760px)').matches)
   setInterval(check,7200000);
 })();
 </script>
+<div id="biit-lang-wrap" style="position:fixed;left:50%;transform:translateX(-50%);bottom:6px;z-index:100000;background:#fff;border:1px solid #c7cfe4;border-radius:999px;padding:2px 10px;box-shadow:0 2px 8px rgba(0,0,0,.15);font:600 .8rem system-ui,sans-serif;color:#111"><span style="margin-right:4px">🌐</span><select id="biit-lang" onchange="biitSetLang(this.value)" style="border:0;background:transparent;font:inherit;color:#111;cursor:pointer"><option value="en">English</option><option value="hi">हिन्दी</option></select></div>
+<script id="biit-i18n">
+(function(){
+  var D={
+    'Login':'लॉगिन','Logout':'लॉगआउट','Email':'ईमेल','Password':'पासवर्ड','Dashboard':'डैशबोर्ड',
+    'Students':'छात्र','Teachers':'शिक्षक','Library':'लाइब्रेरी','Promoters':'प्रमोटर','Website Content':'वेबसाइट सामग्री',
+    'Edit Profile':'प्रोफ़ाइल बदलें','Coaching Details':'कोचिंग विवरण','Excel Reports':'एक्सेल रिपोर्ट','Online Exams':'ऑनलाइन परीक्षा',
+    'Reset Password':'पासवर्ड रीसेट करें','Welcome Screen':'स्वागत स्क्रीन','Overview':'सारांश','Courses':'कोर्स','Attendance':'उपस्थिति',
+    'Fees':'फीस','Messages':'संदेश','Admin Panel':'एडमिन पैनल','WhatsApp':'व्हाट्सऐप','Close':'बंद करें','Send':'भेजें','Next':'आगे',
+    'Back':'वापस','Back to Login':'लॉगिन पर वापस','Submit':'जमा करें','Save':'सहेजें','Cancel':'रद्द करें','Remove':'हटाएं',
+    'Save Password':'पासवर्ड सहेजें','Create Account':'खाता बनाएं','Create Account / Register':'खाता बनाएं / रजिस्टर करें','Register':'रजिस्टर करें',
+    'Forgot Password?':'पासवर्ड भूल गए?','Mobile Number':'मोबाइल नंबर','Mobile Number *':'मोबाइल नंबर *','Full Name *':'पूरा नाम *',
+    'Gender *':'लिंग *','Course *':'कोर्स *','Password (at least 8 characters) *':'पासवर्ड (कम से कम 8 अक्षर) *',
+    'Male':'पुरुष','Female':'महिला','Other':'अन्य','Transgender':'ट्रांसजेंडर','Not specified':'निर्दिष्ट नहीं','Select gender':'लिंग चुनें',
+    'Direct':'सीधे','Promoter ID *':'प्रमोटर आईडी *','Address':'पता','Date of Birth':'जन्म तिथि','Father’s Name':'पिता का नाम',
+    'Mother’s Name':'माता का नाम','Seat Number':'सीट नंबर','Aadhaar Card Details':'आधार कार्ड विवरण','Name on Aadhaar Card *':'आधार कार्ड पर नाम *',
+    'Date of Birth on Aadhaar *':'आधार पर जन्म तिथि *','Address on Aadhaar Card *':'आधार कार्ड पर पता *','Gender on Aadhaar *':'आधार पर लिंग *',
+    'Teaching Subject / Qualification':'शिक्षण विषय / योग्यता','Registration Type *':'पंजीकरण प्रकार *','Computer Student':'कंप्यूटर छात्र',
+    'Library Student':'लाइब्रेरी छात्र','Teacher':'शिक्षक','Promoter':'प्रमोटर','Login As *':'लॉगिन प्रकार *','Student Login':'छात्र लॉगिन',
+    'Admin / Teacher login':'एडमिन / शिक्षक लॉगिन','Create a New Password':'नया पासवर्ड बनाएं','Show':'दिखाएं','Skip ›':'छोड़ें ›',
+    'Install App':'ऐप इंस्टॉल करें','WELCOME TO':'स्वागत है','Learn | Grow | Build Your Future':'सीखें | बढ़ें | अपना भविष्य बनाएं',
+    'Education Changes Lives':'शिक्षा जीवन बदलती है','Promoter access is enabled after administrator approval.':'प्रमोटर एक्सेस एडमिन की मंज़ूरी के बाद चालू होगा।',
+    'This website created by':'यह वेबसाइट बनाई गई है','BIIT / ADMIN WORKSPACE':'BIIT / एडमिन वर्कस्पेस',
+    'Start Exam':'परीक्षा शुरू करें','Resume Exam':'परीक्षा फिर से शुरू करें','View Result':'परिणाम देखें','Exam ended':'परीक्षा समाप्त',
+    'Open':'खोलें','Starts in':'शुरू होगी','Present':'उपस्थित','Absent':'अनुपस्थित','Leave':'छुट्टी','Save holiday':'छुट्टी सहेजें',
+    'Holiday saved.':'छुट्टी सहेजी गई।','Holiday removed.':'छुट्टी हटाई गई।','Allow retake':'दोबारा देने की अनुमति','Publish':'प्रकाशित करें',
+    'Unpublish':'प्रकाशन हटाएं','Student access':'छात्र एक्सेस','Save access':'एक्सेस सहेजें','Select all':'सभी चुनें','Unselect all':'सभी हटाएं',
+    'Download Excel':'एक्सेल डाउनलोड करें','Excel':'एक्सेल','CSV':'सीएसवी','Download':'डाउनलोड','Print':'प्रिंट करें',
+    'Save Fee Details':'फीस विवरण सहेजें','Holiday':'छुट्टी',
+    'No exams are scheduled for you right now.':'इस समय आपके लिए कोई परीक्षा निर्धारित नहीं है।'
+  };
+  var R={}; Object.keys(D).forEach(function(k){R[D[k]]=k;});
+  var KEY='biit-lang', lang='en';
+  try{lang=localStorage.getItem(KEY)||'en'}catch(e){}
+  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1,SELECT:1,OPTION:1};
+  function mapFor(){return lang==='hi'?D:R}
+  function fixText(t,map){
+    var p=t.parentNode; if(!p||SKIP[p.nodeName])return;
+    var v=t.nodeValue, s=v.trim(); if(!s)return;
+    var to=map[s]; if(!to)return;
+    t.nodeValue=v.replace(s,function(){return to});
+  }
+  function walk(root,map){
+    if(!root)return;
+    if(root.nodeType===3){fixText(root,map);return}
+    var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),n,list=[];
+    while((n=w.nextNode()))list.push(n);
+    list.forEach(function(t){fixText(t,map)});
+  }
+  window.biitSetLang=function(l){
+    lang=(l==='hi')?'hi':'en';
+    try{localStorage.setItem(KEY,lang)}catch(e){}
+    walk(document.body,mapFor());
+    var s=document.getElementById('biit-lang'); if(s)s.value=lang;
+  };
+  function start(){
+    var s=document.getElementById('biit-lang'); if(s)s.value=lang;
+    walk(document.body,mapFor());
+    new MutationObserver(function(ms){
+      ms.forEach(function(m){m.addedNodes.forEach(function(nd){walk(nd,mapFor())})});
+    }).observe(document.body,{childList:true,subtree:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+
 </body>
 </html>

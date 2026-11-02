@@ -1107,6 +1107,11 @@ html body #exam-ui.gx .gx-tbl td{font-size:13px!important;padding:6px 8px!import
 html body #exam-ui.gx .gx-tbl td:nth-child(2){width:56px!important;padding:4px!important}
 html body #exam-ui.gx .gx-tbl td:nth-child(2) *{max-width:18px!important;max-height:18px!important}
 html body #exam-ui.gx .gx-tbl td:nth-child(2) i,html body #exam-ui.gx .gx-tbl td:nth-child(2) span,html body #exam-ui.gx .gx-tbl td:nth-child(2) div{width:18px!important;height:18px!important;display:inline-block!important;vertical-align:middle!important}
+
+/* Online exam list: make the sheet scroll on phones so every exam card can be reached */
+.dash-option-overlay{align-items:flex-end!important;overflow:hidden!important;overscroll-behavior:contain}
+.dash-option-overlay .dash-option-sheet{position:relative!important;margin:0 auto!important;max-height:88vh!important;max-height:88dvh!important;height:auto!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))!important}
+.dash-option-overlay .dash-option-body{padding-bottom:12px}
 </style>
 </head>
 <body>
@@ -1775,8 +1780,12 @@ async function loadExamList(){
   const box=[...document.querySelectorAll('#exam-list')].find(b=>b.offsetParent!==null||b.closest('#role-dashboard,#student-dashboard')&&!b.closest('.hide'))||document.getElementById('exam-list');if(!box)return;
   const r=await sb.rpc('exam_list');
   if(r.error){console.error('exam_list',r.error);box.innerHTML='<p class="muted">Online exams are not available yet.<br><small>'+esc(r.error.message||'')+'</small></p>';return}
-  const list=r.data||[];window.__exListData=list;try{if(list[0])window.__exOff=Date.parse(list[0].server_now)-Date.now();stuMockExam()}catch(_){}if(!list.length){box.innerHTML='<p class="muted">No exams are scheduled for you right now.</p>';return}
-  const bl=await sb.rpc('my_exam_blocks');const blk={};(bl.data||[]).forEach(x=>blk[String(x.exam_id)]=x.message);window.__blk={};list.forEach(x=>{if(blk[String(x.id)])window.__blk[String(x.id)]={title:x.title,msg:blk[String(x.id)]}});
+  const list0=r.data||[];try{if(list0[0])window.__exOff=Date.parse(list0[0].server_now)-Date.now();stuMockExam()}catch(_){}
+  const bl=await sb.rpc('my_exam_blocks');const blk={};(bl.data||[]).forEach(x=>blk[String(x.exam_id)]=x.message);
+  // A blocked exam is hidden completely (no card, no message). It stays visible only if the student already has a finished attempt, so the result can be seen.
+  const list=list0.filter(x=>!blk[String(x.id)]||['submitted','graded','completed','finished'].includes(x.attempt_status||''));
+  window.__exListData=list;window.__blk={};
+  if(!list.length){box.innerHTML='<p class="muted">No exams are scheduled for you right now.</p>';return}
   const off=Date.parse(list[0].server_now)-Date.now();window.__exOff=off;const now=Date.now()+off;
   box.innerHTML=list.map(e=>{
     const st=Date.parse(e.start_at),en=Date.parse(e.end_at);let action='';
@@ -2887,5 +2896,71 @@ window.__siteReady=loadPublicSiteContent();
 <div id="creator"><div class="cr-badge" role="note" aria-label="Website created by Aryan Yadav"><i></i><i></i><i></i><span class="cr-k">This website created by</span><b class="cr-name">Aryan Yadav</b><span class="cr-line"></span></div></div>
 <script>(function(){var P='https://bpsqafcfdjtvnvcvlotr.supabase.co/storage/v1/object/public/',W='https://biit-photos.computerinstitute1.workers.dev/m/';function fix(i){var s=i.getAttribute('src');if(s&&s.indexOf(P)===0)i.setAttribute('src',W+s.slice(P.length))}document.querySelectorAll('img').forEach(fix);new MutationObserver(function(ms){ms.forEach(function(m){if(m.type==='attributes'){if(m.target.tagName==='IMG')fix(m.target)}else m.addedNodes.forEach(function(n){if(n.nodeType===1){if(n.tagName==='IMG')fix(n);if(n.querySelectorAll)n.querySelectorAll('img').forEach(fix)}})})}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['src']})})();</script>
 <script>(function(){var t=null,b=document.body;function on(){if(!b.classList.contains('is-scrolling'))b.classList.add('is-scrolling');clearTimeout(t);t=setTimeout(function(){b.classList.remove('is-scrolling')},180)}window.addEventListener('scroll',on,{passive:true,capture:true});window.addEventListener('touchmove',on,{passive:true});window.addEventListener('wheel',on,{passive:true})})();</script>
+<div id="biit-lang-wrap" style="position:fixed;left:50%;transform:translateX(-50%);bottom:6px;z-index:100000;background:#fff;border:1px solid #c7cfe4;border-radius:999px;padding:2px 10px;box-shadow:0 2px 8px rgba(0,0,0,.15);font:600 .8rem system-ui,sans-serif;color:#111"><span style="margin-right:4px">🌐</span><select id="biit-lang" onchange="biitSetLang(this.value)" style="border:0;background:transparent;font:inherit;color:#111;cursor:pointer"><option value="en">English</option><option value="hi">हिन्दी</option></select></div>
+<script id="biit-i18n">
+(function(){
+  var D={
+    'Login':'लॉगिन','Logout':'लॉगआउट','Email':'ईमेल','Password':'पासवर्ड','Dashboard':'डैशबोर्ड',
+    'Students':'छात्र','Teachers':'शिक्षक','Library':'लाइब्रेरी','Promoters':'प्रमोटर','Website Content':'वेबसाइट सामग्री',
+    'Edit Profile':'प्रोफ़ाइल बदलें','Coaching Details':'कोचिंग विवरण','Excel Reports':'एक्सेल रिपोर्ट','Online Exams':'ऑनलाइन परीक्षा',
+    'Reset Password':'पासवर्ड रीसेट करें','Welcome Screen':'स्वागत स्क्रीन','Overview':'सारांश','Courses':'कोर्स','Attendance':'उपस्थिति',
+    'Fees':'फीस','Messages':'संदेश','Admin Panel':'एडमिन पैनल','WhatsApp':'व्हाट्सऐप','Close':'बंद करें','Send':'भेजें','Next':'आगे',
+    'Back':'वापस','Back to Login':'लॉगिन पर वापस','Submit':'जमा करें','Save':'सहेजें','Cancel':'रद्द करें','Remove':'हटाएं',
+    'Save Password':'पासवर्ड सहेजें','Create Account':'खाता बनाएं','Create Account / Register':'खाता बनाएं / रजिस्टर करें','Register':'रजिस्टर करें',
+    'Forgot Password?':'पासवर्ड भूल गए?','Mobile Number':'मोबाइल नंबर','Mobile Number *':'मोबाइल नंबर *','Full Name *':'पूरा नाम *',
+    'Gender *':'लिंग *','Course *':'कोर्स *','Password (at least 8 characters) *':'पासवर्ड (कम से कम 8 अक्षर) *',
+    'Male':'पुरुष','Female':'महिला','Other':'अन्य','Transgender':'ट्रांसजेंडर','Not specified':'निर्दिष्ट नहीं','Select gender':'लिंग चुनें',
+    'Direct':'सीधे','Promoter ID *':'प्रमोटर आईडी *','Address':'पता','Date of Birth':'जन्म तिथि','Father’s Name':'पिता का नाम',
+    'Mother’s Name':'माता का नाम','Seat Number':'सीट नंबर','Aadhaar Card Details':'आधार कार्ड विवरण','Name on Aadhaar Card *':'आधार कार्ड पर नाम *',
+    'Date of Birth on Aadhaar *':'आधार पर जन्म तिथि *','Address on Aadhaar Card *':'आधार कार्ड पर पता *','Gender on Aadhaar *':'आधार पर लिंग *',
+    'Teaching Subject / Qualification':'शिक्षण विषय / योग्यता','Registration Type *':'पंजीकरण प्रकार *','Computer Student':'कंप्यूटर छात्र',
+    'Library Student':'लाइब्रेरी छात्र','Teacher':'शिक्षक','Promoter':'प्रमोटर','Login As *':'लॉगिन प्रकार *','Student Login':'छात्र लॉगिन',
+    'Admin / Teacher login':'एडमिन / शिक्षक लॉगिन','Create a New Password':'नया पासवर्ड बनाएं','Show':'दिखाएं','Skip ›':'छोड़ें ›',
+    'Install App':'ऐप इंस्टॉल करें','WELCOME TO':'स्वागत है','Learn | Grow | Build Your Future':'सीखें | बढ़ें | अपना भविष्य बनाएं',
+    'Education Changes Lives':'शिक्षा जीवन बदलती है','Promoter access is enabled after administrator approval.':'प्रमोटर एक्सेस एडमिन की मंज़ूरी के बाद चालू होगा।',
+    'This website created by':'यह वेबसाइट बनाई गई है','BIIT / ADMIN WORKSPACE':'BIIT / एडमिन वर्कस्पेस',
+    'Start Exam':'परीक्षा शुरू करें','Resume Exam':'परीक्षा फिर से शुरू करें','View Result':'परिणाम देखें','Exam ended':'परीक्षा समाप्त',
+    'Open':'खोलें','Starts in':'शुरू होगी','Present':'उपस्थित','Absent':'अनुपस्थित','Leave':'छुट्टी','Save holiday':'छुट्टी सहेजें',
+    'Holiday saved.':'छुट्टी सहेजी गई।','Holiday removed.':'छुट्टी हटाई गई।','Allow retake':'दोबारा देने की अनुमति','Publish':'प्रकाशित करें',
+    'Unpublish':'प्रकाशन हटाएं','Student access':'छात्र एक्सेस','Save access':'एक्सेस सहेजें','Select all':'सभी चुनें','Unselect all':'सभी हटाएं',
+    'Download Excel':'एक्सेल डाउनलोड करें','Excel':'एक्सेल','CSV':'सीएसवी','Download':'डाउनलोड','Print':'प्रिंट करें',
+    'Save Fee Details':'फीस विवरण सहेजें','Holiday':'छुट्टी',
+    'No exams are scheduled for you right now.':'इस समय आपके लिए कोई परीक्षा निर्धारित नहीं है।'
+  };
+  var R={}; Object.keys(D).forEach(function(k){R[D[k]]=k;});
+  var KEY='biit-lang', lang='en';
+  try{lang=localStorage.getItem(KEY)||'en'}catch(e){}
+  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1,SELECT:1,OPTION:1};
+  function mapFor(){return lang==='hi'?D:R}
+  function fixText(t,map){
+    var p=t.parentNode; if(!p||SKIP[p.nodeName])return;
+    var v=t.nodeValue, s=v.trim(); if(!s)return;
+    var to=map[s]; if(!to)return;
+    t.nodeValue=v.replace(s,function(){return to});
+  }
+  function walk(root,map){
+    if(!root)return;
+    if(root.nodeType===3){fixText(root,map);return}
+    var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),n,list=[];
+    while((n=w.nextNode()))list.push(n);
+    list.forEach(function(t){fixText(t,map)});
+  }
+  window.biitSetLang=function(l){
+    lang=(l==='hi')?'hi':'en';
+    try{localStorage.setItem(KEY,lang)}catch(e){}
+    walk(document.body,mapFor());
+    var s=document.getElementById('biit-lang'); if(s)s.value=lang;
+  };
+  function start(){
+    var s=document.getElementById('biit-lang'); if(s)s.value=lang;
+    walk(document.body,mapFor());
+    new MutationObserver(function(ms){
+      ms.forEach(function(m){m.addedNodes.forEach(function(nd){walk(nd,mapFor())})});
+    }).observe(document.body,{childList:true,subtree:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+
 </body>
 </html>
