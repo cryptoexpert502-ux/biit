@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="app-version" content="2026-11-02-7">
+<meta name="app-version" content="2026-11-02-8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2e">
@@ -1098,6 +1098,15 @@ body.stu-mode #dz-bg{transform:translateZ(0);will-change:transform;contain:stric
 body.stu-mode #student-dashboard [class*="card"],body.stu-mode #student-dashboard [class*="box"],body.stu-mode #student-dashboard [class*="tile"],body.stu-mode #student-dashboard [class*="mot"],body.stu-mode #student-dashboard [class*="notice"],body.stu-mode #student-dashboard [class*="stat"],body.stu-mode #student-dashboard [class*="progress"],body.stu-mode #student-dashboard .glass,body.stu-mode #stu-nav,body.stu-mode .top,body.stu-mode .hero{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background-color:rgba(10,6,24,.9)!important;box-shadow:0 2px 8px rgba(0,0,0,.28)!important}
 body.stu-mode #stu-nav{background-color:rgba(10,6,24,.96)!important}
 body.stu-mode #student-dashboard{contain:layout style}
+</style>
+<style id="status-small">
+/* exam: smaller Question Status box (same content, same colours) */
+html body #exam-ui.gx .gx-tbl{width:100%!important;max-width:100%!important;margin-top:4px!important;font-size:12px!important}
+html body #exam-ui.gx .gx-tbl th{font-size:13px!important;padding:6px!important}
+html body #exam-ui.gx .gx-tbl td{font-size:13px!important;padding:6px 8px!important;line-height:1.2!important}
+html body #exam-ui.gx .gx-tbl td:nth-child(2){width:56px!important;padding:4px!important}
+html body #exam-ui.gx .gx-tbl td:nth-child(2) *{max-width:18px!important;max-height:18px!important}
+html body #exam-ui.gx .gx-tbl td:nth-child(2) i,html body #exam-ui.gx .gx-tbl td:nth-child(2) span,html body #exam-ui.gx .gx-tbl td:nth-child(2) div{width:18px!important;height:18px!important;display:inline-block!important;vertical-align:middle!important}
 </style>
 </head>
 <body>
@@ -2864,7 +2873,7 @@ window.__siteReady=loadPublicSiteContent();
 
 <script id="biit-update-check">
 (function(){
-  var MY_VER='2026-11-02-7';
+  var MY_VER='2026-11-02-8';
   function showBanner(){
     if(document.getElementById('biit-update-bar'))return;
     var b=document.createElement('div');b.id='biit-update-bar';
