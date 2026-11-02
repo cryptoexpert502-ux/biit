@@ -2277,23 +2277,26 @@ async function markMyAttendance(role){
   }catch(e){reset();toast('Error: '+(e.message||e),7000)}
 }
 async function loadPastPapers(){
-  document.getElementById('past-papers')?.remove();
-  if(window.__pastHtml&&Date.now()-window.__pastAt<600000&&window.__pastUser===(window.__stuMe||{}).id){const cb=document.createElement('div');cb.id='past-papers';cb.className='card';cb.innerHTML=window.__pastHtml;(document.getElementById('student-dashboard')||document.body).appendChild(cb);return}
-  const r=await sb.rpc('my_past_attempts');
-  const list=(!r.error&&Array.isArray(r.data))?r.data:[];
-  const LET=i=>String.fromCharCode(65+i);
+  // The card is created right away (before the dashboard tiles are built) so the "Exam Results" tile always finds it.
+  let box=document.getElementById('past-papers');
+  if(!box){box=document.createElement('div');box.id='past-papers';box.className='card';(document.getElementById('student-dashboard')||document.body).appendChild(box)}
+  const HEAD='<h2>📚 Past Exam Results</h2>';
+  if(!box.dataset.init){box.innerHTML=HEAD+'<p class="muted">Loading…</p>';box.dataset.init='1'}
+  if(window.__pastHtml&&Date.now()-window.__pastAt<600000&&window.__pastUser===(window.__stuMe||{}).id){box.innerHTML=window.__pastHtml;return}
   const parts=[];
-  for(const a of list){
-    const x=await sb.rpc('exam_result',{p_attempt:a.attempt_id});
-    if(x.error||!x.data||x.data.state==='waiting')continue;
-    const d=x.data,qs=Array.isArray(d.questions)?d.questions:[];
-    const right=qs.filter(q=>q.status==='correct').length,wrong=qs.filter(q=>q.status==='wrong').length,skip=qs.length-right-wrong;
-    parts.push(`<div style="margin:.5rem 0"><b>${esc(a.title)}</b>${d.score!=null?' · Score '+d.score+(d.total_marks!=null?'/'+d.total_marks:''):''}</div>`);
-  }
-  const box=document.createElement('div');box.id='past-papers';box.className='card';
-  box.innerHTML='<h2>📚 Past exam results</h2><div class="muted" style="margin-bottom:.4rem">Your answers are marked green (correct) or red (wrong) after the admin has shown the result.</div>'+(parts.length?parts.join(''):'<p class="muted">No past exam results are shown yet.</p>');
-  window.__pastHtml=box.innerHTML;window.__pastAt=Date.now();window.__pastUser=(window.__stuMe||{}).id;
-  (document.getElementById('student-dashboard')||document.body).appendChild(box);
+  try{
+    const r=await sb.rpc('my_past_attempts');
+    const list=(!r.error&&Array.isArray(r.data))?r.data:[];
+    for(const a of list){
+      const x=await sb.rpc('exam_result',{p_attempt:a.attempt_id});
+      if(x.error||!x.data||x.data.state==='waiting')continue;
+      const d=x.data;
+      parts.push(`<div style="margin:.5rem 0;display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap"><div><b>${esc(a.title)}</b>${d.score!=null?'<br><span class="muted">Score '+d.score+((d.total!=null?d.total:d.total_marks)!=null?' / '+(d.total!=null?d.total:d.total_marks):'')+'</span>':''}</div><button type="button" class="btn sm" onclick="examResult('${a.attempt_id}')">View Result</button></div>`);
+    }
+  }catch(e){console.warn('past results',e)}
+  const html=HEAD+'<div class="muted" style="margin-bottom:.4rem">Your answers are marked green (correct) or red (wrong) after the admin has shown the result.</div>'+(parts.length?parts.join(''):'<p class="muted">No past exam results are shown yet.</p>');
+  box.innerHTML=html;
+  window.__pastHtml=html;window.__pastAt=Date.now();window.__pastUser=(window.__stuMe||{}).id;
 }
 // ---- student mockup look ----
 function stuRow(ic,label,val){return `<div class="stu-row"><span class="stu-ic">${ic}</span><div><small>${label}</small><b>${esc(val||'-')}</b></div></div>`}
@@ -2504,7 +2507,7 @@ function stuHour(){return Number(new Date().toLocaleString('en-GB',{timeZone:'As
 function stuDateTxt(){const o={timeZone:'Asia/Kolkata'},d=new Date();return d.toLocaleDateString('en-GB',{...o,day:'2-digit',month:'short',year:'numeric'})+', '+d.toLocaleDateString('en-US',{...o,weekday:'long'})}
 function stuTimeTxt(){return new Date().toLocaleTimeString('en-US',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit'})}
 function stuOpenGroup(re){
-  const G=window.__stuGroups||[];const i=G.findIndex(g=>re.test(g.t));if(i<0)return;
+  const G=window.__stuGroups||[];const i=G.findIndex(g=>re.test(g.t));if(i<0){try{toast('Please wait a moment and try again.')}catch(_){}return}
   const tiles=document.querySelectorAll('#student-dashboard button.dtile');
   if(window.__closeSheet)window.__closeSheet();
   setTimeout(()=>{if(tiles[i])tiles[i].click();stuSideActive(i)},40);
