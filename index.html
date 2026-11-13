@@ -1663,7 +1663,7 @@ async function load(roleOverride){
       const {data:me,error}=await sb.from('students').select('*').eq('user_id',user.id).maybeSingle();
       if(error) throw error;
       if(!me){showReg(true,'student');return;}
-      only('portal'); $('#student-dashboard').classList.remove('hide'); $('#role-dashboard').classList.add('hide');
+      only('portal'); $('#student-dashboard').classList.remove('hide'); $('#role-dashboard').classList.add('hide'); $('#role-dashboard').innerHTML='';
       return renderStudentPortal(me);
     }
 
@@ -1745,7 +1745,7 @@ function enhanceDashboard(root,role,name){
     const u=(cfg[k]||'').trim();if(!u)return;
     const a=document.createElement('a');a.className='dtile';a.href=u;a.target='_blank';a.rel='noopener';a.style.background=bg;a.style.textDecoration='none';a.innerHTML=`<span class="ti">${ic}</span><span>${nm}</span><span class="dtile-arrow">↗</span>`;grid.appendChild(a);
   });
-  root.prepend(grid);root.prepend(hero);root.appendChild(overlay);
+  root.prepend(grid);root.prepend(hero);document.body.appendChild(overlay);
   if(!document.getElementById('dash-option-style')){
     const st=document.createElement('style');st.id='dash-option-style';st.textContent=`
       .dash-option-overlay{position:fixed;inset:0;z-index:99999;background:rgba(12,9,48,.62);backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;padding:clamp(8px,2vw,20px)}
@@ -3793,6 +3793,7 @@ html body .dash-option-overlay{position:fixed!important;top:0!important;left:0!i
 html body .dash-option-sheet{position:relative!important;top:auto!important;left:auto!important;transform:none!important;max-height:none!important;height:auto!important;overflow:visible!important;touch-action:pan-y!important;margin:0 auto!important}
 html body #stu-bnav{z-index:50!important}
 </style>
+<style id="nv-overlay">html body .dash-option-overlay{position:fixed!important;inset:0!important;z-index:99999!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important}html body #role-dashboard.hide{display:none!important}</style>
 </body>
 </html>
 
