@@ -823,15 +823,17 @@ async function saveHolidayList(list){
 async function renderHolidays(){
   const el=document.getElementById('hol-list'); if(!el)return;
   const list=await holidayList();
-  el.innerHTML=list.length?list.slice().sort((x,y)=>y.date.localeCompare(x.date)).slice(0,30).map(h=>'<div class="card" style="margin:.4rem 0"><b>'+esc(h.date)+'</b> — '+esc(h.reason||'Holiday')+' <button class="btn sm alt" onclick="removeHoliday(\''+esc(h.date)+'\')">Remove</button></div>').join(''):'<p class="muted">No holidays saved yet.</p>';
+  el.innerHTML=list.length?list.slice().sort((x,y)=>y.date.localeCompare(x.date)).slice(0,30).map(h=>'<div class="card" style="margin:.4rem 0"><b>'+esc(h.date)+(h.end&&h.end!==h.date?' → '+esc(h.end):'')+'</b> — '+esc(h.reason||'Holiday')+' <button class="btn sm alt" onclick="removeHoliday(\''+esc(h.date)+'\')">Remove</button></div>').join(''):'<p class="muted">No holidays saved yet.</p>';
 }
 async function saveHoliday(){
   const d=document.getElementById('hol-d').value, r=(document.getElementById('hol-r').value||'').trim();
+  const e=(document.getElementById('hol-e').value||d);
   if(!d)return toast('Date chuno.');
+  if(e<d)return toast('"To" date cannot be before "From" date.');
   if(!r)return toast('Please enter a holiday reason.');
-  const list=(await holidayList()).filter(h=>h.date!==d); list.push({date:d,reason:r});
+  const list=(await holidayList()).filter(h=>h.date!==d); list.push({date:d,end:e,reason:r});
   try{await saveHolidayList(list)}catch(e){return toast('Save failed: '+e.message,7000)}
-  toast('Holiday saved.'); document.getElementById('hol-r').value=''; renderHolidays();
+  toast('Holiday saved.'); document.getElementById('hol-r').value=''; document.getElementById('hol-e').value=document.getElementById('hol-d').value; renderHolidays();
 }
 async function removeHoliday(d){
   const list=(await holidayList()).filter(h=>h.date!==d);
@@ -841,7 +843,7 @@ async function removeHoliday(d){
 function viewAttendance(){
   setTimeout(renderHolidays,0);
   $('#v-att').innerHTML = `<h2>Attendance</h2>
-  <div class=\"card\"><b>🏖 Holiday</b><p class=\"muted\">Enter the date and reason for a holiday. Students will see that day on their ID.</p><div class=\"g3\"><div><label class=\"muted\">Date</label><input id=\"hol-d\" type=\"date\" value=\"${today()}\"></div><div><label class=\"muted\">Reason (e.g. Diwali holiday)</label><input id=\"hol-r\" placeholder=\"Holiday reason\"></div></div><div class=\"btns\"><button class=\"btn\" onclick=\"saveHoliday()\">Save holiday</button></div><div id=\"hol-list\"><p class=\"muted\">Loading…</p></div></div>
+  <div class=\"card\"><b>🏖 Holiday</b><p class=\"muted\">Enter the holiday period and a message. Students see it on their dashboard during the holiday; after the last day it moves to Past Holidays automatically.</p><div class=\"g3\"><div><label class=\"muted\">From</label><input id=\"hol-d\" type=\"date\" value=\"${today()}\"></div><div><label class=\"muted\">To (last day)</label><input id=\"hol-e\" type=\"date\" value=\"${today()}\"></div><div><label class=\"muted\">Reason (e.g. Diwali holiday)</label><input id=\"hol-r\" placeholder=\"Holiday reason\"></div></div><div class=\"btns\"><button class=\"btn\" onclick=\"saveHoliday()\">Save holiday</button></div><div id=\"hol-list\"><p class=\"muted\">Loading…</p></div></div>
   <div class="card" id="self-att"><p class="muted">Loading self-attendance settings…</p></div>
   <div class="card">
     <input id="ad" type="date" value="${today()}" onchange="loadAtt()">
