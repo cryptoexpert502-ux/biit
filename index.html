@@ -1243,16 +1243,18 @@ var BIITIntro=(function(){
 </div>
 
 <div id="login" class="box card hide">
+<form id="login-form" autocomplete="on" onsubmit="event.preventDefault();doLogin();return false">
   <h2 id="login-title">Student Login</h2>
   <label class="muted">Login As *</label><select id="login-role" onchange="loginRoleChanged()"><option value="student">Computer Student</option><option value="library_student">Library Student</option><option value="teacher">Teacher</option><option value="promoter">Promoter</option></select>
   <label class="muted">Mobile Number</label>
-  <input id="em" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="Enter 10-digit phone number" autocomplete="tel" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10);clearLoginError()">
+  <input id="em" name="username" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="Enter 10-digit phone number" autocomplete="username" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10);clearLoginError()">
   <label class="muted">Password</label>
-  <div class="password-wrap"><input id="pw" type="password" autocomplete="current-password"><button type="button" class="password-toggle" onclick="togglePassword('pw',this)">Show</button></div>
+  <div class="password-wrap"><input id="pw" name="password" type="password" autocomplete="current-password"><button type="button" class="password-toggle" onclick="togglePassword('pw',this)">Show</button></div>
   <p id="login-err" role="alert" style="display:none;color:#b3362b;font-weight:700;margin:.2rem 0 .7rem"></p>
-  <button class="btn" onclick="doLogin()">Login</button>
-  <button class="btn alt" style="margin-left:.4rem" onclick="showReg(false)">Create Account / Register</button><br>
-  <button class="link" onclick="forgotPw()">Forgot Password?</button>
+  <button class="btn" type="submit">Login</button>
+  <button class="btn alt" type="button" style="margin-left:.4rem" onclick="showReg(false)">Create Account / Register</button><br>
+  <button class="link" type="button" onclick="forgotPw()">Forgot Password?</button>
+</form>
 </div>
 
 <div id="reg" class="box card hide">
@@ -2262,14 +2264,17 @@ async function markMyAttendance(role){
   try{
     say('Checking settings…');
     const sr=await sb.from('attendance_settings').select('*').eq('id',1).maybeSingle();
-    const c=sr.data||{};c.face_required=false;
+    if(sr.error||!sr.data){reset();return toast('Attendance settings load nahi hui. Thodi der baad try karein.',7000)}
+    const c=sr.data;c.face_required=false;
+    if(!c.enabled){reset();return toast('Self attendance is currently turned off by the institute.',7000)}
+    if(c.lat==null||c.lng==null){reset();return toast('Institute location set nahi hai. Admin se contact karein.',7000)}
     say('Checking your location…');
     let pos;
     try{pos=await getBestPosition(18000)}
     catch(err){reset();return toast(err&&err.code===1?'Please allow location permission for this site, then try again.':'Could not get your location. Turn on GPS and try again.',8000)}
     const lat=pos.coords.latitude,lng=pos.coords.longitude,acc=pos.coords.accuracy;
     // at the institute? (the face camera opens only after this check passes; the server checks again)
-    if(c.lat!=null&&c.lng!=null){
+    {
       const dist=distM(lat,lng,Number(c.lat),Number(c.lng)),rad=Number(c.radius_m||100);
       if(dist-acc>rad){reset();return toast('You are about '+fmtDist(dist)+' away from the institute. You must be within '+rad+' m'+' to'+' mark attendance.',9000)}
     }
@@ -2277,7 +2282,8 @@ async function markMyAttendance(role){
     say('Marking attendance…');
     let r=await sb.rpc('mark_attendance_checked',{p_lat:lat,p_lng:lng,p_accuracy:acc,p_role:role,p_descriptor:desc});
     if(r.error&&/does not exist|schema cache|could not find/i.test(r.error.message||'')){
-      r=await sb.rpc('mark_my_attendance',{p_lat:lat,p_lng:lng,p_accuracy:acc,p_role:role});
+      /* The GPS-checked function is missing on the server. Do NOT fall back to the unchecked one. */
+      reset();return toast('Attendance system update pending. Admin se contact karein.',8000)
     }
     if(r.error){reset();return toast('Could not mark attendance: '+r.error.message,7000)}
     const d=r.data||{};
